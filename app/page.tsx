@@ -1,0 +1,17 @@
+import { Suspense } from "react";
+import HomeClient from "./home-client";
+
+export default function Page() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[#0F0F0F]">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted">Loading...</p>
+        </div>
+      </div>
+    }>
+      <HomeClient />
+    </Suspense>
+  );
+}

@@ -1,0 +1,249 @@
+/* app/globals.css - Complete redesign for The Dining Co. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  /* The Dining Co. Luxury Design System */
+  --color-background: #0F0F0F;
+  --color-section: #1C1C1C;
+  --color-primary: #D4AF37;
+  --color-primary-hover: #F4C95D;
+  --color-secondary: #7B1E1E;
+  --color-text: #FFFFFF;
+  --color-muted: #B3B3B3;
+  --color-border: #2F2F2F;
+  --color-card: #1C1C1C;
+  
+  --font-heading: 'Plus Jakarta Sans', sans-serif;
+  --font-body: 'Inter', sans-serif;
+}
+
+:root {
+  --background: 0 0% 6%;
+  --foreground: 0 0% 100%;
+  --card: 0 0% 11%;
+  --card-foreground: 0 0% 100%;
+  --popover: 0 0% 11%;
+  --popover-foreground: 0 0% 100%;
+  --primary: 45 75% 52%;
+  --primary-foreground: 0 0% 0%;
+  --secondary: 0 66% 30%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 0 0% 15%;
+  --muted-foreground: 0 0% 70%;
+  --accent: 45 75% 52%;
+  --accent-foreground: 0 0% 0%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 0 0% 18%;
+  --input: 0 0% 11%;
+  --ring: 45 75% 52%;
+  --radius: 0.75rem;
+}
+
+.dark {
+  --background: 0 0% 6%;
+  --foreground: 0 0% 100%;
+  --card: 0 0% 11%;
+  --card-foreground: 0 0% 100%;
+  --popover: 0 0% 11%;
+  --popover-foreground: 0 0% 100%;
+  --primary: 45 75% 52%;
+  --primary-foreground: 0 0% 0%;
+  --secondary: 0 66% 30%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 0 0% 15%;
+  --muted-foreground: 0 0% 70%;
+  --accent: 45 75% 52%;
+  --accent-foreground: 0 0% 0%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 0 0% 18%;
+  --input: 0 0% 11%;
+  --ring: 45 75% 52%;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  
+  body {
+    background-color: var(--color-background);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-feature-settings: "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
+}
+
+@layer components {
+  .section-padding {
+    padding: 5rem 1rem;
+  }
+  
+  @media (min-width: 640px) {
+    .section-padding {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .section-padding {
+      padding-left: 2rem;
+      padding-right: 2rem;
+      padding-top: 6rem;
+      padding-bottom: 6rem;
+    }
+  }
+  
+  .container-custom {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+  
+  .glass-effect {
+    background: rgba(28, 28, 28, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  
+  .premium-card {
+    background: #1C1C1C;
+    border: 1px solid #2F2F2F;
+    border-radius: 1rem;
+    transition: all 0.3s ease;
+  }
+  
+  .premium-card:hover {
+    border-color: #D4AF37;
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(212, 175, 55, 0.05);
+  }
+  
+  .gold-gradient {
+    background: linear-gradient(135deg, #D4AF37, #F4C95D, #D4AF37);
+    background-size: 200% 200%;
+    animation: shimmer 3s ease-in-out infinite;
+  }
+  
+  .gold-text {
+    background: linear-gradient(135deg, #D4AF37, #F4C95D);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .btn-primary-gold {
+    background: linear-gradient(135deg, #D4AF37, #F4C95D);
+    color: #0F0F0F;
+    padding: 0.875rem 2rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .btn-primary-gold:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3);
+  }
+  
+  .btn-outline-gold {
+    background: transparent;
+    color: #D4AF37;
+    padding: 0.875rem 2rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    border: 2px solid #D4AF37;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+  
+  .btn-outline-gold:hover {
+    background: #D4AF37;
+    color: #0F0F0F;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2);
+  }
+  
+  .animate-on-scroll {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  
+  .animate-on-scroll.in-view {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0F0F0F;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D4AF37;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #F4C95D;
+}
+
+/* Stabilize input focus and ensure interactive cursors */
+@layer components {
+  input, textarea, select {
+    box-sizing: border-box;
+    caret-color: var(--color-text);
+    /* Avoid layout-changing transitions on focus */
+    transition: border-color 160ms ease, box-shadow 160ms ease !important;
+  }
+
+  /* Make all obvious interactive elements use pointer cursor */
+  a, button, input[type="button"], input[type="submit"], .btn-primary-gold, .btn-outline-gold {
+    cursor: pointer;
+  }
+
+  /* Ensure form input heights remain stable */
+  input[type="text"], input[type="email"], input[type="password"], input[type="tel"], textarea {
+    line-height: 1.2;
+    -webkit-appearance: none;
+  }
+}
