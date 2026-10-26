@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Package, Clock, Armchair, CheckCircle, Wallet, Smartphone, Loader2, ChevronDown, Sparkles, Crown } from "lucide-react";
-import { useRouter, useParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { Package, Clock, Armchair, CheckCircle, Wallet, Smartphone, Loader2, ChevronDown, MessageSquare } from "lucide-react";
+import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import useSWR, { mutate } from "swr";
@@ -24,9 +24,13 @@ type Order = {
   createdAt: string;
   tableNumber: string;
   total: number;
+  discount?: number;
+  discountCode?: string;
   orderStatus: OrderStatus;
   paymentMethod: PaymentMethod;
   items: OrderItem[];
+  specialInstructions?: string;
+  notes?: string;
 };
 
 // Helper to get payment method badge styles
@@ -34,17 +38,17 @@ const getPaymentBadge = (method: PaymentMethod) => {
   if (method === "upi") {
     return {
       icon: Smartphone,
-      bgColor: "bg-purple-500/10",
-      textColor: "text-purple-400",
-      borderColor: "border-purple-500/20",
+      bgColor: "bg-purple-100",
+      textColor: "text-purple-700",
+      borderColor: "border-purple-200",
       label: "UPI"
     };
   } else {
     return {
       icon: Wallet,
-      bgColor: "bg-amber-500/10",
-      textColor: "text-amber-400",
-      borderColor: "border-amber-500/20",
+      bgColor: "bg-amber-100",
+      textColor: "text-amber-800",
+      borderColor: "border-amber-200",
       label: "Cash"
     };
   }
@@ -90,7 +94,7 @@ function OrderCard({
   };
 
   return (
-    <div className={`bg-surface/20 border border-border/20 rounded-2xl p-4 mb-4 hover:border-primary/30 transition-all duration-300 ${isUpdating ? 'opacity-60 pointer-events-none' : ''}`}>
+    <div className={`bg-[#FBF8F3] border border-[#E5DFD4] rounded-2xl p-4 mb-4 hover:border-primary/40 transition-all duration-300 shadow-sm ${isUpdating ? 'opacity-60 pointer-events-none' : ''}`}>
       {/* Header */}
       <div className="flex flex-col xs:flex-row items-start justify-between gap-3 mb-4">
         <div className="flex items-start gap-3 w-full xs:w-auto">
@@ -113,12 +117,12 @@ function OrderCard({
               </div>
             </div>
             
-            <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-muted/60 font-medium mt-0.5 flex-wrap">
+            <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-muted font-medium mt-0.5 flex-wrap">
               <div className="flex items-center gap-1">
                 <Clock size={12} />
                 <span>{formatTime(order.createdAt)}</span>
               </div>
-              <span className="text-border/60">•</span>
+              <span className="text-muted/60">•</span>
               <div className="flex items-center gap-1">
                 <Armchair size={12} />
                 <span>Table {order.tableNumber}</span>
@@ -129,16 +133,23 @@ function OrderCard({
 
         {/* Price & Action Buttons */}
         <div className="flex items-center justify-between xs:justify-end gap-3 w-full xs:w-auto mt-2 xs:mt-0">
-          <span className="font-extrabold text-text text-sm sm:text-base tracking-tight">
-            ₹{order.total.toFixed(2)}
-          </span>
+          <div className="flex flex-col items-start xs:items-end">
+            <span className="font-extrabold text-text text-sm sm:text-base tracking-tight">
+              ₹{order.total.toFixed(2)}
+            </span>
+            {order.discount && order.discount > 0 ? (
+              <span className="text-[9px] text-emerald-700 font-bold bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.2 rounded-md mt-0.5">
+                🏷️ {order.discountCode || 'Promo'} (-₹{order.discount})
+              </span>
+            ) : null}
+          </div>
           
           {isPreparing ? (
             /* Mark as Served Button */
             <button
               onClick={handleMarkAsServed}
               disabled={isUpdating}
-              className="flex items-center gap-1 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-[10px] sm:text-xs font-bold transition-all duration-300 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] sm:text-xs font-bold transition-all duration-300 shadow-md whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <CheckCircle size={12} />
               <span>Mark as Served</span>
@@ -148,7 +159,7 @@ function OrderCard({
             <button
               onClick={handleMoveToPayment}
               disabled={isUpdating}
-              className="p-1.5 sm:p-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl transition-all duration-300 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-1.5 sm:p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all duration-300 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
               title="Move to Payment Completed"
             >
               <CheckCircle size={16} strokeWidth={2} />
@@ -162,7 +173,7 @@ function OrderCard({
         {visibleItems.map((item, idx) => (
           <div
             key={`${order._id}-${idx}`}
-            className="bg-surface/30 rounded-xl px-3 py-2 sm:py-2.5 flex items-center justify-between border border-border/20 hover:border-primary/30 transition-all duration-300"
+            className="bg-white rounded-xl px-3 py-2 sm:py-2.5 flex items-center justify-between border border-[#E5DFD4] hover:border-primary/40 transition-all duration-300 shadow-sm"
           >
             <div className="flex items-center gap-2 min-w-0 flex-1">
               <span className="w-5 h-5 rounded-lg bg-primary/10 text-primary text-[10px] font-bold flex items-center justify-center flex-shrink-0 border border-primary/20">
@@ -172,25 +183,45 @@ function OrderCard({
                 {item.name}
               </span>
             </div>
-            <span className="text-xs sm:text-sm font-bold text-muted/80 whitespace-nowrap ml-2">
+            <span className="text-xs sm:text-sm font-bold text-muted whitespace-nowrap ml-2">
               ₹{(item.price * item.quantity).toFixed(2)}
             </span>
           </div>
         ))}
         
         {showExpandButton && !expanded && remainingCount > 0 && (
-          <div className="text-[10px] sm:text-xs text-muted/40 italic px-1">
+          <div className="text-[10px] sm:text-xs text-muted/60 italic px-1 font-medium">
             +{remainingCount} more item{remainingCount > 1 ? 's' : ''}
           </div>
         )}
       </div>
 
+      {/* ─── Customer Special Request / Note ─── */}
+      {(order.specialInstructions || order.notes) && (
+        <div className="mt-2.5 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 flex items-start gap-2.5">
+          <MessageSquare size={14} className="mt-0.5 text-amber-700 flex-shrink-0" />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-amber-800">
+                Customer Request / Note
+              </span>
+              <span className="text-[10px] text-amber-800 font-semibold bg-amber-100 px-1.5 py-0.2 rounded border border-amber-300">
+                Table {order.tableNumber}
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm text-text font-medium mt-1 whitespace-pre-wrap leading-relaxed">
+              {order.specialInstructions || order.notes}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Expand/Collapse Toggle */}
       {showExpandButton && (
-        <div className="mt-3 pt-3 border-t border-border/20">
+        <div className="mt-3 pt-3 border-t border-[#E5DFD4]">
           <button
             onClick={() => setExpanded(!expanded)}
-            className="w-full flex items-center justify-center gap-1.5 py-1 text-[11px] sm:text-xs font-medium text-primary/70 hover:text-primary transition-colors duration-200 rounded-lg hover:bg-primary/5"
+            className="w-full flex items-center justify-center gap-1.5 py-1 text-[11px] sm:text-xs font-medium text-primary hover:text-primary-hover transition-colors duration-200 rounded-lg hover:bg-primary/5"
           >
             <span>{expanded ? 'Show Less' : 'View Details'}</span>
             <ChevronDown size={14} className={`transform transition-transform duration-300 ${expanded ? 'rotate-180' : ''}`} />
@@ -206,18 +237,18 @@ const OrdersSkeleton = () => {
   return (
     <div className="animate-pulse space-y-4">
       {[...Array(3)].map((_, i) => (
-        <div key={i} className="bg-surface/20 border border-border/20 rounded-2xl p-4 mb-4 h-40">
+        <div key={i} className="bg-[#FBF8F3] border border-border rounded-2xl p-4 mb-4 h-40 shadow-sm">
           <div className="flex items-start gap-3 mb-4">
-            <div className="w-10 h-10 rounded-full bg-surface/40 flex-shrink-0"></div>
+            <div className="w-10 h-10 rounded-full bg-surface flex-shrink-0"></div>
             <div className="flex-1 space-y-2">
-              <div className="h-4 w-24 bg-surface/40 rounded"></div>
-              <div className="h-3 w-32 bg-surface/40 rounded"></div>
+              <div className="h-4 w-24 bg-surface rounded"></div>
+              <div className="h-3 w-32 bg-surface rounded"></div>
             </div>
-            <div className="h-8 w-20 bg-surface/40 rounded"></div>
+            <div className="h-8 w-20 bg-surface rounded"></div>
           </div>
           <div className="space-y-2">
-            <div className="h-10 w-full bg-surface/30 rounded-xl"></div>
-            <div className="h-10 w-full bg-surface/30 rounded-xl"></div>
+            <div className="h-10 w-full bg-surface rounded-xl"></div>
+            <div className="h-10 w-full bg-surface rounded-xl"></div>
           </div>
         </div>
       ))}
@@ -227,7 +258,6 @@ const OrdersSkeleton = () => {
 
 // ─── Main Page Component ───
 export default function OrdersPage() {
-  const router = useRouter();
   const params = useParams();
   const slug = params?.menupages as string;
   const { toast } = useToast();
@@ -328,18 +358,18 @@ export default function OrdersPage() {
   };
 
   return (
-    <div className="bg-card/60 backdrop-blur-sm rounded-2xl border border-border/30 p-4 sm:p-6 w-full min-h-[600px] shadow-2xl shadow-primary/5 overflow-x-hidden">
+    <div className="bg-white rounded-2xl border border-[#E5DFD4] p-4 sm:p-6 w-full min-h-[600px] shadow-sm overflow-x-hidden">
       
       {/* ─── Top Header ─── */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20">
-            <Package className="w-4 h-4 text-primary" />
+          <div className="w-9 h-9 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20 text-primary shadow-sm">
+            <Package className="w-4 h-4" />
           </div>
           <h2 className="text-lg sm:text-xl font-bold text-text tracking-tight">
             Orders Management
           </h2>
-          {loading && <Loader2 size={16} className="animate-spin text-muted/60" />}
+          {loading && <Loader2 size={16} className="animate-spin text-muted" />}
         </div>
         
         {/* Summary Badges */}
@@ -348,8 +378,8 @@ export default function OrdersPage() {
             onClick={() => setMobileView("served")}
             className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 ${
               mobileView === "served" && isMobile
-                ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' 
-                : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20'
+                ? 'bg-emerald-600 text-white shadow-md' 
+                : 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100'
             }`}
           >
             <CheckCircle size={16} />
@@ -359,8 +389,8 @@ export default function OrdersPage() {
             onClick={() => setMobileView("pending")}
             className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 ${
               mobileView === "pending" && isMobile
-                ? 'bg-amber-500 text-background shadow-lg shadow-amber-500/20' 
-                : 'bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20'
+                ? 'bg-amber-500 text-white shadow-md' 
+                : 'bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100'
             }`}
           >
             <Clock size={16} />
@@ -376,7 +406,7 @@ export default function OrdersPage() {
         ) : mobileView === "pending" ? (
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <Clock size={18} className="text-amber-400" />
+              <Clock size={18} className="text-amber-600" />
               <h3 className="font-bold text-base text-text">Preparing Orders</h3>
             </div>
             <div className="flex flex-col">
@@ -395,8 +425,8 @@ export default function OrdersPage() {
                 </motion.div>
               ))}
               {pendingOrders.length === 0 && (
-                <div className="text-center py-12 text-muted/40 bg-surface/10 rounded-2xl border border-border/20">
-                  <Package size={32} className="mx-auto mb-2 opacity-30" />
+                <div className="text-center py-12 text-muted bg-[#FBF8F3] rounded-2xl border border-[#E5DFD4]">
+                  <Package size={32} className="mx-auto mb-2 opacity-40 text-primary" />
                   <p className="text-sm font-medium">No orders in preparation</p>
                 </div>
               )}
@@ -405,7 +435,7 @@ export default function OrdersPage() {
         ) : (
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <CheckCircle size={18} className="text-emerald-400" />
+              <CheckCircle size={18} className="text-emerald-600" />
               <h3 className="font-bold text-base text-text">Served Orders</h3>
             </div>
             <div className="flex flex-col">
@@ -424,8 +454,8 @@ export default function OrdersPage() {
                 </motion.div>
               ))}
               {servedOrders.length === 0 && (
-                <div className="text-center py-12 text-muted/40 bg-surface/10 rounded-2xl border border-border/20">
-                  <Package size={32} className="mx-auto mb-2 opacity-30" />
+                <div className="text-center py-12 text-muted bg-[#FBF8F3] rounded-2xl border border-[#E5DFD4]">
+                  <Package size={32} className="mx-auto mb-2 opacity-40 text-primary" />
                   <p className="text-sm font-medium">No served orders</p>
                 </div>
               )}
@@ -446,7 +476,7 @@ export default function OrdersPage() {
             {/* Column 1: Pending */}
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <Clock size={18} className="text-amber-400" />
+                <Clock size={18} className="text-amber-600" />
                 <h3 className="font-bold text-base text-text">Preparing Orders</h3>
               </div>
               <div className="flex flex-col">
@@ -465,8 +495,8 @@ export default function OrdersPage() {
                   </motion.div>
                 ))}
                 {pendingOrders.length === 0 && (
-                  <div className="text-center py-12 text-muted/40 bg-surface/10 rounded-2xl border border-border/20">
-                    <Package size={32} className="mx-auto mb-2 opacity-30" />
+                  <div className="text-center py-12 text-muted bg-[#FBF8F3] rounded-2xl border border-[#E5DFD4]">
+                    <Package size={32} className="mx-auto mb-2 opacity-40 text-primary" />
                     <p className="text-sm font-medium">No orders in preparation</p>
                   </div>
                 )}
@@ -476,7 +506,7 @@ export default function OrdersPage() {
             {/* Column 2: Served */}
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <CheckCircle size={18} className="text-emerald-400" />
+                <CheckCircle size={18} className="text-emerald-600" />
                 <h3 className="font-bold text-base text-text">Served Orders</h3>
               </div>
               <div className="flex flex-col">
@@ -495,8 +525,8 @@ export default function OrdersPage() {
                   </motion.div>
                 ))}
                 {servedOrders.length === 0 && (
-                  <div className="text-center py-12 text-muted/40 bg-surface/10 rounded-2xl border border-border/20">
-                    <Package size={32} className="mx-auto mb-2 opacity-30" />
+                  <div className="text-center py-12 text-muted bg-[#FBF8F3] rounded-2xl border border-[#E5DFD4]">
+                    <Package size={32} className="mx-auto mb-2 opacity-40 text-primary" />
                     <p className="text-sm font-medium">No served orders</p>
                   </div>
                 )}

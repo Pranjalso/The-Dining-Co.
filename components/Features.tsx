@@ -2,93 +2,80 @@
 
 import { 
   QrCode, 
-  LayoutDashboard, 
-  RefreshCw, 
+  Sparkles, 
   Smartphone, 
-  Shield, 
-  Users,
-  BarChart3,
-  Globe,
-  Clock,
-  Award,
-  Sparkles,
-  Zap
+  ShieldCheck, 
+  Bell,
+  Star,
+  Receipt,
+  UtensilsCrossed,
+  Tag
 } from "lucide-react";
 
 const features = [
   {
     icon: QrCode,
-    title: "Digital QR Menus",
-    description: "Create beautiful, interactive digital menus that customers can access instantly with a simple QR scan.",
-    color: "gold"
+    title: "Table-Wise QR Generator",
+    description: "Generate customized, high-resolution QR codes for each table (Table 1 to 50+) with instant printable standee sheets.",
   },
   {
-    icon: RefreshCw,
-    title: "Real-Time Updates",
-    description: "Update your menu instantly across all devices. Change prices, add items, or remove dishes in seconds.",
-    color: "gold"
-  },
-  {
-    icon: LayoutDashboard,
-    title: "Restaurant Dashboard",
-    description: "Manage your entire restaurant from a single, elegant dashboard. View analytics, orders, and more.",
-    color: "gold"
-  },
-  {
-    icon: Users,
-    title: "Multi-Restaurant Management",
-    description: "Manage multiple restaurant locations from one central platform with role-based access control.",
-    color: "gold"
+    icon: UtensilsCrossed,
+    title: "Traditional Namaste Welcome",
+    description: "Delight your guests upon scanning with an elegant 2-second cultural Namaste greeting showing your cafe name and seated table number.",
   },
   {
     icon: Smartphone,
-    title: "Mobile-First Design",
-    description: "Every menu is optimized for mobile devices, ensuring a premium experience for every customer.",
-    color: "gold"
+    title: "Zero-App Mobile Menu",
+    description: "Customers browse full digital menus, add special cooking instructions, and place orders directly in their mobile browser without downloading any app.",
   },
   {
-    icon: Shield,
-    title: "Enterprise Security",
-    description: "Bank-grade encryption and security protocols to protect your restaurant data and customer information.",
-    color: "gold"
+    icon: Tag,
+    title: "Promotional Deals & Coupon Engine",
+    description: "Create and manage active discount offers (20% off, flat ₹100, combo specials) that appear to guests upon scan and auto-apply at checkout.",
   },
   {
-    icon: BarChart3,
-    title: "Advanced Analytics",
-    description: "Get deep insights into customer preferences, popular items, and revenue trends to grow your business.",
-    color: "gold"
+    icon: Bell,
+    title: "Live Kitchen Display & Chimes",
+    description: "Kitchen staff receive instant audio notifications and real-time order status tracking (Pending ➔ Preparing ➔ Completed / Rejected).",
   },
   {
-    icon: Globe,
-    title: "Global Reach",
-    description: "Serve international customers with multi-language support and currency conversion built-in.",
-    color: "gold"
+    icon: Receipt,
+    title: "Dynamic UPI QR & Cash Payments",
+    description: "Generates real-time UPI QR codes with exact order total and table notes pre-filled for instant GPay, PhonePe, Paytm, and cash at counter.",
   },
   {
-    icon: Clock,
-    title: "24/7 Support",
-    description: "Our dedicated support team is always available to help you with any questions or issues.",
-    color: "gold"
+    icon: Sparkles,
+    title: "Payment Received Confirmation",
+    description: "When staff marks an order as paid, diners instantly hear a pleasant harmonic chime and a real-time confirmation banner on their phone.",
+  },
+  {
+    icon: Star,
+    title: "5-Star Rating & Praise Tags",
+    description: "Collect authentic customer ratings and praise tags (Delicious Food, Quick Service, Great Vibe) after every meal, synced to your dashboard.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "0% Commission Forever",
+    description: "Never pay 20-30% commissions to third-party delivery aggregators. Keep 100% of your restaurant earnings with our flat ₹999/month subscription.",
   },
 ];
 
 const Features = () => {
   return (
-    <section id="features" className="section-padding bg-[#0F0F0F] scroll-mt-20">
-      <div className="max-w-7xl mx-auto">
+    <section id="features" className="section-padding bg-background scroll-mt-20 relative">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16 animate-on-scroll">
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="w-8 h-0.5 bg-primary"></div>
-            <span className="text-sm font-medium tracking-wider text-primary uppercase">Features</span>
+            <span className="text-sm font-medium tracking-wider text-primary uppercase font-display">Engineered for Dining Excellence</span>
             <div className="w-8 h-0.5 bg-primary"></div>
           </div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
-            Everything You Need for <span className="gold-text">Digital Excellence</span>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 font-heading">
+            Everything Your Restaurant Needs, <span className="gold-text">Built Right In</span>
           </h2>
           <p className="text-lg text-muted max-w-3xl mx-auto leading-relaxed">
-            A comprehensive platform designed to transform your restaurant's digital presence 
-            and streamline your operations.
+            From table QR scanning to kitchen dispatch, promotional coupons, UPI billing, and customer feedback — explore the complete operating system.
           </p>
         </div>
 
@@ -99,43 +86,21 @@ const Features = () => {
             return (
               <div
                 key={index}
-                className="group premium-card p-6 md:p-8 animate-on-scroll"
+                className="group premium-card p-6 md:p-8 animate-on-scroll hover:border-primary/50 transition-all duration-300"
                 style={{ animationDelay: `${index * 0.05}s` }}
               >
-                <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mb-5 group-hover:bg-primary/20 transition-all duration-300 group-hover:scale-110">
+                <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-primary/20 transition-all duration-300 group-hover:scale-110 border border-primary/20">
                   <Icon className="text-primary w-7 h-7" />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-primary transition-colors">
+                <h3 className="text-xl font-bold text-text mb-2.5 group-hover:text-primary transition-colors font-heading">
                   {feature.title}
                 </h3>
-                <p className="text-muted leading-relaxed">
+                <p className="text-sm text-muted leading-relaxed">
                   {feature.description}
                 </p>
-                <div className="mt-4 flex items-center text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <span className="text-sm font-medium">Learn More</span>
-                  <svg className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
               </div>
             );
           })}
-        </div>
-
-        {/* Bottom CTA */}
-        <div className="mt-16 text-center animate-on-scroll">
-          <div className="premium-card p-8 md:p-12 max-w-4xl mx-auto">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-              <div className="text-left">
-                <h3 className="text-2xl font-bold text-white mb-2">Ready to Get Started?</h3>
-                <p className="text-muted">Join 500+ restaurants using The Dining Co.</p>
-              </div>
-              <button className="btn-primary-gold whitespace-nowrap flex items-center gap-2">
-                <Zap size={18} />
-                Start Free Trial
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </section>

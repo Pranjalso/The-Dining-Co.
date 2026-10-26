@@ -3,8 +3,8 @@ import connectDB from '@/lib/db/connect';
 import Order from '@/lib/db/models/Order';
 import MenuItem from '@/lib/db/models/MenuItem';
 import Cafe from '@/lib/db/models/Cafe';
-import { withAuth, withCafeAccess } from '@/lib/auth/middleware';
-import { AuthRequest } from '@/lib/auth/middleware';
+import Offer from '@/lib/db/models/Offer';
+import { withCafeAccess, AuthRequest } from '@/lib/auth/middleware';
 import mongoose from 'mongoose';
 import { pusher } from '@/lib/pusher';
 
@@ -23,7 +23,7 @@ export const GET = withCafeAccess(async (
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
 
-    let query: any = { cafeSlug: params.slug };
+    const query: any = { cafeSlug: params.slug };
 
     if (status) {
       if (status.includes(',')) {
@@ -190,11 +190,50 @@ export const POST = async (
       (sum: number, item) => sum + item.price * item.quantity,
       0
     );
-    const tax = subtotal * (taxRate / 100);
-    const total = subtotal + tax;
+
+    // Calculate Offer / Promo Code Discount
+    let discount = 0;
+    let discountCode = '';
+
+    if (body.discountCode) {
+      const codeClean = String(body.discountCode).trim().toUpperCase();
+      const offer = await Offer.findOne({ 
+        cafeSlug: slug.toLowerCase(), 
+        code: codeClean, 
+        isActive: true 
+      });
+
+      if (offer && (!offer.minOrderAmount || subtotal >= offer.minOrderAmount)) {
+        discountCode = offer.code;
+        if (offer.discountType === 'percentage') {
+          const pctMatch = String(offer.discountValue).match(/\d+/);
+          const pct = pctMatch ? parseInt(pctMatch[0], 10) : 10;
+          discount = Math.round((subtotal * pct) / 100);
+        } else if (offer.discountType === 'flat') {
+          const flatMatch = String(offer.discountValue).match(/\d+/);
+          const flatVal = flatMatch ? parseInt(flatMatch[0], 10) : 100;
+          discount = Math.min(subtotal, flatVal);
+        } else {
+          const valMatch = String(offer.discountValue).match(/\d+/);
+          const val = valMatch ? parseInt(valMatch[0], 10) : 50;
+          discount = Math.min(subtotal, val);
+        }
+      } else if (typeof body.discountAmount === 'number' && body.discountAmount > 0) {
+        discount = Math.min(subtotal, Math.round(body.discountAmount));
+        discountCode = codeClean;
+      }
+    } else if (typeof body.discountAmount === 'number' && body.discountAmount > 0) {
+      discount = Math.min(subtotal, Math.round(body.discountAmount));
+    }
+
+    const discountedSubtotal = Math.max(0, subtotal - discount);
+    const tax = Math.round(discountedSubtotal * (taxRate / 100));
+    const total = discountedSubtotal + tax;
 
     const lastOrder = await Order.findOne({ cafeSlug: slug }).sort({ orderNumber: -1 }).select('orderNumber').lean();
     const nextOrderNumber = lastOrder && typeof lastOrder.orderNumber === 'number' ? lastOrder.orderNumber + 1 : 1000;
+
+    const specialInstructions = body.specialInstructions || body.notes || body.description || '';
 
     const order = await Order.create({
       orderNumber: nextOrderNumber,
@@ -204,10 +243,14 @@ export const POST = async (
       items,
       cafeSlug: slug,
       subtotal,
+      discount,
+      discountCode,
       tax,
       total,
       orderStatus: 'pending',
       upiId: body.upiId,
+      specialInstructions,
+      notes: specialInstructions,
     });
 
     // Trigger Pusher event
@@ -216,7 +259,12 @@ export const POST = async (
         orderId: order._id,
         orderNumber: order.orderNumber,
         tableNumber: order.tableNumber,
+        subtotal: order.subtotal,
+        discount: order.discount,
+        discountCode: order.discountCode,
         total: order.total,
+        specialInstructions: order.specialInstructions,
+        notes: order.notes,
         timestamp: order.createdAt,
       });
     } catch (pusherError) {
@@ -272,6 +320,54 @@ export const PATCH = withCafeAccess(async (
         { success: false, message: 'Order not found' },
         { status: 404 }
       );
+    }
+
+    // Trigger Pusher event for customer & table real-time notification
+    try {
+      const isPaymentCompleted = order.paymentStatus === 'completed';
+      const eventPayload = {
+        orderId: order._id.toString(),
+        orderNumber: order.orderNumber,
+        tableNumber: order.tableNumber,
+        orderStatus: order.orderStatus,
+        paymentStatus: order.paymentStatus,
+        isPaymentCompleted,
+        isPaymentReceived: isPaymentCompleted,
+        paymentMethod: order.paymentMethod,
+        total: order.total,
+        isRejected: order.orderStatus === 'cancelled',
+        message: order.orderStatus === 'cancelled'
+          ? `Your order #${order.orderNumber} for Table ${order.tableNumber} is rejected`
+          : isPaymentCompleted
+          ? `Payment of ₹${order.total} received! Thank you for dining with us.`
+          : `Order #${order.orderNumber} status updated to ${order.orderStatus}`,
+        timestamp: new Date().toISOString(),
+      };
+
+      // 1. Cafe-wide channel
+      await pusher.trigger(`cafe-${params.slug}`, 'order-status-updated', eventPayload);
+      if (isPaymentCompleted) {
+        await pusher.trigger(`cafe-${params.slug}`, 'payment-received', eventPayload);
+      }
+
+      // 2. Specific table channel (e.g. cafe-mycafe-table-09)
+      if (order.tableNumber) {
+        const cleanTable = String(order.tableNumber).trim();
+        await pusher.trigger(`cafe-${params.slug}-table-${cleanTable}`, 'order-status-updated', eventPayload);
+        if (isPaymentCompleted) {
+          await pusher.trigger(`cafe-${params.slug}-table-${cleanTable}`, 'payment-received', eventPayload);
+        }
+      }
+
+      // 3. Specific order channel (e.g. order-1001)
+      if (order.orderNumber) {
+        await pusher.trigger(`order-${order.orderNumber}`, 'order-status-updated', eventPayload);
+        if (isPaymentCompleted) {
+          await pusher.trigger(`order-${order.orderNumber}`, 'payment-received', eventPayload);
+        }
+      }
+    } catch (pusherError) {
+      console.error('[Pusher] Order status update trigger failed:', pusherError);
     }
 
     return NextResponse.json({

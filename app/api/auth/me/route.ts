@@ -8,7 +8,20 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   try {
-    const token = req.cookies.get('token_cafeadmin')?.value || req.cookies.get('token_superadmin')?.value;
+    const roleParam = req.nextUrl.searchParams.get('role');
+    const referer = req.headers.get('referer') || '';
+    const isSuperAdmin = roleParam === 'superadmin' || (referer.includes('/admin') && !referer.match(/\/[^/]+\/admin/));
+    const isCafeAdmin = roleParam === 'cafeadmin' || (!isSuperAdmin && referer.includes('/admin'));
+
+    let token: string | undefined;
+    if (isSuperAdmin) {
+      token = req.cookies.get('token_superadmin')?.value;
+    } else if (isCafeAdmin) {
+      token = req.cookies.get('token_cafeadmin')?.value;
+    } else {
+      token = req.cookies.get('token_cafeadmin')?.value || req.cookies.get('token_superadmin')?.value;
+    }
+
     if (!token) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }

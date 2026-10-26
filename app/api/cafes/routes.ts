@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db/connect';
 import Cafe from '@/lib/db/models/Cafe';
 import Admin from '@/lib/db/models/Admin';
-import { withAuth } from '@/lib/auth/middleware';
-import { AuthRequest } from '@/lib/auth/middleware';
+import { withAuth, AuthRequest } from '@/lib/auth/middleware';
 import slugify from 'slugify';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
@@ -21,7 +20,7 @@ export const GET = withAuth(async (req: AuthRequest) => {
     const status = searchParams.get('status');
     const search = searchParams.get('search');
 
-    let query: any = {};
+    const query: any = {};
 
     if (city && city !== 'All Cities') {
       query.city = city;
@@ -173,14 +172,14 @@ export const POST = withAuth(async (req: AuthRequest) => {
     }
 
     // Prepare base URL for links
-    const protocol = req.headers.get('x-forwarded-proto') || 'http';
-    const host = req.headers.get('host') || 'https://smart-dini-backend.vercel.app';
+    const protocol = req.headers.get('x-forwarded-proto') || 'https';
+    const host = req.headers.get('host') || 'the-dining-co.vercel.app';
     const origin = `${protocol}://${host}`;
 
     const baseUrl =
-      process.env.NEXT_PUBLIC_APP_URL ||
-      origin ||
-      'https://smart-dini-backend.vercel.app';
+      (process.env.NEXT_PUBLIC_APP_URL && !process.env.NEXT_PUBLIC_APP_URL.includes('localhost'))
+        ? process.env.NEXT_PUBLIC_APP_URL
+        : (origin || 'https://the-dining-co.vercel.app');
 
     const menuUrl = `${baseUrl}/${slug}/menu`;
     const adminUrl = `${baseUrl}/${slug}/admin`;

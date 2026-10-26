@@ -1,6 +1,6 @@
 "use client";
 
-import { QrCode, ShoppingCart, CreditCard, Bell, Sparkles, ChevronRight } from "lucide-react";
+import { QrCode, ShoppingCart, CreditCard, Bell, Zap, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
@@ -38,7 +38,7 @@ const HowItWorks = () => {
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 animate-on-scroll">
           <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 mb-4">
-            <Sparkles className="h-4 w-4 text-primary" />
+            <Zap className="h-4 w-4 text-primary" />
             <span className="text-sm font-medium text-primary">How It Works</span>
           </div>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-text">
@@ -98,7 +98,7 @@ const HowItWorks = () => {
           <div className="card-glass p-8 max-w-3xl mx-auto border border-border/50">
             <h3 className="text-2xl font-bold text-text mb-3">Ready to Get Started?</h3>
             <p className="text-muted mb-6">
-              Join 500+ restaurants already using The Dining Co. to digitize their menus.
+              Transform your cafe or restaurant with The Dining Co. table QR technology.
             </p>
             <Link href="/#pricing">
               <Button size="lg" className="btn-primary group">

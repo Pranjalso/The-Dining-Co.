@@ -12,7 +12,6 @@ import {
   Scale, 
   Mail, 
   Crown, 
-  Sparkles, 
   CheckCircle, 
   ArrowRight,
   Lock,
@@ -75,7 +74,7 @@ export default function TermsAndConditions() {
             variants={staggerContainer}
             initial="hidden"
             animate="visible"
-            className="bg-card/60 backdrop-blur-sm border border-border/30 rounded-2xl p-6 md:p-8 shadow-2xl shadow-primary/5"
+            className="bg-white border border-border rounded-2xl p-6 md:p-8 shadow-sm"
           >
             <div className="space-y-8 text-muted/80 leading-relaxed">
               {/* Introduction */}
@@ -188,14 +187,14 @@ export default function TermsAndConditions() {
                   <p className="text-sm">
                     If you have any questions about these Terms, please contact us at:
                   </p>
-                  <div className="bg-surface/20 border border-border/20 rounded-xl p-4">
+                  <div className="bg-[#FBF8F3] border border-border rounded-xl p-4">
                     <p className="text-sm">
-                      <span className="text-muted/60">Email:</span>{' '}
+                      <span className="text-muted">Email:</span>{' '}
                       <a 
-                        href="mailto:support@thediningco.com" 
+                        href="mailto:thediningco.contact@gmail.com" 
                         className="text-primary hover:underline transition-colors font-medium"
                       >
-                        support@thediningco.com
+                        thediningco.contact@gmail.com
                       </a>
                     </p>
                   </div>
@@ -205,12 +204,12 @@ export default function TermsAndConditions() {
               {/* Important Notice */}
               <motion.div 
                 variants={fadeInUp}
-                className="mt-4 p-4 bg-amber-500/5 border border-amber-500/20 rounded-xl flex items-start gap-3"
+                className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3"
               >
-                <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="text-sm font-semibold text-amber-400 mb-1">Important Notice</h4>
-                  <p className="text-xs text-amber-400/70">
+                  <h4 className="text-sm font-semibold text-amber-800 mb-1">Important Notice</h4>
+                  <p className="text-xs text-amber-700">
                     By using The Dining Co. platform, you acknowledge that you have read, understood, 
                     and agree to be bound by these Terms and Conditions.
                   </p>

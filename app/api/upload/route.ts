@@ -1,6 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { withAuth } from '@/lib/auth/middleware';
-import { AuthRequest } from '@/lib/auth/middleware';
+import { NextResponse } from 'next/server';
+import { withAuth, AuthRequest } from '@/lib/auth/middleware';
 import { uploadToCloudinary } from '@/lib/cloudinary/config';
 
 export const POST = withAuth(async (req: AuthRequest) => {

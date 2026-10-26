@@ -1,4 +1,4 @@
-import jwt, { Secret, SignOptions } from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { JwtPayload } from '@/types';
 import { cookies } from 'next/headers';
 
@@ -27,7 +27,7 @@ export const verifyToken = (token: string): JwtPayload | null => {
   try {
     // 🔥 This automatically checks expiry (exp)
     return jwt.verify(token, JWT_SECRET) as JwtPayload;
-  } catch (error) {
+  } catch {
     return null; // expired or invalid token
   }
 };
@@ -53,7 +53,7 @@ export const getRefreshTokenFromCookiesAny = () => {
 export const verifyRefreshToken = (token: string): JwtPayload | null => {
   try {
     return jwt.verify(token, JWT_REFRESH_SECRET) as JwtPayload;
-  } catch (error) {
+  } catch {
     return null;
   }
 };

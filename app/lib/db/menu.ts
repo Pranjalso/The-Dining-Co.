@@ -24,7 +24,7 @@ export async function getMenuCategories(slug: string) {
 export async function getMenuItems(slug: string, category?: string, ids?: string[]) {
   await connectDB();
 
-  let query: any = { cafeSlug: slug };
+  const query: any = { cafeSlug: slug };
   
   if (category) {
     query.category = category;

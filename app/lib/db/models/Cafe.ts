@@ -18,6 +18,9 @@ export interface ICafeDocument extends Document {
   contactNumber: string;
   taxRate: number;
   showTax: boolean;
+  upiQrCode?: string;
+  upiId?: string;
+  tables?: string[];
 }
 
 const CafeSchema = new Schema<ICafeDocument>(
@@ -102,6 +105,20 @@ const CafeSchema = new Schema<ICafeDocument>(
     showTax: {
       type: Boolean,
       default: true,
+    },
+    upiQrCode: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    upiId: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    tables: {
+      type: [String],
+      default: [],
     },
   },
   {

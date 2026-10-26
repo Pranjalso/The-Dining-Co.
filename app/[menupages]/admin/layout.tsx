@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname, useParams, useRouter } from "next/navigation";
 import { useState, useEffect, useCallback, useRef } from "react";
 import useSWR, { mutate } from "swr";
-import Pusher from 'pusher-js';
 import { motion } from "framer-motion";  
 import {
   LayoutDashboard,
@@ -16,13 +15,15 @@ import {
   User,
   CheckCircle,
   Settings,
+  QrCode,
   LogOut,
   Loader2,
   Volume2,
   VolumeX,
   Crown,
-  Sparkles,
   Store,
+  Star,
+  TicketPercent,
 } from "lucide-react";
 
 import useLocalStorage from "@/hooks/use-local-storage";
@@ -43,6 +44,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const isFirstLoad = useRef(true);
   const lastCountRef = useRef(0);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const broadcastRef = useRef<BroadcastChannel | null>(null);
 
   // Initialize audio system and set up aggressive unlocking
   useEffect(() => {
@@ -110,7 +112,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [soundEnabled]);
 
   // BroadcastChannel to prevent duplicate sound/orders across tabs/pages
-  const broadcastRef = useRef<BroadcastChannel | null>(null);
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (!broadcastRef.current) {
@@ -207,14 +208,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { label: "Orders", href: `${base}/orders`, icon: ClipboardList },
     { label: "Payment Completed", href: `${base}/payment-completed`, icon: CheckCircle },
     { label: "Manage Menu", href: `${base}/manage-menu`, icon: UtensilsCrossed },
+    { label: "Menu QR Code", href: `${base}/qr-code`, icon: QrCode },
+    { label: "Customer Ratings", href: `${base}/ratings`, icon: Star },
+    { label: "Special Offers", href: `${base}/offers`, icon: TicketPercent },
     { label: "Settings", href: `${base}/settings`, icon: Settings }, 
   ];
 
   // Brand Colors - The Dining Co. Theme
   const brandGold = "text-primary"; // Gold Text
   const brandGoldHover = "hover:text-primary";
-  const activeBg = "bg-primary/10"; // Gold transparent background
-  const activeText = "text-primary"; // Gold Text
+  const activeBg = "bg-white border border-[#E5DFD4]"; // Crisp White card on Warm Beige sidebar
+  const activeText = "text-primary font-bold"; // Gold Text
   const activeBorder = "border-r-2 border-primary";
 
   // Logout handler
@@ -222,7 +226,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (loggingOut) return;
     setLoggingOut(true);
     try {
-      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+      await fetch('/api/auth/logout', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ role: 'cafeadmin' }),
+      });
     } catch (_) {
       // ignore
     } finally {
@@ -233,7 +242,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   return (
-    <div className="min-h-screen bg-background font-sans antialiased">
+    <div className="min-h-screen bg-[#FBF8F3] font-sans antialiased">
       {/* Hidden Audio Element for Notifications */}
       <audio 
         ref={audioRef}
@@ -247,7 +256,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 lg:hidden"
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -256,21 +265,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* ─── Sidebar ─── */}
         <aside
           className={`
-            fixed lg:static top-0 left-0 h-full z-50 w-[280px] bg-card/90 backdrop-blur-xl border-r border-border/40 shadow-2xl shadow-primary/5 flex flex-col transition-transform duration-300 ease-in-out
+            fixed lg:static top-0 left-0 h-full z-50 w-[280px] bg-[#F5F0E6] border-r border-[#E5DFD4] shadow-sm flex flex-col transition-transform duration-300 ease-in-out
             ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
           `}
         >
           {/* Logo Area */}
-          <div className="px-6 py-6 flex items-center justify-between border-b border-border/30">
+          <div className="px-6 py-6 flex items-center justify-between border-b border-[#E5DFD4]">
             <Link href={base} className="flex items-center gap-2.5">
-              <div className="w-9 h-9 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl flex items-center justify-center border border-primary/30 shadow-lg shadow-primary/20">
+              <div className="w-9 h-9 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/25 shadow-sm">
                 <Crown className="w-5 h-5 text-primary" />
               </div>
               <div>
                 <h1 className="text-lg font-bold text-text tracking-tight">
                   The <span className="text-primary">Dining</span> Co.
                 </h1>
-                <p className="text-[10px] text-muted/50 uppercase tracking-[0.15em]">Admin Panel</p>
+                <p className="text-[10px] text-muted uppercase tracking-[0.15em] font-medium">Admin Panel</p>
               </div>
             </Link>
             <button
@@ -282,7 +291,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+          <nav className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
             {navItems.map(({ label, href, icon: Icon, badge }: any) => {
               const isActive = href === base ? pathname === base : pathname.startsWith(href);
               
@@ -294,25 +303,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   className={`
                     relative flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group
                     ${isActive 
-                      ? `${activeBg} ${activeText} shadow-lg shadow-primary/5` 
-                      : "text-muted hover:bg-surface/30 hover:text-text"}
+                      ? `${activeBg} ${activeText} shadow-sm` 
+                      : "text-muted hover:bg-white/60 hover:text-text"}
                   `}
                 >
                   {/* Active indicator bar */}
                   {isActive && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-8 bg-primary rounded-r-full"></span>
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full"></span>
                   )}
                   
                   <Icon 
                     size={18} 
                     strokeWidth={isActive ? 2.5 : 2} 
-                    className={`${isActive ? 'text-primary' : 'text-muted/60 group-hover:text-text'} transition-colors`}
+                    className={`${isActive ? 'text-primary' : 'text-muted group-hover:text-text'} transition-colors`}
                   />
                   <span className="flex-1">{label}</span>
 
                   {/* Sidebar Badge */}
                   {badge > 0 && (
-                    <span className={`bg-primary text-background text-[10px] font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center shadow-lg shadow-primary/20 ${shouldPulse ? 'animate-pulse' : ''}`}>
+                    <span className={`bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center shadow-sm ${shouldPulse ? 'animate-pulse' : ''}`}>
                       {badge > 99 ? "99+" : badge}
                     </span>
                   )}
@@ -322,16 +331,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </nav>
 
           {/* Logout Button */}
-          <div className="p-4 border-t border-border/30">
+          <div className="p-4 border-t border-[#E5DFD4]">
             <button
               onClick={handleLogout}
               disabled={loggingOut}
-              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-muted hover:text-rose-400 hover:bg-rose-500/10 transition-all duration-200 group disabled:opacity-60"
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-muted hover:text-rose-600 hover:bg-rose-50 transition-all duration-200 group disabled:opacity-60"
             >
               <LogOut 
                 size={18} 
                 strokeWidth={2} 
-                className="text-muted/60 group-hover:text-rose-400 transition-colors"
+                className="text-muted group-hover:text-rose-600 transition-colors"
               />
               <span>{loggingOut ? 'Logging out…' : 'Logout'}</span>
             </button>
@@ -339,10 +348,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </aside>
 
         {/* ─── Main Content Wrapper ─── */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#FBF8F3]">
           
           {/* Top Header */}
-          <header className="bg-gradient-to-r from-card/95 to-card/80 backdrop-blur-xl border-b border-border/30 px-6 py-4 flex items-center gap-4 shadow-lg shadow-primary/5 shrink-0 z-30">
+          <header className="bg-white/90 backdrop-blur-xl border-b border-[#E5DFD4] px-6 py-4 flex items-center gap-4 shadow-sm shrink-0 z-30">
             <button
               className="lg:hidden text-muted hover:text-text transition-colors"
               onClick={() => setSidebarOpen(true)}
@@ -355,14 +364,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <div className="relative group">
                 <button
                   onClick={toggleSoundPreference}
-                  className={`w-9 h-9 rounded-xl bg-surface/30 border border-border/30 hover:border-primary/30 flex items-center justify-center transition-all duration-300 
+                  className={`w-9 h-9 rounded-xl bg-[#FBF8F3] border border-[#E5DFD4] hover:border-primary/40 flex items-center justify-center transition-all duration-300 shadow-sm
                     ${soundEnabled && !audioUnlocked ? 'animate-pulse ring-2 ring-primary/30 ring-offset-2 ring-offset-background' : ''}`}
                   title={!audioUnlocked && soundEnabled ? "Click anywhere on the page to enable sound" : (soundEnabled ? "Mute notifications" : "Unmute notifications")}
                 >
                   {soundEnabled ? (
                     <Volume2 size={18} className={`text-primary ${!audioUnlocked ? 'opacity-50' : 'opacity-100'}`} />
                   ) : (
-                    <VolumeX size={18} className="text-muted/50" />
+                    <VolumeX size={18} className="text-muted" />
                   )}
                 </button>
                 
@@ -418,7 +427,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </div>
                 <div className="flex gap-4 flex-wrap justify-center">
                   <button 
-                    onClick={() => window.location.href = 'mailto:support@thediningco.com'}
+                    onClick={() => window.location.href = 'mailto:thediningco.contact@gmail.com'}
                     className="px-8 py-3 bg-gradient-to-r from-primary to-primary/85 hover:from-primary/90 hover:to-primary/90 text-background font-bold rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-300"
                   >
                     Contact Support
@@ -446,7 +455,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   Access to your digital menu and admin features is currently restricted.
                 </div>
                 <button 
-                  onClick={() => window.location.href = 'mailto:support@thediningco.com'}
+                  onClick={() => window.location.href = 'mailto:thediningco.contact@gmail.com'}
                   className="px-8 py-3 bg-gradient-to-r from-primary to-primary/85 hover:from-primary/90 hover:to-primary/90 text-background font-bold rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-300"
                 >
                   Renew Subscription

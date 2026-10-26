@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
 import ScrollAnimations from "@/components/ScrollAnimations";
 import { Button } from "@/components/ui/button";
-import { Target, Zap, Coffee, Heart, Sparkles, Users, Globe, Shield, Award, ChevronRight, CheckCircle } from "lucide-react";
+import { Target, Zap, Coffee, Heart, Users, Globe, Shield, Award, ChevronRight, CheckCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { fadeIn, staggerContainer, textVariant } from "@/utils/motion";
 import Head from "next/head";
@@ -41,7 +41,7 @@ const CompanyPage = () => {
               className="text-center max-w-4xl mx-auto"
             >
               <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 mb-6">
-                <Sparkles className="h-4 w-4 text-primary" />
+                <Coffee className="h-4 w-4 text-primary" />
                 <span className="text-sm font-medium text-primary">About Us</span>
               </div>
               <motion.h1

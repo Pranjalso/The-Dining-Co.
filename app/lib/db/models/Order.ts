@@ -11,12 +11,16 @@ export interface IOrderDocument extends Document {
     quantity: number;
   }>;
   subtotal: number;
+  discount?: number;
+  discountCode?: string;
   tax: number;
   total: number;
   paymentMethod: 'cash' | 'upi';
   paymentStatus: 'pending' | 'completed' | 'failed';
   orderStatus: 'pending' | 'preparing' | 'ready' | 'served' | 'cancelled';
   upiId?: string;
+  specialInstructions?: string;
+  notes?: string;
 }
 
 const OrderSchema = new Schema<IOrderDocument>(
@@ -59,6 +63,14 @@ const OrderSchema = new Schema<IOrderDocument>(
       type: Number,
       required: true,
     },
+    discount: {
+      type: Number,
+      default: 0,
+    },
+    discountCode: {
+      type: String,
+      default: '',
+    },
     tax: {
       type: Number,
       required: true,
@@ -85,9 +97,18 @@ const OrderSchema = new Schema<IOrderDocument>(
     upiId: {
       type: String,
     },
+    specialInstructions: {
+      type: String,
+      default: '',
+    },
+    notes: {
+      type: String,
+      default: '',
+    },
   },
   {
     timestamps: true,
+    strict: false,
   }
 );
 
@@ -107,5 +128,9 @@ OrderSchema.pre('save', async function (this: any) {
     this.orderNumber = lastOrder ? lastOrder.orderNumber + 1 : 1000;
   }
 });
+
+if (mongoose.models && mongoose.models.Order) {
+  delete mongoose.models.Order;
+}
 
 export default mongoose.models.Order || mongoose.model<IOrderDocument>('Order', OrderSchema);

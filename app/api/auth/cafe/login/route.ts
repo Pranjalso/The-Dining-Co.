@@ -28,46 +28,15 @@ export async function POST(req: NextRequest) {
 
     const { username, password } = validation.data;
 
-    // Check for superadmin login first (env-based)
+    // Prevent superadmin login through cafe login endpoint - enforce separation
     const envUser = process.env.SUPERADMIN_USERNAME;
     const envPass = process.env.SUPERADMIN_PASSWORD;
 
     if (envUser && envPass && username === envUser && password === envPass) {
-      let superAdmin = await Admin.findOne({ username: envUser, role: 'superadmin' });
-      if (!superAdmin) {
-        superAdmin = await Admin.create({
-          username: envUser,
-          password: envPass,
-          role: 'superadmin',
-        });
-      } else {
-        const matches = await superAdmin.comparePassword(envPass);
-        if (!matches) {
-          superAdmin.password = envPass;
-          await superAdmin.save();
-        }
-      }
-
-      const { token, refreshToken } = generateTokens({
-        id: superAdmin._id.toString(),
-        username: superAdmin.username,
-        role: 'superadmin',
-        tokenVersion: superAdmin.tokenVersion ?? 0,
-      });
-
-      setTokenCookies(token, refreshToken, 'superadmin');
-
-      return NextResponse.json({
-        success: true,
-        message: 'Superadmin login successful',
-        token,
-        refreshToken,
-        user: {
-          id: superAdmin._id,
-          username: superAdmin.username,
-          role: 'superadmin',
-        },
-      });
+      return NextResponse.json(
+        { success: false, message: 'This login portal is for Cafe Admins only. Super Admins must log in at /adminlogin' },
+        { status: 403 }
+      );
     }
 
     // Search for the user in both Admin and Cafe collections

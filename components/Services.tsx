@@ -3,70 +3,68 @@
 import { 
   Smartphone, 
   RefreshCw, 
-  BarChart3, 
-  Users,
-  Globe,
-  ShieldCheck,
-  Zap
+  Tag, 
+  Armchair,
+  Receipt,
+  Star
 } from "lucide-react";
 import Link from "next/link";
 
 const services = [
   {
     icon: Smartphone,
-    title: "Digital QR Menu",
-    description: "Create stunning digital menus accessible via QR code. Update instantly without reprinting.",
-    link: "/services/digital-qr-menu"
+    title: "Table-Wise Digital QR Menus",
+    description: "Luxury digital menus with Devanagari Namaste welcome, dietary veg/non-veg tags, and instant mobile ordering without app downloads.",
+    link: "/#features"
+  },
+  {
+    icon: Armchair,
+    title: "Table QR Code Generator",
+    description: "Easily configure tables and print customized high-resolution QR standees and table tents for tables 1 through 50+.",
+    link: "/#features"
   },
   {
     icon: RefreshCw,
-    title: "Instant Menu Updates",
-    description: "Update pricing, availability, and items in real-time across all devices and locations.",
-    link: "/services/instant-updates"
+    title: "Kitchen Display System (KDS)",
+    description: "Real-time kitchen order tracking with split statuses (Pending, Preparing, Completed, Rejected) and audio chime notifications.",
+    link: "/#features"
   },
   {
-    icon: BarChart3,
-    title: "Analytics & Insights",
-    description: "Track customer behavior, popular items, and revenue trends with powerful analytics.",
-    link: "/services/analytics"
+    icon: Receipt,
+    title: "Direct UPI & Cash Payments",
+    description: "Collect payments directly to your bank account via dynamic UPI QR codes (GPay, PhonePe, Paytm) or cash with 0% commission.",
+    link: "/#features"
   },
   {
-    icon: Users,
-    title: "Multi-Restaurant Management",
-    description: "Manage multiple locations from a single dashboard with centralized control.",
-    link: "/services/multi-restaurant"
+    icon: Tag,
+    title: "Promotional Offers & Discount Engine",
+    description: "Create percentage or flat discount deals that automatically present as luxury privilege passes upon scanning and auto-apply at checkout.",
+    link: "/#features"
   },
   {
-    icon: Globe,
-    title: "Global Reach",
-    description: "Serve international customers with multi-language support and localization.",
-    link: "/services/global-reach"
-  },
-  {
-    icon: ShieldCheck,
-    title: "Enterprise Security",
-    description: "Bank-grade security with role-based access control and data protection.",
-    link: "/services/security"
+    icon: Star,
+    title: "Customer Review Intelligence",
+    description: "Gather authentic 5-star post-meal customer ratings and praise tags to monitor food quality and service performance.",
+    link: "/#features"
   },
 ];
 
 const Services = () => {
   return (
-    <section id="services" className="section-padding bg-[#1C1C1C] scroll-mt-20">
-      <div className="max-w-7xl mx-auto">
+    <section id="services" className="section-padding bg-section scroll-mt-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16 animate-on-scroll">
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="w-8 h-0.5 bg-primary"></div>
-            <span className="text-sm font-medium tracking-wider text-primary uppercase">Services</span>
+            <span className="text-sm font-medium tracking-wider text-primary uppercase font-display">Core Solutions</span>
             <div className="w-8 h-0.5 bg-primary"></div>
           </div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
-            Premium <span className="gold-text">Services</span> for Your Restaurant
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 font-heading">
+            Everything Built for <span className="gold-text">Modern Hospitality</span>
           </h2>
           <p className="text-lg text-muted max-w-3xl mx-auto leading-relaxed">
-            Comprehensive solutions designed to elevate your restaurant's digital presence 
-            and streamline your operations.
+            From table ordering to kitchen dispatch, UPI billing, active promotions, and customer feedback — explore what The Dining Co. delivers for ₹999/month.
           </p>
         </div>
 
@@ -77,24 +75,26 @@ const Services = () => {
             return (
               <div
                 key={index}
-                className="group premium-card p-6 md:p-8 animate-on-scroll"
+                className="group premium-card p-6 md:p-8 animate-on-scroll hover:border-primary/50 transition-all duration-300 flex flex-col justify-between"
                 style={{ animationDelay: `${index * 0.05}s` }}
               >
-                <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mb-5 group-hover:bg-primary/20 transition-all duration-300 group-hover:scale-110">
-                  <Icon className="text-primary w-7 h-7" />
+                <div>
+                  <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-primary/20 transition-all duration-300 group-hover:scale-110 border border-primary/20">
+                    <Icon className="text-primary w-7 h-7" />
+                  </div>
+                  <h3 className="text-xl font-bold text-text mb-3 group-hover:text-primary transition-colors font-heading">
+                    {service.title}
+                  </h3>
+                  <p className="text-sm text-muted leading-relaxed">
+                    {service.description}
+                  </p>
                 </div>
-                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-primary transition-colors">
-                  {service.title}
-                </h3>
-                <p className="text-muted leading-relaxed">
-                  {service.description}
-                </p>
-                <Link href={service.link} className="mt-4 inline-flex items-center text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <span className="text-sm font-medium">Learn More</span>
-                  <svg className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </Link>
+                <div className="mt-6 pt-4 border-t border-border">
+                  <Link href={service.link} className="inline-flex items-center text-primary text-sm font-semibold group-hover:underline">
+                    <span>Explore details</span>
+                    <span className="ml-1.5 transition-transform group-hover:translate-x-1">→</span>
+                  </Link>
+                </div>
               </div>
             );
           })}

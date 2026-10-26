@@ -1,7 +1,7 @@
 "use client";
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Home, AlertCircle, Coffee, Crown, Scan, QrCode, Sparkles, ArrowRight } from 'lucide-react';
+import { Home, AlertCircle, Coffee, Crown, Scan, QrCode, ArrowRight } from 'lucide-react';
 
 export default function CafeNotFound() {
   return (
@@ -60,7 +60,7 @@ export default function CafeNotFound() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
-          className="text-muted/60 mb-6 text-lg"
+          className="text-muted mb-6 text-lg"
         >
           The cafe you're looking for doesn't exist on The Dining Co.
         </motion.p>
@@ -74,7 +74,7 @@ export default function CafeNotFound() {
         >
           <Link
             href="/"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary/85 hover:from-primary/90 hover:to-primary/90 text-background font-bold rounded-xl transition-all duration-300 shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98]"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl transition-all duration-300 shadow-md shadow-primary/20 hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98]"
           >
             <Home className="w-4 h-4" />
             Go to Home
@@ -87,13 +87,13 @@ export default function CafeNotFound() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.45 }}
-          className="mt-8 p-4 bg-surface/20 border border-border/20 rounded-xl shadow-lg shadow-primary/5"
+          className="mt-8 p-4 bg-[#FBF8F3] border border-border rounded-xl shadow-sm"
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20 flex-shrink-0">
               <QrCode className="w-5 h-5 text-primary" />
             </div>
-            <p className="text-xs text-muted/60 text-left">
+            <p className="text-xs text-muted text-left">
               <span className="font-semibold text-text">Scanning a QR code?</span><br />
               Make sure you're using the official The Dining Co. QR code from the cafe.
             </p>
@@ -105,10 +105,10 @@ export default function CafeNotFound() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="text-[10px] text-muted/30 mt-6 flex items-center justify-center gap-2"
+          className="text-[10px] text-muted mt-6 flex items-center justify-center gap-2"
         >
           <span className="w-1 h-1 bg-primary/30 rounded-full"></span>
-          Need help? Contact support@thediningco.com
+          Need help? Contact thediningco.contact@gmail.com
           <span className="w-1 h-1 bg-primary/30 rounded-full"></span>
         </motion.p>
       </motion.div>

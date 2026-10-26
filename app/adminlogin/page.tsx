@@ -2,9 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { Eye, EyeOff, Crown, Sparkles, Lock, User } from "lucide-react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { Eye, EyeOff, Crown, Lock, User } from "lucide-react";
 
 export default function SuperAdminLogin() {
   const [show, setShow] = useState(false);
@@ -12,7 +10,6 @@ export default function SuperAdminLogin() {
   const [pass, setPass] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   const onLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,9 +38,9 @@ export default function SuperAdminLogin() {
             document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
             document.cookie = 'refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
           }
-        } catch (e) {}
+        } catch {}
         window.location.href = "/admin";
-      } catch (err) {
+      } catch {
         setError("Network error. Please try again.");
         setLoading(false);
       }
@@ -61,7 +58,7 @@ export default function SuperAdminLogin() {
 
       <form
         onSubmit={onLogin}
-        className="w-full max-w-md md:max-w-lg bg-card/80 backdrop-blur-xl rounded-2xl md:rounded-3xl border border-border p-6 md:p-8 shadow-2xl shadow-primary/5 relative z-10"
+        className="w-full max-w-md md:max-w-lg bg-white rounded-2xl md:rounded-3xl border border-border p-6 md:p-8 shadow-xl relative z-10"
       >
         {/* Logo Section */}
         <div className="text-center mb-6">
@@ -69,7 +66,7 @@ export default function SuperAdminLogin() {
             <div className="w-10 h-10 md:w-12 md:h-12 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20">
               <Crown className="text-primary w-5 h-5 md:w-6 md:h-6" />
             </div>
-            <span className="text-2xl md:text-3xl font-bold text-white tracking-tight">
+            <span className="text-2xl md:text-3xl font-bold text-text tracking-tight">
               The <span className="gold-text">Dining</span> Co.
             </span>
           </div>
@@ -129,7 +126,7 @@ export default function SuperAdminLogin() {
           <Button 
             type="submit" 
             disabled={loading}
-            className="w-full h-12 text-base font-semibold bg-primary hover:bg-primary/90 text-background rounded-xl transition-all duration-300 shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:hover:scale-100"
+            className="w-full h-12 text-base font-semibold bg-primary hover:bg-primary-hover text-white rounded-xl transition-all duration-300 shadow-md shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:hover:scale-100"
           >
             {loading ? (
               <span className="flex items-center gap-2">
@@ -138,7 +135,7 @@ export default function SuperAdminLogin() {
               </span>
             ) : (
               <span className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4" />
+                <Lock className="w-4 h-4" />
                 Access Dashboard
               </span>
             )}

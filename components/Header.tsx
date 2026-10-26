@@ -155,7 +155,7 @@ const Header = () => {
     <>
       <header 
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled || isMenuOpen ? 'bg-[#0F0F0F]/95 backdrop-blur-lg border-b border-[#2F2F2F]' : 'bg-transparent'
+          scrolled || isMenuOpen ? 'bg-[#FBF8F3]/95 backdrop-blur-lg border-b border-[#E5DFD4] shadow-sm' : 'bg-transparent'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -167,7 +167,7 @@ const Header = () => {
               onClick={() => setActiveSection("home")}
             >
               <Crown className="text-primary w-5 h-5 sm:w-6 sm:h-6" />
-              <span className="text-base sm:text-xl lg:text-2xl font-bold text-white tracking-wide whitespace-nowrap">
+              <span className="text-base sm:text-xl lg:text-2xl font-bold text-[#1C1917] tracking-wide whitespace-nowrap">
                 The <span className="gold-text">Dining</span> Co.
               </span>
             </Link>
@@ -181,8 +181,8 @@ const Header = () => {
                     onClick={() => handleNavClick(link.href)}
                     className={`px-3 xl:px-4 py-2 text-sm xl:text-base font-medium transition-all duration-300 relative cursor-pointer group ${
                       isLinkActive(link.id)
-                        ? 'text-primary'
-                        : 'text-gray-300 hover:text-white'
+                        ? 'text-primary font-bold'
+                        : 'text-[#57534E] hover:text-primary'
                     }`}
                   >
                     {link.label}
@@ -198,16 +198,22 @@ const Header = () => {
             </nav>
 
             {/* Desktop CTA Buttons */}
-            <div className="hidden lg:flex items-center gap-3 flex-shrink-0">
+            <div className="hidden lg:flex items-center gap-2.5 flex-shrink-0">
+              <Link
+                href="/adminlogin"
+                className="text-stone-700 hover:text-primary transition-colors px-3 py-2 text-sm font-semibold cursor-pointer"
+              >
+                Cafe Login
+              </Link>
               <button
                 onClick={() => handleNavClick("/#contact")}
-                className="border border-primary text-primary hover:bg-primary hover:text-[#0F0F0F] transition-all duration-300 rounded-lg px-4 py-2 text-sm font-medium cursor-pointer"
+                className="border border-primary text-primary hover:bg-primary hover:text-white transition-all duration-300 rounded-lg px-4 py-2 text-sm font-semibold cursor-pointer"
               >
                 Contact
               </button>
               <button
                 onClick={() => handleNavClick("/#pricing")}
-                className="bg-primary hover:bg-primary/90 text-[#0F0F0F] font-semibold rounded-lg px-5 py-2 text-sm transition-all duration-300 cursor-pointer"
+                className="bg-primary hover:bg-primary-hover text-white font-bold rounded-lg px-4.5 py-2 text-sm transition-all duration-300 cursor-pointer shadow-md shadow-primary/20"
               >
                 Get Started
               </button>
@@ -216,7 +222,7 @@ const Header = () => {
             {/* Mobile Menu Button */}
             <button
               onClick={toggleMenu}
-              className="lg:hidden z-50 text-white p-2 hover:bg-[#1C1C1C] rounded-lg transition-colors flex-shrink-0 cursor-pointer"
+              className="lg:hidden z-50 text-[#1C1917] p-2 hover:bg-[#F3EFE6] rounded-lg transition-colors flex-shrink-0 cursor-pointer"
               aria-label="Toggle menu"
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -227,7 +233,7 @@ const Header = () => {
 
       {/* Mobile Navigation */}
       <div 
-        className={`lg:hidden fixed inset-0 bg-[#0F0F0F] z-40 transition-all duration-500 ease-in-out ${
+        className={`lg:hidden fixed inset-0 bg-[#FBF8F3] z-40 transition-all duration-500 ease-in-out ${
           isMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'
         }`}
         style={{ top: 0 }}
@@ -239,10 +245,10 @@ const Header = () => {
               onClick={() => {
                 handleNavClick(link.href);
               }}
-              className={`text-2xl font-medium transition-colors relative group cursor-pointer ${
+              className={`text-2xl font-semibold transition-colors relative group cursor-pointer ${
                 isLinkActive(link.id)
                   ? 'text-primary'
-                  : 'text-white hover:text-primary'
+                  : 'text-[#44403C] hover:text-primary'
               }`}
             >
               {link.label}
@@ -254,15 +260,25 @@ const Header = () => {
           ))}
           
           <div className="pt-6 w-full max-w-xs space-y-3">
+            <Link
+              href="/adminlogin"
+              onClick={() => {
+                setIsMenuOpen(false);
+                document.body.style.overflow = "";
+              }}
+              className="w-full text-center text-stone-700 hover:text-primary py-2 text-sm font-bold block cursor-pointer"
+            >
+              Cafe Owner Login →
+            </Link>
             <button
               onClick={() => handleNavClick("/#contact")}
-              className="w-full border border-primary text-primary hover:bg-primary hover:text-[#0F0F0F] transition-all duration-300 rounded-lg py-3 text-base bg-transparent cursor-pointer"
+              className="w-full border border-primary text-primary hover:bg-primary hover:text-white transition-all duration-300 rounded-lg py-3 text-base font-semibold bg-transparent cursor-pointer"
             >
               Contact Us
             </button>
             <button
               onClick={() => handleNavClick("/#pricing")}
-              className="w-full bg-primary hover:bg-primary/90 text-[#0F0F0F] font-semibold rounded-lg py-3 text-base cursor-pointer"
+              className="w-full bg-primary hover:bg-primary-hover text-white font-bold rounded-lg py-3 text-base cursor-pointer shadow-md shadow-primary/20"
             >
               Get Started
             </button>

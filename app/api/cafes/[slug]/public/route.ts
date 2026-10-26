@@ -10,7 +10,7 @@ export async function GET(
   try {
     await connectDB();
 
-    const cafe = await Cafe.findOne({ slug: params.slug }).select('slug cafeName isActive endDate subscriptionPlan taxRate showTax');
+    const cafe = await Cafe.findOne({ slug: params.slug }).select('slug cafeName isActive endDate subscriptionPlan taxRate showTax upiQrCode upiId tables');
 
     if (!cafe) {
       return NextResponse.json(
@@ -33,6 +33,9 @@ export async function GET(
         isExpired,
         taxRate: cafe.taxRate ?? 5.0,
         showTax: cafe.showTax ?? true,
+        upiQrCode: cafe.upiQrCode || null,
+        upiId: cafe.upiId || null,
+        tables: cafe.tables || [],
       },
     });
   } catch (error) {

@@ -3,14 +3,17 @@ import MenuClient from "./MenuClient";
 import { getMenuCategories, getMenuItems } from "@/lib/db/menu";
 import connectDB from "@/lib/db/connect";
 import Cafe from "@/lib/db/models/Cafe";
+import Offer from "@/lib/db/models/Offer";
 
 type PageProps = {
-  params: { menupages: string }
+  params: { menupages: string };
+  searchParams?: { table?: string; scan?: string };
 }
 
 // This is a Server Component (no 'use client' directive)
-export default async function MenuPage({ params }: PageProps) {
+export default async function MenuPage({ params, searchParams }: PageProps) {
   const { menupages } = params;
+  const initialTable = searchParams?.table || "";
 
   console.log('MenuPage loading for slug:', menupages);
 
@@ -48,9 +51,13 @@ export default async function MenuPage({ params }: PageProps) {
         })) 
       : [];
     
-    // In parallel, map categories and fetch items
-    const [initialItemsRaw] = await Promise.all([
-      firstCat ? getMenuItems(menupages, firstCat) : Promise.resolve([])
+    // In parallel, fetch menu items and active promotional offers
+    const [initialItemsRaw, initialOffersRaw] = await Promise.all([
+      firstCat ? getMenuItems(menupages, firstCat) : Promise.resolve([]),
+      Offer.find({ cafeSlug: menupages.toLowerCase(), isActive: true })
+        .sort({ orderIndex: 1, createdAt: -1 })
+        .lean()
+        .catch(() => []),
     ]);
 
     let initialItems: any[] = [];
@@ -65,12 +72,30 @@ export default async function MenuPage({ params }: PageProps) {
       }));
     }
 
+    const initialOffers = Array.isArray(initialOffersRaw)
+      ? initialOffersRaw.map((o: any) => ({
+          _id: String(o._id),
+          cafeSlug: o.cafeSlug,
+          title: o.title,
+          description: o.description || '',
+          discountType: o.discountType || 'percentage',
+          discountValue: o.discountValue,
+          code: o.code || '',
+          minOrderAmount: o.minOrderAmount || 0,
+          badgeText: o.badgeText || 'SPECIAL OFFER',
+          isActive: o.isActive !== false,
+        }))
+      : [];
+
     // Pass the fetched data to the client component
     return (
       <MenuClient 
         menupages={menupages} 
+        cafeName={cafe.cafeName || menupages}
         initialItems={initialItems} 
-        initialCategories={initialCategories} 
+        initialCategories={initialCategories}
+        initialOffers={initialOffers}
+        initialTable={initialTable}
       />
     );
 

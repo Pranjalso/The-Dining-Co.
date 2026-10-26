@@ -12,8 +12,8 @@ import {
   X, 
   ChevronLeft, 
   ChevronRight, 
+  ChevronDown,
   LogOut,
-  Sparkles,
   Building2,
   Mail,
   Phone,
@@ -22,7 +22,6 @@ import {
   Key,
   Gift,
   CheckCircle,
-  AlertCircle,
   Info,
   XCircle,
   Store,
@@ -149,6 +148,74 @@ interface Cafe {
 }
 
 // ============================================
+// FORM SECTION & FIELD COMPONENTS (OUTSIDE MAIN COMPONENT TO PRESERVE FOCUS/STATE)
+// ============================================
+const FormSection = ({ 
+  title, 
+  icon: Icon, 
+  children, 
+}: { 
+  title: string; 
+  icon: any; 
+  children: React.ReactNode; 
+}) => (
+  <div className="bg-[#FBF8F3] rounded-2xl p-6 border border-border shadow-sm">
+    <div className="flex items-center gap-3 mb-5">
+      <div className="w-8 h-8 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20">
+        <Icon className="w-4 h-4 text-primary" />
+      </div>
+      <h4 className="text-sm font-semibold text-text">{title}</h4>
+      <div className="flex-1 h-px bg-border" />
+    </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {children}
+    </div>
+  </div>
+);
+
+const FormField = ({ 
+  label, 
+  name, 
+  type = 'text', 
+  placeholder, 
+  required = false, 
+  value, 
+  onChange, 
+  readOnly = false,
+  icon: Icon,
+  autoComplete = 'off'
+}: { 
+  label: string; 
+  name?: string; 
+  type?: string; 
+  placeholder?: string; 
+  required?: boolean; 
+  value?: string; 
+  onChange?: (e: any) => void; 
+  readOnly?: boolean;
+  icon: any;
+  autoComplete?: string;
+}) => (
+  <div className="space-y-1.5">
+    <label className="flex items-center gap-1.5 text-xs font-medium text-muted">
+      <Icon className="w-3.5 h-3.5 text-primary" />
+      {label} {required && <span className="text-primary">*</span>}
+    </label>
+    <input
+      type={type}
+      name={name}
+      className="w-full h-[52px] px-4 bg-white border border-border rounded-xl text-sm text-stone-900 placeholder:text-stone-400 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-300 hover:border-primary shadow-sm font-normal"
+      placeholder={placeholder}
+      value={value}
+      onChange={onChange}
+      readOnly={readOnly}
+      required={required}
+      autoComplete={autoComplete}
+    />
+  </div>
+);
+
+// ============================================
 // MAIN COMPONENT
 // ============================================
 export default function SuperAdmin() {
@@ -168,6 +235,7 @@ export default function SuperAdmin() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [menuLink, setMenuLink] = useState('');
   const [adminLink, setAdminLink] = useState('');
+  const [adminLoginLink, setAdminLoginLink] = useState('');
   
   // Modal states
   const [showModal, setShowModal] = useState(false);
@@ -274,7 +342,7 @@ export default function SuperAdmin() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({}),
+          body: JSON.stringify({ role: 'superadmin' }),
         });
         if (!res.ok) {
           console.warn('Session refresh failed');
@@ -389,6 +457,7 @@ export default function SuperAdmin() {
         const fallbackBase = typeof window !== 'undefined' ? window.location.origin : 'https://thediningco.com';
         setMenuLink(data.links?.menu || `${fallbackBase}/${createdSlug}/menu`);
         setAdminLink(data.links?.admin || `${fallbackBase}/${createdSlug}/admin`);
+        setAdminLoginLink(`${fallbackBase}/${createdSlug}/adminlogin`);
         setShowSuccess(true);
         
         showToast({
@@ -428,7 +497,7 @@ export default function SuperAdmin() {
       credentials: 'include',
       body: JSON.stringify({ isActive }),
     })
-      .then((res) => {
+      .then(() => {
         if (cafesUrl) mutate(cafesUrl);
         showToast({
           title: isActive ? "Cafe Activated" : "Cafe Deactivated",
@@ -532,84 +601,7 @@ export default function SuperAdmin() {
     return null;
   }
 
-  // ============================================
-  // FORM SECTION COMPONENTS - FIXED (NO BLINKING)
-  // ============================================
-  const FormSection = ({ 
-    title, 
-    icon: Icon, 
-    children, 
-    delay = 0 
-  }: { 
-    title: string; 
-    icon: any; 
-    children: React.ReactNode; 
-    delay?: number;
-  }) => (
-    <div className="bg-surface/10 rounded-2xl p-6 border border-border/20">
-      <div className="flex items-center gap-3 mb-5">
-        <div className="w-8 h-8 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20">
-          <Icon className="w-4 h-4 text-primary" />
-        </div>
-        <h4 className="text-sm font-semibold text-text">{title}</h4>
-        <div className="flex-1 h-px bg-border/20" />
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {children}
-      </div>
-    </div>
-  );
 
-  const FormField = ({ 
-    label, 
-    name, 
-    type = 'text', 
-    placeholder, 
-    required = false, 
-    value, 
-    onChange, 
-    readOnly = false,
-    icon: Icon,
-    autoComplete = 'off'
-  }: { 
-    label: string; 
-    name?: string; 
-    type?: string; 
-    placeholder?: string; 
-    required?: boolean; 
-    value?: string; 
-    onChange?: (e: any) => void; 
-    readOnly?: boolean;
-    icon: any;
-    autoComplete?: string;
-  }) => (
-    <div className="space-y-1.5">
-      <label className="flex items-center gap-1.5 text-xs font-medium text-muted">
-        <Icon className="w-3.5 h-3.5 text-primary/60" />
-        {label} {required && <span className="text-primary">*</span>}
-      </label>
-      <input
-        type={type}
-        name={name}
-        className="w-full h-[52px] px-4 bg-surface/30 border border-border/40 rounded-xl text-sm text-text placeholder-muted/40 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-300 hover:border-primary/50 
-        [&:-webkit-autofill]:!bg-[rgba(212,175,55,0.08)] 
-        [&:-webkit-autofill]:!text-[#F9FAFB] 
-        [&:-webkit-autofill]:!shadow-[inset_0_0_0px_1000px_rgba(212,175,55,0.08)] 
-        [&:-webkit-autofill]:caret-text 
-        [&:-webkit-autofill]:!border-primary/30
-        [&:-webkit-autofill]:hover:!border-primary/50
-        [&:-webkit-autofill]:focus:!border-primary
-        [&:-webkit-autofill]:focus:!ring-2
-        [&:-webkit-autofill]:focus:!ring-primary/20"
-        placeholder={placeholder}
-        value={value}
-        onChange={onChange}
-        readOnly={readOnly}
-        required={required}
-        autoComplete={autoComplete}
-      />
-    </div>
-  );
 
   // ============================================
   // RENDER
@@ -631,12 +623,12 @@ export default function SuperAdmin() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="sticky top-0 z-40 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 sm:p-6 bg-card/80 backdrop-blur-xl border border-border/40 rounded-2xl mb-8 shadow-2xl shadow-primary/5"
+          className="sticky top-0 z-40 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 sm:p-6 bg-white border border-border rounded-2xl mb-8 shadow-sm"
         >
           <div className="flex items-center gap-4">
             <motion.div
               whileHover={{ scale: 1.05, rotate: -5 }}
-              className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl flex items-center justify-center border border-primary/30 shadow-lg shadow-primary/20"
+              className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20 shadow-sm"
             >
               <Crown className="w-6 h-6 text-primary" />
             </motion.div>
@@ -644,27 +636,32 @@ export default function SuperAdmin() {
               <h1 className="text-xl sm:text-2xl font-bold text-text tracking-tight">
                 The <span className="text-primary">Dining</span> Co.
               </h1>
-              <p className="text-xs text-muted/50 uppercase tracking-[0.15em]">Super Admin Portal</p>
+              <p className="text-xs text-muted uppercase tracking-[0.15em]">Super Admin Portal</p>
             </div>
           </div>
           <div className="flex items-center gap-3 w-full sm:w-auto">
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-surface/20 rounded-xl border border-border/20">
-              <div className="w-7 h-7 bg-gradient-to-br from-primary to-primary/70 text-background rounded-full flex items-center justify-center text-xs font-bold shadow-lg shadow-primary/30">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-[#FBF8F3] rounded-xl border border-border">
+              <div className="w-7 h-7 bg-primary text-white rounded-full flex items-center justify-center text-xs font-bold shadow-sm">
                 SA
               </div>
-              <span className="text-sm text-muted/60 hidden sm:inline">Super Admin</span>
+              <span className="text-sm text-muted hidden sm:inline">Super Admin</span>
             </div>
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.95 }}
               onClick={async () => {
                 try {
-                  await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+                  await fetch('/api/auth/logout', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ role: 'superadmin' }),
+                  });
                 } finally {
                   window.location.href = '/adminlogin';
                 }
               }}
-              className="flex items-center gap-2 px-4 py-2 text-sm text-muted/50 hover:text-text border border-border/30 rounded-xl hover:border-primary/30 hover:bg-primary/5 transition-all duration-300 group"
+              className="flex items-center gap-2 px-4 py-2 text-sm text-muted hover:text-text border border-border rounded-xl hover:border-primary hover:bg-primary/5 transition-all duration-300 group"
             >
               <LogOut className="w-4 h-4 group-hover:text-primary transition-colors" />
               <span className="group-hover:text-primary transition-colors hidden sm:inline">Logout</span>
@@ -679,16 +676,16 @@ export default function SuperAdmin() {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="flex justify-center mb-8"
         >
-          <div className="relative flex p-1.5 bg-card/40 border border-border/30 rounded-2xl shadow-xl shadow-primary/5 w-full sm:w-auto">
+          <div className="relative flex p-1.5 bg-[#F3EFE6] border border-border rounded-2xl shadow-sm w-full sm:w-auto">
             <div className="relative flex w-full sm:w-auto">
               <motion.div
-                className="absolute top-1.5 bottom-1.5 w-1/2 bg-gradient-to-r from-primary to-primary/80 rounded-xl shadow-lg shadow-primary/30"
+                className="absolute top-1.5 bottom-1.5 w-1/2 bg-primary rounded-xl shadow-md"
                 animate={{ x: activeTab === 'add' ? 0 : '100%' }}
                 transition={{ type: 'spring', stiffness: 300, damping: 30 }}
               />
               <button
-                className={`relative z-10 flex-1 sm:flex-none flex items-center justify-center gap-2.5 px-8 sm:px-12 py-3 rounded-xl text-sm font-medium transition-colors duration-300 ${
-                  activeTab === 'add' ? 'text-background' : 'text-muted/50 hover:text-text'
+                className={`relative z-10 flex-1 sm:flex-none flex items-center justify-center gap-2.5 px-8 sm:px-12 py-3 rounded-xl text-sm transition-colors duration-300 ${
+                  activeTab === 'add' ? 'text-white font-bold' : 'text-muted hover:text-text font-medium'
                 }`}
                 onClick={() => setActiveTab('add')}
               >
@@ -696,8 +693,8 @@ export default function SuperAdmin() {
                 <span>Add Cafes</span>
               </button>
               <button
-                className={`relative z-10 flex-1 sm:flex-none flex items-center justify-center gap-2.5 px-8 sm:px-12 py-3 rounded-xl text-sm font-medium transition-colors duration-300 ${
-                  activeTab === 'manage' ? 'text-background' : 'text-muted/50 hover:text-text'
+                className={`relative z-10 flex-1 sm:flex-none flex items-center justify-center gap-2.5 px-8 sm:px-12 py-3 rounded-xl text-sm transition-colors duration-300 ${
+                  activeTab === 'manage' ? 'text-white font-bold' : 'text-muted hover:text-text font-medium'
                 }`}
                 onClick={() => setActiveTab('manage')}
               >
@@ -718,18 +715,13 @@ export default function SuperAdmin() {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.4 }}
             >
-              <div className="bg-card/60 backdrop-blur-sm border border-border/30 rounded-2xl p-6 lg:p-8 shadow-2xl shadow-primary/5">
+              <div className="bg-white border border-border rounded-2xl p-6 lg:p-8 shadow-sm">
                 <div className="mb-8">
                   <h2 className="flex items-center gap-3 text-xl font-bold text-text">
-                    <motion.div
-                      animate={{ rotate: [0, 180, 360] }}
-                      transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                    >
-                      <Sparkles className="w-5 h-5 text-primary" />
-                    </motion.div>
+                    <Store className="w-5 h-5 text-primary" />
                     Create New Cafe Profile
                   </h2>
-                  <p className="text-sm text-muted/40 mt-1">Fill in the details below to add a new cafe to the platform</p>
+                  <p className="text-sm text-muted mt-1">Fill in the details below to add a new cafe to the platform</p>
                 </div>
 
                 <form onSubmit={handleCreateProfile}>
@@ -763,7 +755,7 @@ export default function SuperAdmin() {
                     <FormField
                       label="Contact Number"
                       icon={Phone}
-                      placeholder="e.g. +91 98765 43210"
+                      placeholder="e.g. +91 80854 44188"
                       required
                       name="contactNumber"
                       autoComplete="tel"
@@ -774,28 +766,19 @@ export default function SuperAdmin() {
                     <FormField
                       label="City"
                       icon={MapPin}
-                      placeholder="e.g. New York"
+                      placeholder="e.g. Bhopal"
                       required
                       name="city"
                       autoComplete="address-level2"
                     />
                     <div className="space-y-1.5 md:col-span-2">
                       <label className="flex items-center gap-1.5 text-xs font-medium text-muted">
-                        <MapPin className="w-3.5 h-3.5 text-primary/60" />
+                        <MapPin className="w-3.5 h-3.5 text-primary" />
                         Location (Full Address) <span className="text-primary">*</span>
                       </label>
                       <input
                         name="location"
-                        className="w-full h-[52px] px-4 bg-surface/30 border border-border/40 rounded-xl text-sm text-text placeholder-muted/40 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-300 hover:border-primary/50 
-                        [&:-webkit-autofill]:!bg-[rgba(212,175,55,0.08)] 
-                        [&:-webkit-autofill]:!text-[#F9FAFB] 
-                        [&:-webkit-autofill]:!shadow-[inset_0_0_0px_1000px_rgba(212,175,55,0.08)] 
-                        [&:-webkit-autofill]:caret-text 
-                        [&:-webkit-autofill]:!border-primary/30
-                        [&:-webkit-autofill]:hover:!border-primary/50
-                        [&:-webkit-autofill]:focus:!border-primary
-                        [&:-webkit-autofill]:focus:!ring-2
-                        [&:-webkit-autofill]:focus:!ring-primary/20"
+                        className="w-full h-[52px] px-4 bg-white border border-border rounded-xl text-sm text-stone-900 placeholder:text-stone-400 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-300 hover:border-primary shadow-sm font-normal"
                         placeholder="123 Street Name, City, State, ZIP"
                         required
                         autoComplete="street-address"
@@ -806,27 +789,26 @@ export default function SuperAdmin() {
                   <FormSection title="Subscription Details" icon={Gift}>
                     <div className="space-y-1.5">
                       <label className="flex items-center gap-1.5 text-xs font-medium text-muted">
-                        <Gift className="w-3.5 h-3.5 text-primary/60" />
+                        <Gift className="w-3.5 h-3.5 text-primary" />
                         Subscription Plan <span className="text-primary">*</span>
                       </label>
-                      <select
-                        className="w-full h-[52px] px-4 bg-surface/30 border border-border/40 rounded-xl text-sm text-text focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-300 appearance-none cursor-pointer hover:border-primary/50 
-                        [&:-webkit-autofill]:!bg-[rgba(212,175,55,0.08)] 
-                        [&:-webkit-autofill]:!text-[#F9FAFB] 
-                        [&:-webkit-autofill]:!shadow-[inset_0_0_0px_1000px_rgba(212,175,55,0.08)] 
-                        [&:-webkit-autofill]:caret-text 
-                        [&:-webkit-autofill]:!border-primary/30"
-                        value={plan}
-                        onChange={(e) => setPlan(e.target.value)}
-                        required
-                      >
-                        <option value="demo1" className="bg-card text-text">Demo (1 Day)</option>
-                        <option value="demo" className="bg-card text-text">Demo (7 Days)</option>
-                        <option value="1" className="bg-card text-text">1 Month</option>
-                        <option value="3" className="bg-card text-text">3 Months</option>
-                        <option value="6" className="bg-card text-text">6 Months</option>
-                        <option value="12" className="bg-card text-text">12 Months</option>
-                      </select>
+                      <div className="relative">
+                        <select
+                          className="w-full h-[52px] px-4 pr-10 bg-white border border-border rounded-xl text-sm text-stone-900 font-medium focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-300 appearance-none cursor-pointer hover:border-primary shadow-sm"
+                          value={plan}
+                          onChange={(e) => setPlan(e.target.value)}
+                          required
+                        >
+                          <option value="" disabled className="text-stone-400">Select a subscription plan</option>
+                          <option value="demo1" className="bg-white text-stone-900">Demo (1 Day)</option>
+                          <option value="demo" className="bg-white text-stone-900">Demo (7 Days)</option>
+                          <option value="1" className="bg-white text-stone-900">1 Month (₹999)</option>
+                          <option value="3" className="bg-white text-stone-900">3 Months</option>
+                          <option value="6" className="bg-white text-stone-900">6 Months</option>
+                          <option value="12" className="bg-white text-stone-900">12 Months (₹9,999)</option>
+                        </select>
+                        <ChevronDown className="w-4 h-4 text-stone-400 pointer-events-none absolute right-4 top-1/2 -translate-y-1/2" />
+                      </div>
                     </div>
                     <FormField
                       label="Start Date"
@@ -848,6 +830,7 @@ export default function SuperAdmin() {
                     <FormField
                       label="Generated Slug"
                       icon={Key}
+                      placeholder="Auto-generated from cafe name..."
                       value={slug}
                       readOnly
                       autoComplete="off"
@@ -888,7 +871,7 @@ export default function SuperAdmin() {
                       </>
                     ) : (
                       <>
-                        <Sparkles className="w-5 h-5" />
+                        <Plus className="w-5 h-5" />
                         Create New Profile
                       </>
                     )}
@@ -917,7 +900,13 @@ export default function SuperAdmin() {
                               </a>
                             </div>
                             <div>
-                              <span className="font-medium text-text/70">Admin Page:</span>{' '}
+                              <span className="font-medium text-text/70">Cafe Admin Login:</span>{' '}
+                              <a href={adminLoginLink} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline transition-colors">
+                                {adminLoginLink}
+                              </a>
+                            </div>
+                            <div>
+                              <span className="font-medium text-text/70">Cafe Admin Dashboard:</span>{' '}
                               <a href={adminLink} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline transition-colors">
                                 {adminLink}
                               </a>
@@ -972,17 +961,17 @@ export default function SuperAdmin() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: index * 0.1 }}
                     whileHover={{ y: -4 }}
-                    className="bg-card/60 backdrop-blur-sm border border-border/30 rounded-2xl p-6 text-center relative overflow-hidden shadow-xl shadow-primary/5 group"
+                    className="bg-white border border-border rounded-2xl p-6 text-center relative overflow-hidden shadow-sm hover:border-primary transition-all group"
                   >
-                    <div className={`w-12 h-12 mx-auto rounded-xl flex items-center justify-center mb-3 ${stat.color === 'primary' ? 'bg-primary/10 text-primary' : stat.color === 'emerald' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'} group-hover:scale-110 transition-transform duration-300`}>
+                    <div className={`w-12 h-12 mx-auto rounded-xl flex items-center justify-center mb-3 ${stat.color === 'primary' ? 'bg-primary/10 text-primary' : stat.color === 'emerald' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'} group-hover:scale-110 transition-transform duration-300`}>
                       {stat.icon}
                     </div>
-                    <h3 className={`text-3xl font-bold ${stat.color === 'primary' ? 'text-primary' : stat.color === 'emerald' ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    <h3 className={`text-3xl font-bold ${stat.color === 'primary' ? 'text-primary' : stat.color === 'emerald' ? 'text-emerald-700' : 'text-rose-700'}`}>
                       {stat.value}
                     </h3>
-                    <p className="text-sm text-text/70 mt-1 font-medium">{stat.label}</p>
-                    <p className="text-xs text-muted/40 mt-0.5">{stat.subtitle}</p>
-                    <div className={`absolute bottom-0 left-0 right-0 h-0.5 ${stat.color === 'primary' ? 'bg-primary' : stat.color === 'emerald' ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                    <p className="text-sm text-text mt-1 font-semibold">{stat.label}</p>
+                    <p className="text-xs text-muted mt-0.5">{stat.subtitle}</p>
+                    <div className={`absolute bottom-0 left-0 right-0 h-0.5 ${stat.color === 'primary' ? 'bg-primary' : stat.color === 'emerald' ? 'bg-emerald-600' : 'bg-rose-600'}`} />
                   </motion.div>
                 ))}
               </div>
@@ -990,64 +979,55 @@ export default function SuperAdmin() {
               {/* Filters */}
               <div className="flex flex-col sm:flex-row gap-3 mb-6">
                 <div className="relative flex-1 group">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted/30 group-hover:text-muted/60 transition-colors duration-300" />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted group-hover:text-text transition-colors duration-300" />
                   <input
-                    className="w-full h-[52px] pl-11 pr-4 bg-card/40 border border-border/30 rounded-xl text-sm text-text placeholder-muted/30 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-300 hover:border-primary/40 
-                    [&:-webkit-autofill]:!bg-[rgba(212,175,55,0.08)] 
-                    [&:-webkit-autofill]:!text-[#F9FAFB] 
-                    [&:-webkit-autofill]:!shadow-[inset_0_0_0px_1000px_rgba(212,175,55,0.08)] 
-                    [&:-webkit-autofill]:caret-text 
-                    [&:-webkit-autofill]:!border-primary/30"
+                    className="w-full h-[52px] pl-11 pr-4 bg-white border border-border rounded-xl text-sm text-stone-900 placeholder:text-stone-400 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-300 hover:border-primary shadow-sm"
                     placeholder="Search cafes, owner or city"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                   />
                 </div>
-                <select
-                  className="h-[52px] px-4 bg-card/40 border border-border/30 rounded-xl text-sm text-text focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-300 appearance-none cursor-pointer hover:border-primary/40 min-w-[140px] 
-                  [&:-webkit-autofill]:!bg-[rgba(212,175,55,0.08)] 
-                  [&:-webkit-autofill]:!text-[#F9FAFB] 
-                  [&:-webkit-autofill]:!shadow-[inset_0_0_0px_1000px_rgba(212,175,55,0.08)] 
-                  [&:-webkit-autofill]:caret-text 
-                  [&:-webkit-autofill]:!border-primary/30"
-                  value={cityFilter}
-                  onChange={(e) => setCityFilter(e.target.value)}
-                >
-                  <option value="All Cities" className="bg-card text-text">All Cities</option>
-                  {cityOptions.map((city: string) => (
-                    <option key={city} value={city} className="bg-card text-text">{city}</option>
-                  ))}
-                </select>
-                <select
-                  className="h-[52px] px-4 bg-card/40 border border-border/30 rounded-xl text-sm text-text focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-300 appearance-none cursor-pointer hover:border-primary/40 min-w-[140px] 
-                  [&:-webkit-autofill]:!bg-[rgba(212,175,55,0.08)] 
-                  [&:-webkit-autofill]:!text-[#F9FAFB] 
-                  [&:-webkit-autofill]:!shadow-[inset_0_0_0px_1000px_rgba(212,175,55,0.08)] 
-                  [&:-webkit-autofill]:caret-text 
-                  [&:-webkit-autofill]:!border-primary/30"
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                >
-                  <option value="all" className="bg-card text-text">All Status</option>
-                  <option value="active" className="bg-card text-text">Active</option>
-                  <option value="inactive" className="bg-card text-text">Inactive</option>
-                </select>
+                <div className="relative">
+                  <select
+                    className="h-[52px] pl-4 pr-10 bg-white border border-border rounded-xl text-sm text-stone-900 font-medium focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-300 appearance-none cursor-pointer hover:border-primary min-w-[140px] shadow-sm"
+                    value={cityFilter}
+                    onChange={(e) => setCityFilter(e.target.value)}
+                  >
+                    <option value="All Cities" className="bg-white text-stone-900">All Cities</option>
+                    {cityOptions.map((city: string) => (
+                      <option key={city} value={city} className="bg-white text-stone-900">{city}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-4 h-4 text-stone-400 pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2" />
+                </div>
+                <div className="relative">
+                  <select
+                    className="h-[52px] pl-4 pr-10 bg-white border border-border rounded-xl text-sm text-stone-900 font-medium focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-300 appearance-none cursor-pointer hover:border-primary min-w-[140px] shadow-sm"
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                  >
+                    <option value="all" className="bg-white text-stone-900">All Status</option>
+                    <option value="active" className="bg-white text-stone-900">Active</option>
+                    <option value="inactive" className="bg-white text-stone-900">Inactive</option>
+                  </select>
+                  <ChevronDown className="w-4 h-4 text-stone-400 pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2" />
+                </div>
               </div>
 
               {/* Table */}
-              <div className="bg-card/60 backdrop-blur-sm border border-border/30 rounded-2xl overflow-hidden shadow-2xl shadow-primary/5">
+              <div className="bg-white border border-border rounded-2xl overflow-hidden shadow-sm">
                 <div className="overflow-x-auto max-h-[550px] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-primary/20">
                   <table className="w-full min-w-[1000px]">
-                    <thead className="bg-surface/30 sticky top-0 z-10 backdrop-blur-sm">
+                    <thead className="bg-[#F3EFE6] sticky top-0 z-10 border-b border-border">
                       <tr>
                         {['Cafe Name', 'Owner', 'Contact', 'City', 'Plan', 'End Date', 'Status', 'Action'].map((header, i) => (
-                          <th key={i} className="px-4 py-4 text-left text-xs font-semibold text-muted/40 uppercase tracking-wider">
+                          <th key={i} className="px-4 py-4 text-left text-xs font-bold text-text uppercase tracking-wider">
                             {header}
                           </th>
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-border/20">
+                    <tbody className="divide-y divide-border">
                       {loading && Array.from({ length: 5 }).map((_, i) => (
                         <tr key={`skeleton-${i}`}>
                           {Array.from({ length: 8 }).map((_, j) => (
@@ -1157,24 +1137,24 @@ export default function SuperAdmin() {
                     </tbody>
                   </table>
                 </div>
-                <div className="flex items-center justify-between flex-wrap gap-2 px-4 py-4 bg-surface/10 border-t border-border/20">
+                <div className="flex items-center justify-between flex-wrap gap-2 px-4 py-4 bg-[#FBF8F3] border-t border-border">
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.95 }}
-                    className="flex items-center gap-1 px-4 py-2 bg-card/40 border border-border/30 rounded-xl text-sm text-muted/40 hover:text-text hover:border-primary/30 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="flex items-center gap-1 px-4 py-2 bg-white border border-border rounded-xl text-sm text-text hover:border-primary transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={page === 1}
                   >
                     <ChevronLeft className="w-4 h-4" />
                     Prev
                   </motion.button>
-                  <span className="text-sm text-muted/40">
+                  <span className="text-sm text-muted">
                     Page {page} of {Math.max(1, Math.ceil(cafes.length / pageSize))}
                   </span>
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.95 }}
-                    className="flex items-center gap-1 px-4 py-2 bg-card/40 border border-border/30 rounded-xl text-sm text-muted/40 hover:text-text hover:border-primary/30 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="flex items-center gap-1 px-4 py-2 bg-white border border-border rounded-xl text-sm text-text hover:border-primary transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
                     onClick={() => setPage((p) => (p < Math.ceil(cafes.length / pageSize)) ? p + 1 : p)}
                     disabled={page >= Math.ceil(cafes.length / pageSize)}
                   >
@@ -1194,18 +1174,18 @@ export default function SuperAdmin() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-background/80 backdrop-blur-md flex items-center justify-center z-50 p-4"
+              className="fixed inset-0 bg-[#1C1917]/40 backdrop-blur-sm flex items-center justify-center z-50 p-4"
             >
               <motion.div
                 initial={{ scale: 0.9, opacity: 0, y: 20 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.9, opacity: 0, y: 20 }}
                 transition={{ duration: 0.3 }}
-                className="bg-card/90 backdrop-blur-sm border border-border/30 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl shadow-primary/10 flex flex-col"
+                className="bg-white border border-border rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col"
                 ref={modalRef}
               >
                 {/* Modal Header - Fixed */}
-                <div className="flex items-center justify-between p-6 bg-surface/20 border-b border-border/20 flex-shrink-0">
+                <div className="flex items-center justify-between p-6 bg-[#FBF8F3] border-b border-border flex-shrink-0">
                   <h3 className="flex items-center gap-2 text-lg font-semibold text-text">
                     <Edit className="w-5 h-5 text-primary" />
                     Extend Subscription Plan
@@ -1214,7 +1194,7 @@ export default function SuperAdmin() {
                     whileHover={{ scale: 1.1, rotate: 90 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={closeEditModal}
-                    className="text-muted/40 hover:text-text transition-colors p-1 rounded-lg hover:bg-surface/20"
+                    className="text-muted hover:text-text transition-colors p-1 rounded-lg hover:bg-surface"
                   >
                     <X className="w-5 h-5" />
                   </motion.button>
@@ -1252,53 +1232,41 @@ export default function SuperAdmin() {
                         className={`space-y-1.5 ${field.full ? 'sm:col-span-2' : ''}`}
                       >
                         <label className="flex items-center gap-1.5 text-xs font-medium text-muted">
-                          <field.icon className="w-3.5 h-3.5 text-primary/50" />
+                          <field.icon className="w-3.5 h-3.5 text-primary" />
                           {field.label}
                         </label>
                         {field.type === 'select' ? (
-                          <select
-                            className="w-full h-[52px] px-4 bg-surface/30 border border-border/40 rounded-xl text-sm text-text focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-300 appearance-none cursor-pointer hover:border-primary/50 
-                            [&:-webkit-autofill]:!bg-[rgba(212,175,55,0.08)] 
-                            [&:-webkit-autofill]:!text-[#F9FAFB] 
-                            [&:-webkit-autofill]:!shadow-[inset_0_0_0px_1000px_rgba(212,175,55,0.08)] 
-                            [&:-webkit-autofill]:caret-text 
-                            [&:-webkit-autofill]:!border-primary/30"
-                            value={field.value}
-                            onChange={(e) => {
-                              if (field.setter) {
-                                field.setter(e.target.value);
-                              }
-                            }}
-                          >
-                            <option value="demo1" className="bg-card text-text">Demo (1 Day)</option>
-                            <option value="demo" className="bg-card text-text">Demo (7 Days)</option>
-                            <option value="1" className="bg-card text-text">1 Month</option>
-                            <option value="3" className="bg-card text-text">3 Months</option>
-                            <option value="6" className="bg-card text-text">6 Months</option>
-                            <option value="12" className="bg-card text-text">12 Months</option>
-                            <option value="lifetime" className="bg-card text-text">Lifetime</option>
-                          </select>
+                          <div className="relative">
+                            <select
+                              className="w-full h-[52px] px-4 pr-10 bg-[#FBF8F3] border border-border rounded-xl text-sm text-stone-900 font-medium focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-300 appearance-none cursor-pointer hover:border-primary shadow-sm"
+                              value={field.value}
+                              onChange={(e) => {
+                                if (field.setter) {
+                                  field.setter(e.target.value);
+                                }
+                              }}
+                            >
+                              <option value="demo1" className="bg-white text-stone-900">Demo (1 Day)</option>
+                              <option value="demo" className="bg-white text-stone-900">Demo (7 Days)</option>
+                              <option value="1" className="bg-white text-stone-900">1 Month (₹999)</option>
+                              <option value="3" className="bg-white text-stone-900">3 Months</option>
+                              <option value="6" className="bg-white text-stone-900">6 Months</option>
+                              <option value="12" className="bg-white text-stone-900">12 Months (₹9,999)</option>
+                              <option value="lifetime" className="bg-white text-stone-900">Lifetime</option>
+                            </select>
+                            <ChevronDown className="w-4 h-4 text-stone-400 pointer-events-none absolute right-4 top-1/2 -translate-y-1/2" />
+                          </div>
                         ) : field.readOnly ? (
                           <input
                             type="text"
-                            className="w-full h-[52px] px-4 bg-surface/20 border border-border/30 rounded-xl text-sm text-text/40 cursor-not-allowed 
-                            [&:-webkit-autofill]:!bg-[rgba(212,175,55,0.08)] 
-                            [&:-webkit-autofill]:!text-[#F9FAFB] 
-                            [&:-webkit-autofill]:!shadow-[inset_0_0_0px_1000px_rgba(212,175,55,0.08)] 
-                            [&:-webkit-autofill]:caret-text 
-                            [&:-webkit-autofill]:!border-primary/30"
+                            className="w-full h-[52px] px-4 bg-surface/50 border border-border rounded-xl text-sm text-stone-600 cursor-not-allowed shadow-sm font-medium"
                             value={field.value}
                             readOnly
                           />
                         ) : field.type === 'date' ? (
                           <input
                             type="date"
-                            className="w-full h-[52px] px-4 bg-surface/30 border border-border/40 rounded-xl text-sm text-text focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-300 hover:border-primary/50 
-                            [&:-webkit-autofill]:!bg-[rgba(212,175,55,0.08)] 
-                            [&:-webkit-autofill]:!text-[#F9FAFB] 
-                            [&:-webkit-autofill]:!shadow-[inset_0_0_0px_1000px_rgba(212,175,55,0.08)] 
-                            [&:-webkit-autofill]:caret-text 
-                            [&:-webkit-autofill]:!border-primary/30"
+                            className="w-full h-[52px] px-4 bg-[#FBF8F3] border border-border rounded-xl text-sm text-stone-900 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-300 hover:border-primary shadow-sm"
                             value={field.value}
                             onChange={(e) => {
                               if (field.setter) {
@@ -1309,12 +1277,7 @@ export default function SuperAdmin() {
                         ) : (
                           <input
                             type={field.type || 'text'}
-                            className="w-full h-[52px] px-4 bg-surface/30 border border-border/40 rounded-xl text-sm text-text placeholder-muted/30 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-300 hover:border-primary/50 
-                            [&:-webkit-autofill]:!bg-[rgba(212,175,55,0.08)] 
-                            [&:-webkit-autofill]:!text-[#F9FAFB] 
-                            [&:-webkit-autofill]:!shadow-[inset_0_0_0px_1000px_rgba(212,175,55,0.08)] 
-                            [&:-webkit-autofill]:caret-text 
-                            [&:-webkit-autofill]:!border-primary/30"
+                            className="w-full h-[52px] px-4 bg-[#FBF8F3] border border-border rounded-xl text-sm text-stone-900 placeholder:text-stone-400 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-300 hover:border-primary shadow-sm font-normal"
                             value={field.value}
                             onChange={(e) => {
                               if (field.setter) {
@@ -1331,12 +1294,12 @@ export default function SuperAdmin() {
                 </div>
 
                 {/* Modal Footer - Fixed at bottom with sticky positioning */}
-                <div className="flex flex-col-reverse sm:flex-row items-center gap-3 p-6 bg-surface/20 border-t border-border/20 flex-shrink-0 sticky bottom-0 bg-card/95 backdrop-blur-sm">
+                <div className="flex flex-col-reverse sm:flex-row items-center gap-3 p-6 bg-[#FBF8F3] border-t border-border flex-shrink-0 sticky bottom-0">
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={closeEditModal}
-                    className="w-full sm:w-auto px-6 py-2.5 border border-border/30 rounded-xl text-sm font-medium text-muted/40 hover:text-text hover:border-primary/30 transition-all duration-300"
+                    className="w-full sm:w-auto px-6 py-2.5 border border-border rounded-xl text-sm font-semibold text-text hover:border-primary bg-white shadow-sm transition-all duration-300"
                   >
                     Cancel
                   </motion.button>
@@ -1344,17 +1307,17 @@ export default function SuperAdmin() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={saveChanges}
-                    className="w-full sm:w-auto flex items-center justify-center gap-2 h-[52px] px-8 bg-gradient-to-r from-primary to-primary/85 hover:from-primary/90 hover:to-primary/90 text-background font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-primary/20 hover:shadow-primary/30 disabled:opacity-60 disabled:cursor-not-allowed text-base"
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 h-[52px] px-8 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl transition-all duration-300 shadow-md shadow-primary/20 disabled:opacity-60 disabled:cursor-not-allowed text-base"
                     disabled={saving}
                   >
                     {saving ? (
                       <>
-                        <span className="w-5 h-5 border-2 border-background/30 border-t-background rounded-full animate-spin" />
+                        <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         Saving...
                       </>
                     ) : (
                       <>
-                        <Sparkles className="w-4 h-4" />
+                        <Calendar className="w-4 h-4" />
                         Extend Plan
                       </>
                     )}
@@ -1394,25 +1357,19 @@ export default function SuperAdmin() {
           animation-delay: 1000ms;
         }
 
-        /* Fix for select dropdown options */
+        /* Luxury Warm Beige select dropdown styling */
+        select {
+          color: #1C1917 !important;
+        }
+        
         select option {
-          background-color: #1E293B !important;
-          color: #F9FAFB !important;
+          background-color: #FFFFFF !important;
+          color: #1C1917 !important;
         }
         
         select optgroup {
-          background-color: #1E293B !important;
-          color: #F9FAFB !important;
-        }
-        
-        /* Fix for select text color */
-        select {
-          color: #F9FAFB !important;
-        }
-        
-        /* Fix for select placeholder */
-        select:invalid {
-          color: #9CA3AF !important;
+          background-color: #FFFFFF !important;
+          color: #1C1917 !important;
         }
       `}</style>
     </div>

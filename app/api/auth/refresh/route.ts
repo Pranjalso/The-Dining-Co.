@@ -8,8 +8,31 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
-    const refreshToken = req.cookies.get('refreshToken_cafeadmin')?.value || req.cookies.get('refreshToken_superadmin')?.value ||
-                        (await req.json()).refreshToken;
+    let body: any = {};
+    try {
+      body = await req.json();
+    } catch (_) {}
+
+    const requestedRole = body?.role || req.nextUrl.searchParams.get('role');
+
+    let refreshToken: string | undefined;
+
+    if (requestedRole === 'superadmin') {
+      refreshToken = req.cookies.get('refreshToken_superadmin')?.value || body?.refreshToken;
+    } else if (requestedRole === 'cafeadmin') {
+      refreshToken = req.cookies.get('refreshToken_cafeadmin')?.value || body?.refreshToken;
+    } else {
+      // Auto-detect based on referer
+      const referer = req.headers.get('referer') || '';
+      const isSuperAdminReferer = referer.includes('/admin') && !referer.match(/\/[^/]+\/admin/);
+      if (isSuperAdminReferer && req.cookies.get('refreshToken_superadmin')?.value) {
+        refreshToken = req.cookies.get('refreshToken_superadmin')?.value;
+      } else if (req.cookies.get('refreshToken_cafeadmin')?.value) {
+        refreshToken = req.cookies.get('refreshToken_cafeadmin')?.value;
+      } else {
+        refreshToken = req.cookies.get('refreshToken_superadmin')?.value || body?.refreshToken;
+      }
+    }
 
     if (!refreshToken) {
       return NextResponse.json(
@@ -77,6 +100,7 @@ export async function POST(req: NextRequest) {
       username: user.username,
       role: user.role,
       cafeSlug: user.cafeSlug,
+      cafeName: (user as any).cafeName,
       tokenVersion,
       sessionStart,
     });

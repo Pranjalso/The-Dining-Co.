@@ -7,7 +7,7 @@ import {
   Globe,
   Shield,
   Smartphone,
-  Sparkles,
+  Award,
   CheckCircle
 } from "lucide-react";
 
@@ -63,7 +63,7 @@ const Benefits = () => {
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 animate-on-scroll">
           <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 mb-4">
-            <Sparkles className="h-4 w-4 text-primary" />
+            <Award className="h-4 w-4 text-primary" />
             <span className="text-sm font-medium text-primary">Benefits</span>
           </div>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-text">

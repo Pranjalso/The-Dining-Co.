@@ -13,6 +13,9 @@ const demoRequestSchema = z.object({
   contactNumber: z.string().min(10, "Contact number must be at least 10 digits"),
 });
 
+import connectDB from '@/lib/db/connect';
+import Contact from '@/lib/db/models/Contact';
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -20,6 +23,23 @@ export async function POST(req: NextRequest) {
 
     console.log('Demo request received:', parsed);
     console.log('Admin email target:', process.env.ADMIN_EMAIL || 'not configured');
+
+    // Save lead to database
+    try {
+      await connectDB();
+      await Contact.create({
+        fullName: parsed.ownerName.trim(),
+        contactNumber: parsed.contactNumber.trim(),
+        email: parsed.email.trim(),
+        city: parsed.city.trim() || 'Bhopal',
+        cafeRestaurantName: parsed.cafeName.trim(),
+        needs: `Demo requested for ${parsed.cafeName} at ${parsed.location}. Start date: ${parsed.startDate}.`,
+        status: 'new',
+      });
+      console.log('✅ Demo request lead saved to database');
+    } catch (dbErr) {
+      console.error('⚠️ DB persistence warning for demo request:', dbErr);
+    }
 
     await sendDemoRequestEmail(parsed);
 

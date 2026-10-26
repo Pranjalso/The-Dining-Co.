@@ -24,11 +24,11 @@ export const withAuth = (
 
     let token: string | undefined;
     if (options?.requireAdmin) {
-      token = superadminToken || authHeaderToken || cafeadminToken;
+      token = superadminToken || authHeaderToken;
     } else if (options?.requireCafe) {
-      token = cafeadminToken || authHeaderToken || superadminToken;
-    } else {
       token = cafeadminToken || superadminToken || authHeaderToken;
+    } else {
+      token = superadminToken || cafeadminToken || authHeaderToken;
     }
 
     if (!token) {
@@ -73,7 +73,7 @@ export const withAuth = (
           // Skipping tokenVersion check to prevent recurring logouts as requested
         }
       }
-    } catch (e) {
+    } catch {
       return NextResponse.json({ success: false, message: 'Authentication check failed' }, { status: 500 });
     }
 
@@ -85,7 +85,7 @@ export const withAuth = (
       );
     }
 
-    if (options?.requireCafe && user.role !== 'cafeadmin') {
+    if (options?.requireCafe && user.role !== 'cafeadmin' && user.role !== 'superadmin') {
       return NextResponse.json(
         { success: false, message: 'Cafe admin access required' },
         { status: 403 }
@@ -113,10 +113,12 @@ export const withCafeAccess = (
     const menuIndex = pathParts.indexOf('menu');
     const ordersIndex = pathParts.indexOf('orders');
     const cafesIndex = pathParts.indexOf('cafes');
+    const ratingsIndex = pathParts.indexOf('ratings');
     
     if (menuIndex !== -1) slug = pathParts[menuIndex + 1];
     else if (ordersIndex !== -1) slug = pathParts[ordersIndex + 1];
     else if (cafesIndex !== -1) slug = pathParts[cafesIndex + 1];
+    else if (ratingsIndex !== -1) slug = pathParts[ratingsIndex + 1];
 
     if (req.user?.role === 'cafeadmin' && req.user.cafeSlug !== slug) {
       return NextResponse.json(

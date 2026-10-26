@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Send, Calendar, MapPin, Building, User, Mail, Phone, CheckCircle, Sparkles } from "lucide-react";
+import { X, Send, Calendar, MapPin, Building, User, Mail, Phone, CheckCircle } from "lucide-react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -86,7 +86,7 @@ export default function DemoRequestPopup({ onClose }: DemoRequestPopupProps) {
         <div className="bg-gradient-to-r from-primary/10 to-primary/5 border-b border-border p-6 relative">
           <div className="flex items-center gap-3">
             <div className="bg-primary/20 p-2.5 rounded-xl border border-primary/30">
-              <Sparkles className="h-6 w-6 text-primary" />
+              <Calendar className="h-6 w-6 text-primary" />
             </div>
             <div>
               <h2 className="text-2xl font-bold text-text">Request a Demo</h2>
@@ -130,7 +130,7 @@ export default function DemoRequestPopup({ onClose }: DemoRequestPopupProps) {
                     placeholder="E.g. The Grand Dining"
                     value={formData.cafeName}
                     onChange={handleChange}
-                    className={`bg-surface border-border text-text placeholder-muted focus:border-primary focus:ring-primary/20 ${getError("cafeName") ? "border-destructive focus-visible:ring-destructive/20" : ""}`}
+                    className={`bg-surface border-border text-stone-900 placeholder:text-stone-400 focus:border-primary focus:ring-primary/20 ${getError("cafeName") ? "border-destructive focus-visible:ring-destructive/20" : ""}`}
                   />
                   {getError("cafeName") && <p className="text-destructive text-xs">{getError("cafeName")}</p>}
                 </div>
@@ -145,7 +145,7 @@ export default function DemoRequestPopup({ onClose }: DemoRequestPopupProps) {
                     placeholder="Your Full Name"
                     value={formData.ownerName}
                     onChange={handleChange}
-                    className={`bg-surface border-border text-text placeholder-muted focus:border-primary focus:ring-primary/20 ${getError("ownerName") ? "border-destructive focus-visible:ring-destructive/20" : ""}`}
+                    className={`bg-surface border-border text-stone-900 placeholder:text-stone-400 focus:border-primary focus:ring-primary/20 ${getError("ownerName") ? "border-destructive focus-visible:ring-destructive/20" : ""}`}
                   />
                   {getError("ownerName") && <p className="text-destructive text-xs">{getError("ownerName")}</p>}
                 </div>
@@ -161,7 +161,7 @@ export default function DemoRequestPopup({ onClose }: DemoRequestPopupProps) {
                     placeholder="you@restaurant.com"
                     value={formData.email}
                     onChange={handleChange}
-                    className={`bg-surface border-border text-text placeholder-muted focus:border-primary focus:ring-primary/20 ${getError("email") ? "border-destructive focus-visible:ring-destructive/20" : ""}`}
+                    className={`bg-surface border-border text-stone-900 placeholder:text-stone-400 focus:border-primary focus:ring-primary/20 ${getError("email") ? "border-destructive focus-visible:ring-destructive/20" : ""}`}
                   />
                   {getError("email") && <p className="text-destructive text-xs">{getError("email")}</p>}
                 </div>
@@ -176,7 +176,7 @@ export default function DemoRequestPopup({ onClose }: DemoRequestPopupProps) {
                     placeholder="10 digit number"
                     value={formData.contactNumber}
                     onChange={handleChange}
-                    className={`bg-surface border-border text-text placeholder-muted focus:border-primary focus:ring-primary/20 ${getError("contactNumber") ? "border-destructive focus-visible:ring-destructive/20" : ""}`}
+                    className={`bg-surface border-border text-stone-900 placeholder:text-stone-400 focus:border-primary focus:ring-primary/20 ${getError("contactNumber") ? "border-destructive focus-visible:ring-destructive/20" : ""}`}
                   />
                   {getError("contactNumber") && <p className="text-destructive text-xs">{getError("contactNumber")}</p>}
                 </div>
@@ -191,7 +191,7 @@ export default function DemoRequestPopup({ onClose }: DemoRequestPopupProps) {
                     placeholder="Your City"
                     value={formData.city}
                     onChange={handleChange}
-                    className={`bg-surface border-border text-text placeholder-muted focus:border-primary focus:ring-primary/20 ${getError("city") ? "border-destructive focus-visible:ring-destructive/20" : ""}`}
+                    className={`bg-surface border-border text-stone-900 placeholder:text-stone-400 focus:border-primary focus:ring-primary/20 ${getError("city") ? "border-destructive focus-visible:ring-destructive/20" : ""}`}
                   />
                   {getError("city") && <p className="text-destructive text-xs">{getError("city")}</p>}
                 </div>
@@ -206,7 +206,7 @@ export default function DemoRequestPopup({ onClose }: DemoRequestPopupProps) {
                     placeholder="Area/Street"
                     value={formData.location}
                     onChange={handleChange}
-                    className={`bg-surface border-border text-text placeholder-muted focus:border-primary focus:ring-primary/20 ${getError("location") ? "border-destructive focus-visible:ring-destructive/20" : ""}`}
+                    className={`bg-surface border-border text-stone-900 placeholder:text-stone-400 focus:border-primary focus:ring-primary/20 ${getError("location") ? "border-destructive focus-visible:ring-destructive/20" : ""}`}
                   />
                   {getError("location") && <p className="text-destructive text-xs">{getError("location")}</p>}
                 </div>

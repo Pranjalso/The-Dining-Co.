@@ -45,19 +45,25 @@ export function useAuth() {
 
   // Logout
   const logout = useCallback(async () => {
+    const role = menupages ? 'cafeadmin' : 'superadmin';
     try {
       await fetch('/api/auth/logout', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
+        body: JSON.stringify({ role }),
       });
     } catch (error) {
       console.error('Logout failed:', error);
     } finally {
-      // Clear cookies by setting expired date
-      document.cookie = 'token_superadmin=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-      document.cookie = 'refreshToken_superadmin=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-      document.cookie = 'token_cafeadmin=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-      document.cookie = 'refreshToken_cafeadmin=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      // Clear ONLY the role's cookies
+      if (menupages) {
+        document.cookie = 'token_cafeadmin=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        document.cookie = 'refreshToken_cafeadmin=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      } else {
+        document.cookie = 'token_superadmin=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        document.cookie = 'refreshToken_superadmin=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      }
       
       mutate(null, false);
 

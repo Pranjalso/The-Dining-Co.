@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Crown, ArrowRight } from "lucide-react";
 
-const NotFound = () => {
+export default function NotFound() {
   const pathname = usePathname();
 
   useEffect(() => {
@@ -16,15 +16,15 @@ const NotFound = () => {
   }, [pathname]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0F0F0F] p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="text-center max-w-lg">
         <div className="flex justify-center mb-6">
           <Crown className="text-primary w-20 h-20" />
         </div>
-        <h1 className="text-6xl font-bold text-white mb-4">404</h1>
-        <p className="text-2xl font-bold text-white mb-2">Page Not Found</p>
+        <h1 className="text-6xl font-bold text-text mb-4">404</h1>
+        <p className="text-2xl font-bold text-text mb-2">Page Not Found</p>
         <p className="text-muted mb-8">
-          The page you're looking for doesn't exist or has been moved.
+          The page you&apos;re looking for doesn&apos;t exist or has been moved.
         </p>
         <Link 
           href="/" 
@@ -36,6 +36,4 @@ const NotFound = () => {
       </div>
     </div>
   );
-};
-
-export default NotFound;
+}

@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/db/connect';
 import MenuItem from '@/lib/db/models/MenuItem';
-import { withAuth, withCafeAccess } from '@/lib/auth/middleware';
-import { AuthRequest } from '@/lib/auth/middleware';
+import { withCafeAccess, AuthRequest } from '@/lib/auth/middleware';
 import { deleteFromCloudinary, extractPublicId } from '@/lib/cloudinary/config';
 import { getMenuItems } from '@/lib/db/menu';
 
@@ -12,7 +11,7 @@ export async function GET(
   { params }: { params: { slug: string } }
 ) {
   try {
-    const { slug } = await params;
+    const { slug } = params;
     const { searchParams } = req.nextUrl;
     const category = searchParams.get('category') || undefined;
     const idsParam = searchParams.get('ids');

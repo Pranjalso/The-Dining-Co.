@@ -22,7 +22,7 @@ export default function HomeClient() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0F0F0F]">
+    <div className="min-h-screen bg-[#FBF8F3]">
       <ScrollAnimations />
       <Header />
       <main>

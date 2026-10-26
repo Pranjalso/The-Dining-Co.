@@ -1,8 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db/connect';
 import Order from '@/lib/db/models/Order';
-import { withCafeAccess } from '@/lib/auth/middleware';
-import { AuthRequest } from '@/lib/auth/middleware';
+import { withCafeAccess, AuthRequest } from '@/lib/auth/middleware';
 
 export const GET = withCafeAccess(async (
   req: AuthRequest,
@@ -113,7 +112,6 @@ export const GET = withCafeAccess(async (
 
       const hours = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22];
       chartData = hours.map(h => {
-        const matchingHour = hourlyAggregation.find(item => item._id >= h && item._id < h + 2);
         const count = hourlyAggregation
           .filter(item => item._id >= h && item._id < h + 2)
           .reduce((sum, item) => sum + item.count, 0);

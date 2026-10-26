@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db/connect';
 import Cafe from '@/lib/db/models/Cafe';
 import Admin from '@/lib/db/models/Admin';
-import { withAuth } from '@/lib/auth/middleware';
-import { AuthRequest } from '@/lib/auth/middleware';
+import { withAuth, AuthRequest } from '@/lib/auth/middleware';
 import bcrypt from 'bcryptjs';
 
 // Get single cafe

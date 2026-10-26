@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Shield, Lock, Eye, Database, Mail, Crown, Sparkles, CheckCircle, ArrowRight } from "lucide-react";
+import { Shield, Lock, Eye, Database, Mail, Crown, CheckCircle, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 const fadeInUp = {
@@ -61,7 +61,7 @@ export default function PrivacyPolicy() {
             variants={staggerContainer}
             initial="hidden"
             animate="visible"
-            className="bg-card/60 backdrop-blur-sm border border-border/30 rounded-2xl p-6 md:p-8 shadow-2xl shadow-primary/5"
+            className="bg-white border border-border rounded-2xl p-6 md:p-8 shadow-sm"
           >
             <div className="space-y-8 text-muted/80 leading-relaxed">
               {/* Introduction */}
@@ -189,14 +189,14 @@ export default function PrivacyPolicy() {
                   <p className="text-sm">
                     If you have questions or comments about this Privacy Policy, please contact us at:
                   </p>
-                  <div className="bg-surface/20 border border-border/20 rounded-xl p-4">
+                  <div className="bg-[#FBF8F3] border border-border rounded-xl p-4">
                     <p className="text-sm">
-                      <span className="text-muted/60">Email:</span>{' '}
+                      <span className="text-muted">Email:</span>{' '}
                       <a 
-                        href="mailto:privacy@thediningco.com" 
+                        href="mailto:thediningco.contact@gmail.com" 
                         className="text-primary hover:underline transition-colors font-medium"
                       >
-                        privacy@thediningco.com
+                        thediningco.contact@gmail.com
                       </a>
                     </p>
                   </div>

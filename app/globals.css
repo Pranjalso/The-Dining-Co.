@@ -1,69 +1,99 @@
-/* app/globals.css - Complete redesign for The Dining Co. */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+/* app/globals.css - Luxury Warm Beige & Cream Design System for The Dining Co. */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,600;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  /* The Dining Co. Luxury Design System */
-  --color-background: #0F0F0F;
-  --color-section: #1C1C1C;
-  --color-primary: #D4AF37;
-  --color-primary-hover: #F4C95D;
-  --color-secondary: #7B1E1E;
-  --color-text: #FFFFFF;
-  --color-muted: #B3B3B3;
-  --color-border: #2F2F2F;
-  --color-card: #1C1C1C;
+  /* The Dining Co. Warm Beige & Cream Luxury Design System */
+  --color-background: #FBF8F3;
+  --color-section: #F3EFE6;
+  --color-surface: #F3EFE6;
+  --color-surface-hover: #EAE3D5;
+  --color-primary: #B8860B;
+  --color-primary-hover: #9C7006;
+  --color-secondary: #8B3A2B;
+  --color-text: #1C1917;
+  --color-muted: #78716C;
+  --color-border: #E5DFD4;
+  --color-card: #FFFFFF;
   
   --font-heading: 'Plus Jakarta Sans', sans-serif;
   --font-body: 'Inter', sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-luxury: 'Cinzel', Georgia, serif;
+  --font-display: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+}
+
+.font-serif {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+.font-luxury {
+  font-family: 'Cinzel', Georgia, serif;
+}
+
+.font-display {
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 }
 
 :root {
-  --background: 0 0% 6%;
-  --foreground: 0 0% 100%;
-  --card: 0 0% 11%;
-  --card-foreground: 0 0% 100%;
-  --popover: 0 0% 11%;
-  --popover-foreground: 0 0% 100%;
-  --primary: 45 75% 52%;
-  --primary-foreground: 0 0% 0%;
-  --secondary: 0 66% 30%;
-  --secondary-foreground: 0 0% 100%;
-  --muted: 0 0% 15%;
-  --muted-foreground: 0 0% 70%;
-  --accent: 45 75% 52%;
-  --accent-foreground: 0 0% 0%;
+  --background: 38 35% 97%;
+  --foreground: 24 15% 12%;
+  --card: 40 30% 99%;
+  --card-foreground: 24 15% 12%;
+  --popover: 40 30% 99%;
+  --popover-foreground: 24 15% 12%;
+  --primary: 38 65% 42%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 36 25% 90%;
+  --secondary-foreground: 24 15% 15%;
+  --muted: 38 25% 92%;
+  --muted-foreground: 25 8% 45%;
+  --accent: 38 65% 42%;
+  --accent-foreground: 0 0% 100%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
-  --border: 0 0% 18%;
-  --input: 0 0% 11%;
-  --ring: 45 75% 52%;
+  --border: 36 20% 86%;
+  --input: 36 20% 92%;
+  --ring: 38 65% 42%;
   --radius: 0.75rem;
+
+  /* Explicit hex tokens for CSS variables */
+  --color-background: #FBF8F3;
+  --color-section: #F3EFE6;
+  --color-surface: #F3EFE6;
+  --color-surface-hover: #EAE3D5;
+  --color-primary: #B8860B;
+  --color-primary-hover: #9C7006;
+  --color-secondary: #8B3A2B;
+  --color-text: #1C1917;
+  --color-muted: #78716C;
+  --color-border: #E5DFD4;
+  --color-card: #FFFFFF;
 }
 
 .dark {
-  --background: 0 0% 6%;
-  --foreground: 0 0% 100%;
-  --card: 0 0% 11%;
-  --card-foreground: 0 0% 100%;
-  --popover: 0 0% 11%;
-  --popover-foreground: 0 0% 100%;
-  --primary: 45 75% 52%;
-  --primary-foreground: 0 0% 0%;
-  --secondary: 0 66% 30%;
-  --secondary-foreground: 0 0% 100%;
-  --muted: 0 0% 15%;
-  --muted-foreground: 0 0% 70%;
-  --accent: 45 75% 52%;
-  --accent-foreground: 0 0% 0%;
+  --background: 38 35% 97%;
+  --foreground: 24 15% 12%;
+  --card: 40 30% 99%;
+  --card-foreground: 24 15% 12%;
+  --popover: 40 30% 99%;
+  --popover-foreground: 24 15% 12%;
+  --primary: 38 65% 42%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 36 25% 90%;
+  --secondary-foreground: 24 15% 15%;
+  --muted: 38 25% 92%;
+  --muted-foreground: 25 8% 45%;
+  --accent: 38 65% 42%;
+  --accent-foreground: 0 0% 100%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
-  --border: 0 0% 18%;
-  --input: 0 0% 11%;
-  --ring: 45 75% 52%;
+  --border: 36 20% 86%;
+  --input: 36 20% 92%;
+  --ring: 38 65% 42%;
 }
 
 @layer base {
@@ -86,6 +116,7 @@
   
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
+    color: var(--color-text);
   }
 }
 
@@ -117,41 +148,42 @@
   }
   
   .glass-effect {
-    background: rgba(28, 28, 28, 0.7);
+    background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(229, 223, 212, 0.8);
   }
   
   .premium-card {
-    background: #1C1C1C;
-    border: 1px solid #2F2F2F;
+    background: #FFFFFF;
+    border: 1px solid #E5DFD4;
     border-radius: 1rem;
     transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(60, 45, 30, 0.04);
   }
   
   .premium-card:hover {
-    border-color: #D4AF37;
+    border-color: #B8860B;
     transform: translateY(-4px);
-    box-shadow: 0 20px 40px rgba(212, 175, 55, 0.05);
+    box-shadow: 0 16px 36px rgba(184, 134, 11, 0.12);
   }
   
   .gold-gradient {
-    background: linear-gradient(135deg, #D4AF37, #F4C95D, #D4AF37);
+    background: linear-gradient(135deg, #B8860B, #D4A347, #B8860B);
     background-size: 200% 200%;
     animation: shimmer 3s ease-in-out infinite;
   }
   
   .gold-text {
-    background: linear-gradient(135deg, #D4AF37, #F4C95D);
+    background: linear-gradient(135deg, #9C7006, #C29025);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   
   .btn-primary-gold {
-    background: linear-gradient(135deg, #D4AF37, #F4C95D);
-    color: #0F0F0F;
+    background: linear-gradient(135deg, #B8860B, #C9972E);
+    color: #FFFFFF;
     padding: 0.875rem 2rem;
     border-radius: 0.75rem;
     font-weight: 600;
@@ -162,25 +194,25 @@
   
   .btn-primary-gold:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3);
+    box-shadow: 0 10px 30px rgba(184, 134, 11, 0.25);
   }
   
   .btn-outline-gold {
     background: transparent;
-    color: #D4AF37;
+    color: #9C7006;
     padding: 0.875rem 2rem;
     border-radius: 0.75rem;
     font-weight: 600;
-    border: 2px solid #D4AF37;
+    border: 2px solid #B8860B;
     transition: all 0.3s ease;
     cursor: pointer;
   }
   
   .btn-outline-gold:hover {
-    background: #D4AF37;
-    color: #0F0F0F;
+    background: #B8860B;
+    color: #FFFFFF;
     transform: translateY(-2px);
-    box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2);
+    box-shadow: 0 10px 30px rgba(184, 134, 11, 0.15);
   }
   
   .animate-on-scroll {
@@ -209,31 +241,84 @@
   animation: float 3s ease-in-out infinite;
 }
 
-/* Scrollbar Styling */
+/* Sleek, Minimal Scrollbar Styling */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #D4A34766 transparent;
+}
+
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0F0F0F;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #D4AF37;
-  border-radius: 4px;
+  background: #D4A34788;
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #F4C95D;
+  background: #B8860B;
+}
+
+/* Thin horizontal category scrollbars / subtle lists */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #D4A34755;
+  border-radius: 9999px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #B8860B;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Clean, modern numeric / currency font (avoids deformed serif rupee glyphs) */
+.font-price {
+  font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-feature-settings: 'tnum' on, 'lnum' on;
+  letter-spacing: -0.015em;
 }
 
 /* Stabilize input focus and ensure interactive cursors */
 @layer components {
   input, textarea, select {
     box-sizing: border-box;
-    caret-color: var(--color-text);
-    /* Avoid layout-changing transitions on focus */
+    caret-color: #B8860B;
+    background-color: #FFFFFF;
+    color: #1C1917 !important;
+    border-color: #E5DFD4;
     transition: border-color 160ms ease, box-shadow 160ms ease !important;
+  }
+
+  /* Universal high-contrast, crystal-clear placeholder styling */
+  input::placeholder, textarea::placeholder {
+    color: #A8A29E !important;
+    opacity: 1 !important;
+    -webkit-text-fill-color: #A8A29E;
+    font-weight: 400;
+  }
+
+  /* Ensure select dropdown options render crisp espresso text on white */
+  select option, select optgroup {
+    background-color: #FFFFFF !important;
+    color: #1C1917 !important;
   }
 
   /* Make all obvious interactive elements use pointer cursor */

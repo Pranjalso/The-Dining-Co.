@@ -44,85 +44,95 @@ export async function middleware(req: NextRequest) {
                                 pathParts[1] === 'adminlogin' && 
                                 !['admin', 'api', '_next', 'favicon.ico', 'public'].includes(pathParts[0]);
 
-  // Choose which token to prefer based on the route being accessed so roles don't collide
-  let token = null;
-  if (isSuperAdminRoute) {
-    token = req.cookies.get('token_superadmin')?.value || req.cookies.get('token_cafeadmin')?.value || null;
-  } else if (isCafeAdminRoute) {
-    token = req.cookies.get('token_cafeadmin')?.value || req.cookies.get('token_superadmin')?.value || null;
-  } else {
-    token = req.cookies.get('token_cafeadmin')?.value || req.cookies.get('token_superadmin')?.value || null;
-  }
+  const isSuperAdminLoginRoute = pathname === '/adminlogin';
 
-  // --- Logic for Admin Routes ---
-  if (isSuperAdminRoute || isCafeAdminRoute) {
-    // If no token, redirect to appropriate login page
+  // --- 1. Super Admin Route Protection (/admin, /admin/...) ---
+  if (isSuperAdminRoute) {
+    const token = req.cookies.get('token_superadmin')?.value;
+
     if (!token) {
-      // Industry standard: Use absolute URLs for redirects
-      const loginUrl = new URL(isCafeAdminRoute && cafeSlugInPath ? `/${cafeSlugInPath}/adminlogin` : '/adminlogin', req.url);
-      loginUrl.search = ''; 
+      const loginUrl = new URL('/adminlogin', req.url);
+      loginUrl.search = '';
       return NextResponse.redirect(loginUrl);
     }
 
-    let user = decodeJwtPayload(token);
-    
-    // Check if token is expired or invalid
-    if (!user || (user.exp && user.exp * 1000 < Date.now())) {
-      const loginUrl = new URL(isCafeAdminRoute && cafeSlugInPath ? `/${cafeSlugInPath}/adminlogin` : '/adminlogin', req.url);
+    const user = decodeJwtPayload(token);
+
+    if (!user || (user.exp && user.exp * 1000 < Date.now()) || user.role !== 'superadmin') {
+      const loginUrl = new URL('/adminlogin', req.url);
       const response = NextResponse.redirect(loginUrl);
-      // Clear any auth cookies (both roles) when token expired/invalid
+      // ONLY delete superadmin cookies - NEVER delete cafeadmin cookies
       response.cookies.delete('token_superadmin');
       response.cookies.delete('refreshToken_superadmin');
+      return response;
+    }
+
+    return NextResponse.next();
+  }
+
+  // --- 2. Cafe Admin Route Protection (/:slug/admin, /:slug/admin/...) ---
+  if (isCafeAdminRoute) {
+    const token = req.cookies.get('token_cafeadmin')?.value;
+
+    if (!token) {
+      const loginUrl = new URL(`/${cafeSlugInPath}/adminlogin`, req.url);
+      loginUrl.search = '';
+      return NextResponse.redirect(loginUrl);
+    }
+
+    const user = decodeJwtPayload(token);
+
+    if (!user || (user.exp && user.exp * 1000 < Date.now())) {
+      const loginUrl = new URL(`/${cafeSlugInPath}/adminlogin`, req.url);
+      const response = NextResponse.redirect(loginUrl);
+      // ONLY delete cafeadmin cookies - NEVER delete superadmin cookies
       response.cookies.delete('token_cafeadmin');
       response.cookies.delete('refreshToken_cafeadmin');
       return response;
     }
 
-    // A. Super Admin Route Protection
-    if (isSuperAdminRoute && user.role !== 'superadmin') {
-      // If someone tries to access superadmin area without superadmin role, send them to superadmin login
-      const url = new URL('/adminlogin', req.url);
-      url.search = '';
-      return NextResponse.redirect(url);
+    // STRICT ISOLATION: Must have role 'cafeadmin' AND match the URL cafe slug
+    const userSlug = user.cafeSlug?.toLowerCase();
+    const pathSlug = cafeSlugInPath?.toLowerCase();
+
+    if (user.role !== 'cafeadmin' || !userSlug || userSlug !== pathSlug) {
+      const loginUrl = new URL(`/${cafeSlugInPath}/adminlogin`, req.url);
+      loginUrl.search = '';
+      return NextResponse.redirect(loginUrl);
     }
 
-    // B. Cafe Admin Route Protection
-    if (isCafeAdminRoute) {
-      // Super admins can access any cafe admin page
-      if (user.role === 'superadmin') {
-        return NextResponse.next();
-      }
-
-      // STRICT ISOLATION: Cafe admins must have the correct role AND match the slug in the URL
-      // We use case-insensitive comparison for robustness
-      const userSlug = user.cafeSlug?.toLowerCase();
-      const pathSlug = cafeSlugInPath?.toLowerCase();
-
-      if (user.role !== 'cafeadmin' || !userSlug || userSlug !== pathSlug) {
-        // If they are not the correct cafe admin, send them to their specific login
-        const url = new URL(`/${cafeSlugInPath}/adminlogin`, req.url);
-        url.search = '';
-        return NextResponse.redirect(url);
-      }
-    }
-    
     return NextResponse.next();
   }
 
-  // --- Logic for Login Pages ---
-  if (pathname === '/adminlogin' || isCafeAdminLoginRoute) {
+  // --- 3. Super Admin Login Page (/adminlogin) ---
+  if (isSuperAdminLoginRoute) {
+    const token = req.cookies.get('token_superadmin')?.value;
     if (token) {
       const user = decodeJwtPayload(token);
-      if (user && user.exp && user.exp * 1000 > Date.now()) {
-        if (user.role === 'superadmin' && pathname === '/adminlogin') {
-          return NextResponse.redirect(new URL('/admin', req.url));
-        }
-        const currentLoginSlug = isCafeAdminLoginRoute ? pathParts[0] : null;
-        if (user.role === 'cafeadmin' && currentLoginSlug && user.cafeSlug === currentLoginSlug) {
-          return NextResponse.redirect(new URL(`/${user.cafeSlug}/admin`, req.url));
-        }
+      if (user && user.role === 'superadmin' && user.exp && user.exp * 1000 > Date.now()) {
+        return NextResponse.redirect(new URL('/admin', req.url));
       }
     }
+    return NextResponse.next();
+  }
+
+  // --- 4. Cafe Admin Login Page (/:slug/adminlogin) ---
+  if (isCafeAdminLoginRoute) {
+    const token = req.cookies.get('token_cafeadmin')?.value;
+    const currentLoginSlug = pathParts[0]?.toLowerCase();
+    if (token && currentLoginSlug) {
+      const user = decodeJwtPayload(token);
+      if (
+        user && 
+        user.role === 'cafeadmin' && 
+        user.cafeSlug?.toLowerCase() === currentLoginSlug &&
+        user.exp && 
+        user.exp * 1000 > Date.now()
+      ) {
+        return NextResponse.redirect(new URL(`/${user.cafeSlug}/admin`, req.url));
+      }
+    }
+    return NextResponse.next();
   }
 
   return NextResponse.next();

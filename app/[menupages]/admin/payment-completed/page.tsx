@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { 
@@ -14,13 +14,9 @@ import {
   Search, 
   Calendar, 
   Loader2, 
-  Sparkles, 
-  Crown,
-  ArrowLeft,
-  Smartphone,
-  Shield,
-  Lock,
-  CheckCircle
+  CalendarDays, 
+  MessageSquare,
+  Star
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import useSWR, { mutate } from "swr";
@@ -44,6 +40,8 @@ type Order = {
   paymentMethod: PaymentMethod;
   paymentStatus: "pending" | "completed" | "failed" | "refunded";
   items: OrderItem[];
+  specialInstructions?: string;
+  notes?: string;
 };
 
 // ─── Get today's date in YYYY-MM-DD format ───
@@ -62,7 +60,7 @@ function getYesterdayDateString() {
 type DateFilterOption = "today" | "yesterday" | "7d" | "30d" | "overall";
 
 // ─── Component for Individual Order Card ───
-function OrderCard({ order }: { order: Order }) {
+function OrderCard({ order, rating }: { order: Order; rating?: any }) {
   const [expanded, setExpanded] = useState(false);
 
   const totalQuantity = order.items.reduce((sum, item) => sum + item.quantity, 0);
@@ -80,7 +78,7 @@ function OrderCard({ order }: { order: Order }) {
   };
 
   return (
-    <div className="bg-surface/20 border border-border/20 rounded-xl sm:rounded-2xl p-3 sm:p-4 mb-3 sm:mb-4 hover:border-primary/30 transition-all duration-300">
+    <div className="bg-[#FBF8F3] border border-border rounded-xl sm:rounded-2xl p-3 sm:p-4 mb-3 sm:mb-4 hover:border-primary transition-all duration-300 shadow-sm">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-3 mb-2 sm:mb-3">
         <div className="flex items-start gap-2 sm:gap-3 w-full">
@@ -95,17 +93,23 @@ function OrderCard({ order }: { order: Order }) {
               <h4 className="font-bold text-text text-xs sm:text-base tracking-tight truncate max-w-[120px] sm:max-w-full">
                 Order #{order.orderNumber}
               </h4>
-              <span className="px-1.5 sm:px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full text-[8px] sm:text-[10px] font-bold whitespace-nowrap">
+              <span className="px-1.5 sm:px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-[8px] sm:text-[10px] font-bold whitespace-nowrap">
                 {order.paymentStatus}
               </span>
+              {rating && (
+                <span className="px-2 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded-full text-[8px] sm:text-[10px] font-bold flex items-center gap-1">
+                  <Star size={10} className="fill-primary" />
+                  <span>{rating.rating}.0</span>
+                </span>
+              )}
             </div>
             
-            <div className="flex items-center gap-1 text-[9px] sm:text-xs text-muted/60 font-medium mt-0.5 sm:mt-1 whitespace-nowrap">
+            <div className="flex items-center gap-1 text-[9px] sm:text-xs text-muted font-medium mt-0.5 sm:mt-1 whitespace-nowrap">
               <Clock size={10} className="flex-shrink-0" />
               <span className="flex-shrink-0">{formatTime(order.createdAt)}</span>
-              <span className="text-border/60 flex-shrink-0">•</span>
+              <span className="text-border flex-shrink-0">•</span>
               <span className="flex-shrink-0">{formatDate(order.createdAt)}</span>
-              <span className="text-border/60 flex-shrink-0">•</span>
+              <span className="text-border flex-shrink-0">•</span>
               <Armchair size={10} className="flex-shrink-0" />
               <span className="flex-shrink-0 truncate max-w-[70px] sm:max-w-full">Table {order.tableNumber}</span>
             </div>
@@ -116,8 +120,8 @@ function OrderCard({ order }: { order: Order }) {
             <div className={`
               flex items-center gap-1 px-2 sm:px-3 py-0.5 sm:py-1.5 rounded-lg text-[8px] sm:text-xs font-bold whitespace-nowrap border
               ${order.paymentMethod === 'upi'
-                ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' 
-                : 'bg-amber-500/10 text-amber-400 border-amber-500/20'}
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                : 'bg-amber-50 text-amber-700 border-amber-200'}
             `}>
               {order.paymentMethod === 'upi' ? (
                 <CreditCard size={10} />
@@ -133,16 +137,24 @@ function OrderCard({ order }: { order: Order }) {
         </div>
       </div>
 
+      {/* Customer Rating Feedback Snippet */}
+      {rating?.feedback && (
+        <div className="bg-white rounded-md sm:rounded-xl p-2 sm:p-2.5 mb-1 sm:mb-2 border border-border text-[9px] sm:text-xs text-text italic flex items-center gap-1.5 shadow-sm">
+          <Star size={11} className="text-primary fill-primary flex-shrink-0" />
+          <span className="truncate">&ldquo;{rating.feedback}&rdquo;</span>
+        </div>
+      )}
+
       {/* Items Summary */}
-      <div className="bg-surface/30 rounded-md sm:rounded-xl p-2 sm:p-3 mb-1 sm:mb-2 border border-border/20">
+      <div className="bg-white rounded-md sm:rounded-xl p-2 sm:p-3 mb-1 sm:mb-2 border border-border shadow-sm">
         <div className="flex items-center justify-between mb-1 sm:mb-2">
-          <span className="text-[9px] sm:text-xs font-semibold text-muted/60">
+          <span className="text-[9px] sm:text-xs font-semibold text-muted">
             {order.items.length} items · {totalQuantity} quantity
           </span>
           {showExpandButton && (
             <button 
               onClick={() => setExpanded(!expanded)}
-              className="text-[9px] sm:text-xs font-medium text-primary/70 hover:text-primary transition-colors flex items-center gap-0.5 sm:gap-1"
+              className="text-[9px] sm:text-xs font-medium text-primary hover:text-primary-hover transition-colors flex items-center gap-0.5 sm:gap-1"
             >
               {expanded ? 'Show less' : 'View details'}
               <ChevronDown size={10} className={`transform transition-transform duration-300 ${expanded ? 'rotate-180' : ''}`} />
@@ -153,14 +165,14 @@ function OrderCard({ order }: { order: Order }) {
         <div className={`space-y-1 overflow-hidden transition-all duration-300 ${(!showExpandButton || expanded) ? 'max-h-96' : 'max-h-12 sm:max-h-14'}`}>
           {(!showExpandButton || expanded) ? (
             order.items.map((item: any, idx) => (
-              <div key={idx} className="flex items-center justify-between text-[9px] sm:text-xs py-0.5 sm:py-1 border-b border-border/20 last:border-0">
+              <div key={idx} className="flex items-center justify-between text-[9px] sm:text-xs py-0.5 sm:py-1 border-b border-border/50 last:border-0">
                 <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-1">
                   <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-lg bg-primary/10 text-primary text-[7px] sm:text-[10px] font-bold flex items-center justify-center flex-shrink-0 border border-primary/20">
                     {item.quantity}
                   </span>
                   <span className="font-medium text-text truncate">{item.name}</span>
                 </div>
-                <span className="font-semibold text-muted/80 whitespace-nowrap ml-1 sm:ml-2">₹{(item.price * item.quantity).toFixed(2)}</span>
+                <span className="font-semibold text-muted whitespace-nowrap ml-1 sm:ml-2">₹{(item.price * item.quantity).toFixed(2)}</span>
               </div>
             ))
           ) : (
@@ -171,13 +183,13 @@ function OrderCard({ order }: { order: Order }) {
                     <span className="w-3 h-3 sm:w-4 sm:h-4 rounded-lg bg-primary/10 text-primary text-[6px] sm:text-[8px] font-bold flex items-center justify-center flex-shrink-0 border border-primary/20">
                       {item.quantity}
                     </span>
-                    <span className="text-text/80 truncate">{item.name}</span>
+                    <span className="text-text truncate">{item.name}</span>
                   </div>
-                  <span className="text-muted/80 whitespace-nowrap ml-1">₹{(item.price * item.quantity).toFixed(2)}</span>
+                  <span className="text-muted whitespace-nowrap ml-1">₹{(item.price * item.quantity).toFixed(2)}</span>
                 </div>
               ))}
               {remainingItems > 0 && (
-                <div className="text-[9px] sm:text-xs text-muted/40 italic mt-0.5">
+                <div className="text-[9px] sm:text-xs text-muted italic mt-0.5">
                   +{remainingItems} more item{remainingItems > 1 ? 's' : ''}
                 </div>
               )}
@@ -185,6 +197,21 @@ function OrderCard({ order }: { order: Order }) {
           )}
         </div>
       </div>
+
+      {/* ─── Customer Special Request / Note ─── */}
+      {(order.specialInstructions || order.notes) && (
+        <div className="bg-amber-50 border border-amber-200 rounded-md sm:rounded-xl p-2 sm:p-2.5 mb-1 sm:mb-2 flex items-start gap-2">
+          <MessageSquare size={12} className="mt-0.5 text-amber-600 flex-shrink-0" />
+          <div className="min-w-0 flex-1">
+            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-amber-700 block">
+              Customer Note (Table {order.tableNumber}):
+            </span>
+            <p className="text-[10px] sm:text-xs text-text font-medium mt-0.5 whitespace-pre-wrap">
+              {order.specialInstructions || order.notes}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -194,14 +221,14 @@ const OrdersSkeleton = () => {
   return (
     <div className="animate-pulse space-y-4">
       {[...Array(4)].map((_, i) => (
-        <div key={i} className="bg-surface/20 border border-border/20 rounded-2xl p-4 mb-4 h-32">
+        <div key={i} className="bg-[#FBF8F3] border border-border rounded-2xl p-4 mb-4 h-32 shadow-sm">
           <div className="flex items-start gap-3 mb-4">
-            <div className="w-10 h-10 rounded-full bg-surface/40 flex-shrink-0"></div>
+            <div className="w-10 h-10 rounded-full bg-surface flex-shrink-0"></div>
             <div className="flex-1 space-y-2">
-              <div className="h-4 w-24 bg-surface/40 rounded"></div>
-              <div className="h-3 w-32 bg-surface/40 rounded"></div>
+              <div className="h-4 w-24 bg-surface rounded"></div>
+              <div className="h-3 w-32 bg-surface rounded"></div>
             </div>
-            <div className="h-8 w-20 bg-surface/40 rounded"></div>
+            <div className="h-8 w-20 bg-surface rounded"></div>
           </div>
         </div>
       ))}
@@ -265,6 +292,22 @@ export default function PaymentCompletedPage() {
 
   const orders = data?.success ? (data.data as Order[]) : [];
   const loading = swrLoading;
+
+  // Fetch ratings to link to completed orders
+  const ratingsUrl = slug ? `/api/ratings/${slug}?limit=100` : null;
+  const { data: ratingsData } = useSWR(ratingsUrl, (url: string) => fetch(url).then(res => res.json()), {
+    refreshInterval: 30000,
+  });
+
+  const ratingMap = useMemo(() => {
+    const map: Record<number, any> = {};
+    if (ratingsData?.success && Array.isArray(ratingsData.data)) {
+      ratingsData.data.forEach((r: any) => {
+        if (r.orderNumber) map[r.orderNumber] = r;
+      });
+    }
+    return map;
+  }, [ratingsData]);
 
   // Handle order transition if orderIdParam is present
   useEffect(() => {
@@ -365,7 +408,7 @@ export default function PaymentCompletedPage() {
   };
 
   return (
-    <div className="bg-card/60 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-border/30 min-h-[600px] w-full overflow-x-hidden shadow-2xl shadow-primary/5">
+    <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-border min-h-[600px] w-full overflow-x-hidden shadow-sm">
       
       {/* ─── Page Header ─── */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
@@ -391,10 +434,7 @@ export default function PaymentCompletedPage() {
               value={selectedDate}
               onChange={(e) => handleDatePickerChange(e.target.value)}
               max={getTodayDateString()}
-              className="w-full sm:w-[150px] lg:w-[160px] pl-8 sm:pl-10 pr-2 py-2 bg-surface/30 border border-border/40 rounded-xl text-xs text-text focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-300 hover:border-primary/50
-              [&:-webkit-autofill]:!bg-[rgba(212,175,55,0.08)] 
-              [&:-webkit-autofill]:!text-[#F9FAFB] 
-              [&:-webkit-autofill]:!shadow-[inset_0_0_0px_1000px_rgba(212,175,55,0.08)]"
+              className="w-full sm:w-[150px] lg:w-[160px] pl-8 sm:pl-10 pr-2 py-2 bg-[#FBF8F3] border border-border rounded-xl text-xs text-text focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-300 hover:border-primary"
             />
           </div>
 
@@ -402,10 +442,10 @@ export default function PaymentCompletedPage() {
           <div className="relative flex-1 sm:flex-none" ref={dropdownRef}>
             <button 
               onClick={() => setShowDropdown(!showDropdown)}
-              className="w-full sm:w-[140px] lg:w-[150px] flex items-center gap-1.5 bg-gradient-to-r from-primary/10 to-primary/5 text-primary border border-primary/20 px-3 py-2 rounded-xl text-xs font-medium hover:from-primary/20 hover:to-primary/10 transition-all duration-300 justify-between shadow-lg shadow-primary/5"
+              className="w-full sm:w-[140px] lg:w-[150px] flex items-center gap-1.5 bg-primary/10 text-primary border border-primary/20 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-primary/15 transition-all duration-300 justify-between shadow-sm"
             >
               <span className="truncate flex items-center gap-1.5">
-                <Sparkles className="w-3 h-3" />
+                <CalendarDays className="w-3 h-3" />
                 {getDateFilterDisplay()}
               </span>
               <ChevronDown size={12} strokeWidth={3} className={`flex-shrink-0 transition-transform duration-300 ${showDropdown ? 'rotate-180' : ''}`} />
@@ -413,7 +453,7 @@ export default function PaymentCompletedPage() {
 
             {/* Dropdown Menu */}
             {showDropdown && (
-              <div className="absolute right-0 mt-2 w-36 sm:w-40 lg:w-48 bg-card/95 backdrop-blur-sm border border-border/30 rounded-xl shadow-2xl shadow-primary/10 z-50 overflow-hidden">
+              <div className="absolute right-0 mt-2 w-36 sm:w-40 lg:w-48 bg-white border border-border rounded-xl shadow-lg z-50 overflow-hidden">
                 <div className="py-0.5 sm:py-1">
                   {[
                     { value: "today", label: "Today" },
@@ -425,8 +465,8 @@ export default function PaymentCompletedPage() {
                     <button
                       key={option.value}
                       onClick={() => handleDateFilterSelect(option.value as DateFilterOption)}
-                      className={`w-full text-left px-3 py-1.5 sm:py-2 text-xs hover:bg-surface/30 transition-colors duration-200 ${
-                        dateFilter === option.value ? 'bg-primary/10 text-primary font-medium' : 'text-text/70'
+                      className={`w-full text-left px-3 py-1.5 sm:py-2 text-xs hover:bg-surface transition-colors duration-200 ${
+                        dateFilter === option.value ? 'bg-primary/10 text-primary font-semibold' : 'text-text'
                       }`}
                     >
                       {option.label}
@@ -442,41 +482,41 @@ export default function PaymentCompletedPage() {
       {/* ─── Revenue Stats Cards ─── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
         {/* Total Revenue */}
-        <div className="bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-lg shadow-primary/5">
+        <div className="bg-gradient-to-br from-primary/15 to-primary/5 border border-primary/20 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm">
           <div className="flex items-center justify-between mb-1 sm:mb-2">
-            <span className="text-xs sm:text-sm font-medium text-text/70">Total Revenue</span>
+            <span className="text-xs sm:text-sm font-medium text-text">Total Revenue</span>
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
               <IndianRupee size={16} className="text-primary" strokeWidth={2.5} />
             </div>
           </div>
           <p className="text-xl sm:text-3xl font-extrabold text-text tracking-tight">₹{totalRevenue.toFixed(2)}</p>
-          <p className="text-[10px] sm:text-xs text-muted/40 mt-0.5 sm:mt-1">from {filteredOrders.length} completed orders</p>
+          <p className="text-[10px] sm:text-xs text-muted mt-0.5 sm:mt-1">from {filteredOrders.length} completed orders</p>
         </div>
 
         {/* Cash Payments */}
-        <div className="bg-surface/20 border border-border/20 rounded-xl sm:rounded-2xl p-4 sm:p-5 hover:border-primary/30 transition-all duration-300">
+        <div className="bg-[#FBF8F3] border border-border rounded-xl sm:rounded-2xl p-4 sm:p-5 hover:border-primary transition-all duration-300 shadow-sm">
           <div className="flex items-center justify-between mb-1 sm:mb-2">
-            <span className="text-xs sm:text-sm font-medium text-muted/70">Cash Payment</span>
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
-              <Wallet size={16} className="text-amber-400" strokeWidth={2.5} />
+            <span className="text-xs sm:text-sm font-medium text-muted">Cash Payment</span>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-50 flex items-center justify-center border border-amber-200">
+              <Wallet size={16} className="text-amber-700" strokeWidth={2.5} />
             </div>
           </div>
           <p className="text-xl sm:text-3xl font-extrabold text-text tracking-tight">₹{cashPayments.toFixed(2)}</p>
-          <p className="text-[10px] sm:text-xs text-muted/40 mt-0.5 sm:mt-1">
+          <p className="text-[10px] sm:text-xs text-muted mt-0.5 sm:mt-1">
             {filteredOrders.filter(o => o.paymentMethod === 'cash').length} cash orders
           </p>
         </div>
 
         {/* UPI Payments */}
-        <div className="bg-surface/20 border border-border/20 rounded-xl sm:rounded-2xl p-4 sm:p-5 hover:border-primary/30 transition-all duration-300">
+        <div className="bg-[#FBF8F3] border border-border rounded-xl sm:rounded-2xl p-4 sm:p-5 hover:border-primary transition-all duration-300 shadow-sm">
           <div className="flex items-center justify-between mb-1 sm:mb-2">
-            <span className="text-xs sm:text-sm font-medium text-muted/70">UPI Payment</span>
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20">
-              <CreditCard size={16} className="text-purple-400" strokeWidth={2.5} />
+            <span className="text-xs sm:text-sm font-medium text-muted">UPI Payment</span>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-50 flex items-center justify-center border border-emerald-200">
+              <CreditCard size={16} className="text-emerald-700" strokeWidth={2.5} />
             </div>
           </div>
           <p className="text-xl sm:text-3xl font-extrabold text-text tracking-tight">₹{upiPayments.toFixed(2)}</p>
-          <p className="text-[10px] sm:text-xs text-muted/40 mt-0.5 sm:mt-1">
+          <p className="text-[10px] sm:text-xs text-muted mt-0.5 sm:mt-1">
             {filteredOrders.filter(o => o.paymentMethod === 'upi').length} UPI orders
           </p>
         </div>
@@ -485,16 +525,13 @@ export default function PaymentCompletedPage() {
       {/* ─── Search Bar ─── */}
       <div className="mb-4 sm:mb-6">
         <div className="relative group">
-          <Search size={14} className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-muted/40 group-hover:text-muted/60 transition-colors duration-300" />
+          <Search size={14} className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-muted group-hover:text-text transition-colors duration-300" />
           <input
             type="text"
             placeholder="Search by order # or table..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-8 sm:pl-11 pr-3 sm:pr-4 py-2 sm:py-3 bg-surface/30 border border-border/40 rounded-xl text-xs sm:text-sm text-text placeholder-muted/40 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-300 hover:border-primary/50
-            [&:-webkit-autofill]:!bg-[rgba(212,175,55,0.08)] 
-            [&:-webkit-autofill]:!text-[#F9FAFB] 
-            [&:-webkit-autofill]:!shadow-[inset_0_0_0px_1000px_rgba(212,175,55,0.08)]"
+            className="w-full pl-8 sm:pl-11 pr-3 sm:pr-4 py-2 sm:py-3 bg-[#FBF8F3] border border-border rounded-xl text-xs sm:text-sm text-stone-900 placeholder:text-stone-400 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-300 hover:border-primary"
           />
         </div>
       </div>
@@ -505,7 +542,7 @@ export default function PaymentCompletedPage() {
           <h3 className="font-bold text-base sm:text-lg text-text tracking-tight">
             Successful Orders
           </h3>
-          <span className="text-[10px] sm:text-xs text-muted/50">
+          <span className="text-[10px] sm:text-xs text-muted">
             {filteredOrders.length} orders
           </span>
         </div>
@@ -513,12 +550,12 @@ export default function PaymentCompletedPage() {
         {loading && filteredOrders.length === 0 ? (
           <OrdersSkeleton />
         ) : filteredOrders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 sm:py-20 text-muted/40 bg-surface/10 rounded-xl sm:rounded-2xl border border-border/20">
-            <div className="w-16 h-16 bg-surface/20 rounded-2xl flex items-center justify-center border border-border/30 mb-4">
-              <Package size={32} className="opacity-30" />
+          <div className="flex flex-col items-center justify-center py-12 sm:py-20 text-muted bg-[#FBF8F3] rounded-xl sm:rounded-2xl border border-border">
+            <div className="w-16 h-16 bg-surface rounded-2xl flex items-center justify-center border border-border mb-4">
+              <Package size={32} className="text-muted/40" />
             </div>
-            <p className="text-xs sm:text-sm font-medium">No completed orders found</p>
-            <p className="text-xs text-muted/30 mt-1">Try adjusting your filters</p>
+            <p className="text-xs sm:text-sm font-medium text-text">No completed orders found</p>
+            <p className="text-xs text-muted mt-1">Try adjusting your filters</p>
           </div>
         ) : (
           <div className="space-y-3 sm:space-y-4">
@@ -529,7 +566,7 @@ export default function PaymentCompletedPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.03 }}
               >
-                <OrderCard order={order} />
+                <OrderCard order={order} rating={ratingMap[order.orderNumber]} />
               </motion.div>
             ))}
           </div>

@@ -15,7 +15,7 @@ if (!global.mongoose) {
   global.mongoose = { conn: null, promise: null };
 }
 
-let cached: Cached = global.mongoose;
+const cached: Cached = global.mongoose;
 
 async function connectDB() {
   if (!MONGODB_URI) {

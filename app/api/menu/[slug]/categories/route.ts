@@ -1,16 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import connectDB from '@/lib/db/connect';
-import MenuItem from '@/lib/db/models/MenuItem';
-import { withCafeAccess, AuthRequest } from '@/lib/auth/middleware';
 import { getMenuCategories } from '@/lib/db/menu';
 
 // Aggregate distinct categories for a cafe (Public)
 export async function GET(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: { slug: string } }
 ) {
   try {
-    const { slug } = await params;
+    const { slug } = params;
     const data = await getMenuCategories(slug);
 
     return NextResponse.json({

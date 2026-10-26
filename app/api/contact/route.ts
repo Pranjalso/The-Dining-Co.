@@ -6,10 +6,10 @@ import { sendContactFormEmail } from "@/lib/email/mailer";
 
 const contactSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters"),
-  contactNumber: z.string().min(10, "Contact number must be at least 10 digits").optional(),
+  contactNumber: z.string().min(10, "Contact number must be at least 10 digits"),
   email: z.string().email("Invalid email address"),
   city: z.string().min(2, "City must be at least 2 characters").optional(),
-  cafeRestaurantName: z.string().min(2, "Cafe/Restaurant name must be at least 2 characters"),
+  cafeRestaurantName: z.string().optional(),
   needs: z.string().min(10, "Please describe your requirements in at least 10 characters"),
 });
 
@@ -22,12 +22,12 @@ export async function POST(req: Request) {
     const validatedData = contactSchema.parse(body);
 
     const contactPayload = {
-      fullName: validatedData.fullName,
-      contactNumber: validatedData.contactNumber || 'Not provided',
-      email: validatedData.email,
-      city: validatedData.city || 'Not specified',
-      cafeRestaurantName: validatedData.cafeRestaurantName,
-      needs: validatedData.needs,
+      fullName: validatedData.fullName.trim(),
+      contactNumber: validatedData.contactNumber.trim(),
+      email: validatedData.email.trim(),
+      city: validatedData.city?.trim() || 'Bhopal',
+      cafeRestaurantName: validatedData.cafeRestaurantName?.trim() || 'Not specified',
+      needs: validatedData.needs.trim(),
     };
 
     let contact = null;
@@ -75,8 +75,6 @@ export async function POST(req: Request) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("❌ Contact form error:", error);
-
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { message: "Validation error", errors: error.issues },
@@ -84,6 +82,7 @@ export async function POST(req: Request) {
       );
     }
 
+    console.error("❌ Contact form error:", error);
     return NextResponse.json(
       { message: "Failed to send contact request. Please try again later." },
       { status: 500 }

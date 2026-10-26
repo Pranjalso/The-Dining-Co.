@@ -1,17 +1,14 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
-import { Eye, EyeOff, X, Mail, Lock, CheckCircle, Loader2, Crown, User, Key, Sparkles } from "lucide-react";
+import { Eye, EyeOff, X, Mail, Lock, CheckCircle, Loader2, Crown, User, Key } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import Link from "next/link";
 
 export default function CafeAdminLogin({ params }: { params: { menupages: string } }) {
   const { menupages } = params;
-  const router = useRouter();
   const [show, setShow] = useState(false);
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
@@ -57,12 +54,12 @@ export default function CafeAdminLogin({ params }: { params: { menupages: string
         throw new Error(data.message || 'Invalid credentials');
       }
       if (data.user.role === 'superadmin') {
-        try { if (typeof window !== 'undefined') { window.localStorage.removeItem('token'); window.localStorage.removeItem('refreshToken'); document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'; document.cookie = 'refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'; } } catch (e) {}
+        try { if (typeof window !== 'undefined') { window.localStorage.removeItem('token'); window.localStorage.removeItem('refreshToken'); document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'; document.cookie = 'refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'; } } catch {}
         window.location.href = '/admin';
         return;
       }
 
-      try { if (typeof window !== 'undefined') { window.localStorage.removeItem('token'); window.localStorage.removeItem('refreshToken'); document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'; document.cookie = 'refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'; } } catch (e) {}
+      try { if (typeof window !== 'undefined') { window.localStorage.removeItem('token'); window.localStorage.removeItem('refreshToken'); document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'; document.cookie = 'refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'; } } catch {}
       const targetSlug = data.user.cafeSlug || menupages;
       window.location.href = `/${targetSlug}/admin`;
     } catch (err: any) {
@@ -257,7 +254,7 @@ export default function CafeAdminLogin({ params }: { params: { menupages: string
       <div className="relative z-10 w-full max-w-md md:max-w-lg">
         <form
           onSubmit={onLogin}
-          className="bg-card/60 backdrop-blur-sm border border-border/30 rounded-2xl md:rounded-3xl p-6 md:p-8 space-y-6 shadow-2xl shadow-primary/5"
+          className="bg-white border border-border rounded-2xl md:rounded-3xl p-6 md:p-8 space-y-6 shadow-xl"
         >
           {/* Logo */}
           <div className="text-center space-y-2">
@@ -271,7 +268,7 @@ export default function CafeAdminLogin({ params }: { params: { menupages: string
             </div>
             <div className="flex items-center justify-center gap-2">
               <div className="w-8 h-px bg-primary/30"></div>
-              <span className="text-xs text-muted/60 uppercase tracking-[0.15em]">Cafe Admin Portal</span>
+              <span className="text-xs text-muted uppercase tracking-[0.15em] font-medium">Cafe Admin Portal</span>
               <div className="w-8 h-px bg-primary/30"></div>
             </div>
           </div>
@@ -290,10 +287,7 @@ export default function CafeAdminLogin({ params }: { params: { menupages: string
                 onChange={(e) => setUser(e.target.value)}
                 placeholder="Enter username / store id"
                 autoComplete="username"
-                className="h-[52px] bg-surface/30 border border-border/40 rounded-xl text-sm text-text placeholder-muted/40 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 hover:border-primary/50 
-                [&:-webkit-autofill]:!bg-[rgba(212,175,55,0.08)] 
-                [&:-webkit-autofill]:!text-[#F9FAFB] 
-                [&:-webkit-autofill]:!shadow-[inset_0_0_0px_1000px_rgba(212,175,55,0.08)]"
+                className="h-[52px] bg-[#FBF8F3] border border-border rounded-xl text-sm text-text placeholder:text-muted/60 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 hover:border-primary"
               />
             </div>
 
@@ -311,10 +305,7 @@ export default function CafeAdminLogin({ params }: { params: { menupages: string
                   onChange={(e) => setPass(e.target.value)}
                   placeholder="Enter password"
                   autoComplete="current-password"
-                  className="h-[52px] bg-surface/30 border border-border/40 rounded-xl text-sm text-text placeholder-muted/40 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 hover:border-primary/50 pr-12
-                  [&:-webkit-autofill]:!bg-[rgba(212,175,55,0.08)] 
-                  [&:-webkit-autofill]:!text-[#F9FAFB] 
-                  [&:-webkit-autofill]:!shadow-[inset_0_0_0px_1000px_rgba(212,175,55,0.08)]"
+                  className="h-[52px] bg-[#FBF8F3] border border-border rounded-xl text-sm text-text placeholder:text-muted/60 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 hover:border-primary pr-12"
                 />
                 <button
                   type="button"
@@ -328,8 +319,8 @@ export default function CafeAdminLogin({ params }: { params: { menupages: string
             </div>
 
             {errors.login && (
-              <div className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-xl px-4 py-2.5 flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-rose-400 rounded-full flex-shrink-0"></span>
+              <div className="text-xs text-rose-500 bg-rose-50 border border-rose-200 rounded-xl px-4 py-2.5 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-rose-500 rounded-full flex-shrink-0"></span>
                 {errors.login}
               </div>
             )}
@@ -338,7 +329,7 @@ export default function CafeAdminLogin({ params }: { params: { menupages: string
             <Button 
               type="submit" 
               disabled={isLoading} 
-              className="w-full h-[56px] bg-gradient-to-r from-primary to-primary/85 hover:from-primary/90 hover:to-primary/90 text-background font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-primary/20 hover:shadow-primary/30 disabled:opacity-60 disabled:cursor-not-allowed text-base"
+              className="w-full h-[54px] bg-primary hover:bg-primary-hover text-white font-semibold rounded-xl transition-all duration-300 shadow-md shadow-primary/20 hover:shadow-primary/30 disabled:opacity-60 disabled:cursor-not-allowed text-base"
             >
               {isLoading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -347,7 +338,7 @@ export default function CafeAdminLogin({ params }: { params: { menupages: string
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4" />
+                  <Lock className="w-4 h-4" />
                   Log In to Dashboard
                 </span>
               )}
@@ -357,7 +348,7 @@ export default function CafeAdminLogin({ params }: { params: { menupages: string
             <div className="text-xs text-right">
               <button 
                 onClick={handleForgotClick}
-                className="text-primary/70 hover:text-primary font-medium transition-colors duration-300 bg-transparent border-none cursor-pointer hover:underline"
+                className="text-primary hover:text-primary-hover font-medium transition-colors duration-300 bg-transparent border-none cursor-pointer hover:underline"
               >
                 Forgot Password?
               </button>
@@ -370,21 +361,20 @@ export default function CafeAdminLogin({ params }: { params: { menupages: string
           </div>
         </form>
       </div>
-
       {/* Forgot Password Modal */}
       {showForgotModal && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="bg-card/90 backdrop-blur-sm border border-border/30 rounded-2xl w-full max-w-md relative shadow-2xl shadow-primary/10 animate-scale-in">
+          <div className="bg-white border border-border rounded-2xl w-full max-w-md relative shadow-2xl animate-scale-in">
             
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-border/20">
+            <div className="flex items-center justify-between p-6 border-b border-border">
               <h3 className="flex items-center gap-2 text-lg font-semibold text-text">
                 <Lock className="w-5 h-5 text-primary" />
                 Reset Password
               </h3>
               <button
                 onClick={closeModal}
-                className="text-muted/40 hover:text-text transition-colors p-1 rounded-lg hover:bg-surface/20"
+                className="text-muted hover:text-text transition-colors p-1 rounded-lg hover:bg-surface"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -398,11 +388,11 @@ export default function CafeAdminLogin({ params }: { params: { menupages: string
                   animate={{ opacity: 1, scale: 1 }}
                   className="text-center py-6"
                 >
-                  <div className="w-16 h-16 bg-emerald-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-emerald-500/20">
-                    <CheckCircle className="h-8 w-8 text-emerald-400" />
+                  <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-emerald-200">
+                    <CheckCircle className="h-8 w-8 text-emerald-600" />
                   </div>
                   <h4 className="text-lg font-semibold text-text mb-2">Password Changed!</h4>
-                  <p className="text-sm text-muted/60">
+                  <p className="text-sm text-muted">
                     Your password has been successfully updated.
                   </p>
                 </motion.div>
@@ -411,34 +401,31 @@ export default function CafeAdminLogin({ params }: { params: { menupages: string
                   {/* Step 1: Email */}
                   {currentStep === 'email' && (
                     <form onSubmit={handleSendOtp} className="space-y-4">
-                      <p className="text-sm text-muted/60">
+                      <p className="text-sm text-muted">
                         Enter your email address to receive a verification code.
                       </p>
                       <div>
                         <label className="text-xs font-medium text-muted block mb-1.5">
-                          Email Address
+                           Email Address
                         </label>
                         <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted/40" />
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted/60" />
                           <Input
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="admin@cafe.com"
-                            className={`pl-9 h-[52px] bg-surface/30 border ${errors.email ? 'border-rose-500/50' : 'border-border/40'} rounded-xl text-sm text-text placeholder-muted/40 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 hover:border-primary/50
-                            [&:-webkit-autofill]:!bg-[rgba(212,175,55,0.08)] 
-                            [&:-webkit-autofill]:!text-[#F9FAFB] 
-                            [&:-webkit-autofill]:!shadow-[inset_0_0_0px_1000px_rgba(212,175,55,0.08)]`}
+                            className={`pl-9 h-[52px] bg-[#FBF8F3] border ${errors.email ? 'border-rose-300' : 'border-border'} rounded-xl text-sm text-text placeholder:text-muted/60 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 hover:border-primary`}
                           />
                         </div>
                         {errors.email && (
-                          <p className="text-xs text-rose-400 mt-1">{errors.email}</p>
+                          <p className="text-xs text-rose-500 mt-1">{errors.email}</p>
                         )}
                       </div>
                       <Button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full h-[52px] bg-gradient-to-r from-primary to-primary/85 hover:from-primary/90 hover:to-primary/90 text-background font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-primary/20 hover:shadow-primary/30 disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="w-full h-[52px] bg-primary hover:bg-primary-hover text-white font-semibold rounded-xl transition-all duration-300 shadow-md shadow-primary/20 hover:shadow-primary/30 disabled:opacity-60 disabled:cursor-not-allowed"
                       >
                         {isLoading ? (
                           <span className="flex items-center justify-center gap-2">
@@ -455,7 +442,7 @@ export default function CafeAdminLogin({ params }: { params: { menupages: string
                   {/* Step 2: OTP */}
                   {currentStep === 'otp' && (
                     <form onSubmit={handleVerifyOtp} className="space-y-4">
-                      <p className="text-sm text-muted/60">
+                      <p className="text-sm text-muted">
                         We've sent a 6-digit verification code to <strong className="text-text">{email}</strong>
                       </p>
                       <div>
@@ -468,27 +455,24 @@ export default function CafeAdminLogin({ params }: { params: { menupages: string
                           onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                           placeholder="123456"
                           maxLength={6}
-                          className={`h-[52px] text-center text-lg tracking-widest font-mono bg-surface/30 border ${errors.otp ? 'border-rose-500/50' : 'border-border/40'} rounded-xl text-text focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 hover:border-primary/50
-                          [&:-webkit-autofill]:!bg-[rgba(212,175,55,0.08)] 
-                          [&:-webkit-autofill]:!text-[#F9FAFB] 
-                          [&:-webkit-autofill]:!shadow-[inset_0_0_0px_1000px_rgba(212,175,55,0.08)]`}
+                          className={`h-[52px] text-center text-lg tracking-widest font-mono bg-[#FBF8F3] border ${errors.otp ? 'border-rose-300' : 'border-border'} rounded-xl text-text focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 hover:border-primary`}
                         />
                         {errors.otp && (
-                          <p className="text-xs text-rose-400 mt-1">{errors.otp}</p>
+                          <p className="text-xs text-rose-500 mt-1">{errors.otp}</p>
                         )}
                       </div>
                       <div className="flex items-center justify-between text-sm">
                         <button
                           type="button"
                           onClick={() => setCurrentStep('email')}
-                          className="text-primary/70 hover:text-primary transition-colors"
+                          className="text-primary hover:text-primary-hover transition-colors font-medium"
                         >
                           ← Back
                         </button>
                         <button
                           type="button"
                           onClick={handleSendOtp}
-                          className="text-primary/70 hover:text-primary transition-colors disabled:text-muted/40 disabled:cursor-not-allowed"
+                          className="text-primary hover:text-primary-hover transition-colors font-medium disabled:text-muted/40 disabled:cursor-not-allowed"
                           disabled={cooldown > 0}
                         >
                           {cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend Code'}
@@ -497,7 +481,7 @@ export default function CafeAdminLogin({ params }: { params: { menupages: string
                       <Button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full h-[52px] bg-gradient-to-r from-primary to-primary/85 hover:from-primary/90 hover:to-primary/90 text-background font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-primary/20 hover:shadow-primary/30 disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="w-full h-[52px] bg-primary hover:bg-primary-hover text-white font-semibold rounded-xl transition-all duration-300 shadow-md shadow-primary/20 hover:shadow-primary/30 disabled:opacity-60 disabled:cursor-not-allowed"
                       >
                         {isLoading ? (
                           <span className="flex items-center justify-center gap-2">
@@ -514,7 +498,7 @@ export default function CafeAdminLogin({ params }: { params: { menupages: string
                   {/* Step 3: New Password */}
                   {currentStep === 'newPassword' && (
                     <form onSubmit={handleResetPassword} className="space-y-4">
-                      <p className="text-sm text-muted/60">
+                      <p className="text-sm text-muted">
                         Enter your new password below.
                       </p>
                       
@@ -523,16 +507,13 @@ export default function CafeAdminLogin({ params }: { params: { menupages: string
                           New Password
                         </label>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted/40" />
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted/60" />
                           <Input
                             type={showNewPassword ? "text" : "password"}
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
                             placeholder="Enter new password"
-                            className={`pl-9 pr-9 h-[52px] bg-surface/30 border ${errors.newPassword ? 'border-rose-500/50' : 'border-border/40'} rounded-xl text-sm text-text placeholder-muted/40 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 hover:border-primary/50
-                            [&:-webkit-autofill]:!bg-[rgba(212,175,55,0.08)] 
-                            [&:-webkit-autofill]:!text-[#F9FAFB] 
-                            [&:-webkit-autofill]:!shadow-[inset_0_0_0px_1000px_rgba(212,175,55,0.08)]`}
+                            className={`pl-9 pr-9 h-[52px] bg-[#FBF8F3] border ${errors.newPassword ? 'border-rose-300' : 'border-border'} rounded-xl text-sm text-text placeholder:text-muted/60 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 hover:border-primary`}
                           />
                           <button
                             type="button"
@@ -543,7 +524,7 @@ export default function CafeAdminLogin({ params }: { params: { menupages: string
                           </button>
                         </div>
                         {errors.newPassword && (
-                          <p className="text-xs text-rose-400 mt-1">{errors.newPassword}</p>
+                          <p className="text-xs text-rose-500 mt-1">{errors.newPassword}</p>
                         )}
                       </div>
 
@@ -552,16 +533,13 @@ export default function CafeAdminLogin({ params }: { params: { menupages: string
                           Confirm Password
                         </label>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted/40" />
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted/60" />
                           <Input
                             type={showConfirmPassword ? "text" : "password"}
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             placeholder="Confirm new password"
-                            className={`pl-9 pr-9 h-[52px] bg-surface/30 border ${errors.confirmPassword ? 'border-rose-500/50' : 'border-border/40'} rounded-xl text-sm text-text placeholder-muted/40 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 hover:border-primary/50
-                            [&:-webkit-autofill]:!bg-[rgba(212,175,55,0.08)] 
-                            [&:-webkit-autofill]:!text-[#F9FAFB] 
-                            [&:-webkit-autofill]:!shadow-[inset_0_0_0px_1000px_rgba(212,175,55,0.08)]`}
+                            className={`pl-9 pr-9 h-[52px] bg-[#FBF8F3] border ${errors.confirmPassword ? 'border-rose-300' : 'border-border'} rounded-xl text-sm text-text placeholder:text-muted/60 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 hover:border-primary`}
                           />
                           <button
                             type="button"
@@ -572,12 +550,12 @@ export default function CafeAdminLogin({ params }: { params: { menupages: string
                           </button>
                         </div>
                         {errors.confirmPassword && (
-                          <p className="text-xs text-rose-400 mt-1">{errors.confirmPassword}</p>
+                          <p className="text-xs text-rose-500 mt-1">{errors.confirmPassword}</p>
                         )}
                       </div>
 
-                      <div className="text-xs text-muted/50 bg-surface/20 border border-border/20 rounded-xl p-3">
-                        <p className="font-medium text-muted/70 mb-1">Password must:</p>
+                      <div className="text-xs text-muted bg-[#FBF8F3] border border-border rounded-xl p-3">
+                        <p className="font-semibold text-text mb-1">Password must:</p>
                         <ul className="list-disc list-inside space-y-0.5">
                           <li>Be at least 8 characters long</li>
                           <li>Include at least one uppercase letter</li>
@@ -590,14 +568,14 @@ export default function CafeAdminLogin({ params }: { params: { menupages: string
                         <Button
                           type="button"
                           onClick={closeModal}
-                          className="flex-1 h-[52px] bg-surface/30 border border-border/40 hover:border-primary/30 text-muted hover:text-text rounded-xl font-medium transition-all duration-300"
+                          className="flex-1 h-[52px] bg-surface border border-border hover:bg-surface-hover text-text rounded-xl font-medium transition-all duration-300"
                         >
                           Cancel
                         </Button>
                         <Button
                           type="submit"
                           disabled={isLoading}
-                          className="flex-1 h-[52px] bg-gradient-to-r from-primary to-primary/85 hover:from-primary/90 hover:to-primary/90 text-background font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-primary/20 hover:shadow-primary/30 disabled:opacity-60 disabled:cursor-not-allowed"
+                          className="flex-1 h-[52px] bg-primary hover:bg-primary-hover text-white font-semibold rounded-xl transition-all duration-300 shadow-md shadow-primary/20 hover:shadow-primary/30 disabled:opacity-60 disabled:cursor-not-allowed"
                         >
                           {isLoading ? (
                             <span className="flex items-center justify-center gap-2">

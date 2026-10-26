@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { Package, Clock, Armchair, Check, X, Wallet, Smartphone, Loader2, ChevronDown, Sparkles, Crown } from "lucide-react";
+import { Package, Clock, Armchair, Check, X, Wallet, Smartphone, Loader2, ChevronDown, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import useSWR, { mutate } from "swr";
 
@@ -25,41 +25,45 @@ type Order = {
   createdAt: string;
   tableNumber: string;
   total: number;
+  discount?: number;
+  discountCode?: string;
   items: OrderItem[];
   paymentMethod: PaymentMethod;
   orderStatus: OrderStatus;
   paymentStatus: PaymentStatus;
   upiId?: string;
+  specialInstructions?: string;
+  notes?: string;
 };
 
 // New Orders Skeleton Loader
 const NewOrdersSkeleton = () => {
   return (
-    <div className="bg-card/60 backdrop-blur-sm rounded-2xl border border-border/30 p-4 sm:p-6 w-full min-h-[600px] shadow-2xl shadow-primary/5 overflow-x-hidden">
+    <div className="bg-white rounded-2xl border border-border p-4 sm:p-6 w-full min-h-[600px] shadow-sm overflow-x-hidden">
       <div className="flex items-center justify-between mb-6">
-        <div className="h-6 w-32 bg-surface/40 rounded animate-pulse"></div>
-        <div className="h-6 w-16 bg-surface/40 rounded-full animate-pulse"></div>
+        <div className="h-6 w-32 bg-surface rounded animate-pulse"></div>
+        <div className="h-6 w-16 bg-surface rounded-full animate-pulse"></div>
       </div>
       <div className="space-y-4">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="bg-surface/20 rounded-2xl p-4 sm:p-5 border border-border/20">
+          <div key={i} className="bg-[#FBF8F3] rounded-2xl p-4 sm:p-5 border border-border">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-5">
               <div className="flex items-start sm:items-center gap-3 sm:gap-4">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-surface/40 animate-pulse"></div>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-surface animate-pulse"></div>
                 <div className="space-y-2">
-                  <div className="h-4 w-40 bg-surface/40 rounded animate-pulse"></div>
-                  <div className="h-3 w-32 bg-surface/40 rounded animate-pulse"></div>
+                  <div className="h-4 w-40 bg-surface rounded animate-pulse"></div>
+                  <div className="h-3 w-32 bg-surface rounded animate-pulse"></div>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <div className="h-6 w-16 bg-surface/40 rounded animate-pulse"></div>
-                <div className="h-8 w-20 bg-surface/40 rounded-md animate-pulse"></div>
-                <div className="h-8 w-20 bg-surface/40 rounded-md animate-pulse"></div>
+                <div className="h-6 w-16 bg-surface rounded animate-pulse"></div>
+                <div className="h-8 w-20 bg-surface rounded-md animate-pulse"></div>
+                <div className="h-8 w-20 bg-surface rounded-md animate-pulse"></div>
               </div>
             </div>
             <div className="space-y-2">
-              <div className="h-12 bg-surface/30 rounded-xl animate-pulse"></div>
-              <div className="h-12 bg-surface/30 rounded-xl animate-pulse"></div>
+              <div className="h-12 bg-surface rounded-xl animate-pulse"></div>
+              <div className="h-12 bg-surface rounded-xl animate-pulse"></div>
             </div>
           </div>
         ))}
@@ -87,6 +91,7 @@ export default function NewOrdersPage() {
 
   const handleUpdateStatus = async (orderId: string, newStatus: OrderStatus) => {
     setUpdating(orderId);
+    const targetOrder = orders.find(o => o._id === orderId);
     try {
       const res = await fetch(`/api/orders/${slug}?id=${orderId}`, {
         method: "PATCH",
@@ -95,9 +100,14 @@ export default function NewOrdersPage() {
       });
       const data = await res.json();
       if (data.success) {
+        const orderNum = targetOrder?.orderNumber ?? data.data?.orderNumber;
+        const tableNum = targetOrder?.tableNumber ?? data.data?.tableNumber;
         toast({
-          title: `Order ${newStatus === 'preparing' ? 'Accepted' : 'Rejected'}`,
-          description: `Order #${orders.find(o => o._id === orderId)?.orderNumber} has been ${newStatus === 'preparing' ? 'accepted and moved to preparing' : 'cancelled'}.`,
+          title: newStatus === 'preparing' ? 'Order Accepted' : 'Order Rejected',
+          description: newStatus === 'preparing' 
+            ? `Order #${orderNum} has been accepted and moved to preparing.` 
+            : `Order #${orderNum} has been rejected. Notification sent to Table ${tableNum}.`,
+          variant: newStatus === 'cancelled' ? 'destructive' : 'default',
         });
         
         mutate(ordersUrl);
@@ -135,17 +145,17 @@ export default function NewOrdersPage() {
     if (method === "upi") {
       return {
         icon: Smartphone,
-        bgColor: "bg-purple-500/10",
-        textColor: "text-purple-400",
-        borderColor: "border-purple-500/20",
+        bgColor: "bg-emerald-50",
+        textColor: "text-emerald-700",
+        borderColor: "border-emerald-200",
         label: "UPI"
       };
     } else {
       return {
         icon: Wallet,
-        bgColor: "bg-amber-500/10",
-        textColor: "text-amber-400",
-        borderColor: "border-amber-500/20",
+        bgColor: "bg-amber-50",
+        textColor: "text-amber-700",
+        borderColor: "border-amber-200",
         label: "Cash"
       };
     }
@@ -156,7 +166,7 @@ export default function NewOrdersPage() {
   }
 
   return (
-    <div className="bg-card/60 backdrop-blur-sm rounded-2xl border border-border/30 p-4 sm:p-6 w-full min-h-[600px] shadow-2xl shadow-primary/5 overflow-x-hidden">
+    <div className="bg-white rounded-2xl border border-border p-4 sm:p-6 w-full min-h-[600px] shadow-sm overflow-x-hidden">
       {/* ─── Page Title ─── */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -181,11 +191,11 @@ export default function NewOrdersPage() {
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col items-center justify-center py-20"
           >
-            <div className="w-20 h-20 bg-surface/20 rounded-2xl flex items-center justify-center border border-border/30 mb-4">
-              <Package size={40} className="text-muted/30" />
+            <div className="w-20 h-20 bg-surface rounded-2xl flex items-center justify-center border border-border mb-4">
+              <Package size={40} className="text-muted/40" />
             </div>
-            <p className="text-sm font-medium text-muted/60">No new orders at the moment</p>
-            <p className="text-xs text-muted/40 mt-1">New orders will appear here automatically</p>
+            <p className="text-sm font-medium text-text">No new orders at the moment</p>
+            <p className="text-xs text-muted mt-1">New orders will appear here automatically</p>
           </motion.div>
         )}
 
@@ -205,7 +215,7 @@ export default function NewOrdersPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.05 }}
-              className={`bg-surface/20 border border-border/20 rounded-2xl p-4 sm:p-5 hover:border-primary/30 transition-all duration-300 ${isUpdating ? 'opacity-60 pointer-events-none' : ''}`}
+              className={`bg-[#FBF8F3] border border-border rounded-2xl p-4 sm:p-5 hover:border-primary transition-all duration-300 shadow-sm ${isUpdating ? 'opacity-60 pointer-events-none' : ''}`}
             >
               {/* ─── Order Header ─── */}
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-5">
@@ -231,12 +241,12 @@ export default function NewOrdersPage() {
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-2 text-[10px] sm:text-sm text-muted/60 font-medium mt-0.5 sm:mt-1">
+                    <div className="flex items-center gap-2 text-[10px] sm:text-sm text-muted font-medium mt-0.5 sm:mt-1">
                       <div className="flex items-center gap-1">
                         <Clock size={12} />
                         <span>{formatTime(order.createdAt)}</span>
                       </div>
-                      <span className="text-border/60">•</span>
+                      <span className="text-border">•</span>
                       <div className="flex items-center gap-1">
                         <Armchair size={12} />
                         <span>Table {order.tableNumber}</span>
@@ -246,17 +256,24 @@ export default function NewOrdersPage() {
                 </div>
 
                 {/* Right: Actions */}
-                <div className="flex items-center justify-between lg:justify-end gap-3 w-full lg:w-auto mt-2 lg:mt-0 border-t lg:border-t-0 border-border/30 pt-3 lg:pt-0">
-                  <span className="text-lg sm:text-xl font-extrabold text-text tracking-tight">
-                    ₹{order.total.toFixed(2)}
-                  </span>
+                <div className="flex items-center justify-between lg:justify-end gap-3 w-full lg:w-auto mt-2 lg:mt-0 border-t lg:border-t-0 border-border pt-3 lg:pt-0">
+                  <div className="flex flex-col items-start lg:items-end">
+                    <span className="text-lg sm:text-xl font-extrabold text-text tracking-tight">
+                      ₹{order.total.toFixed(2)}
+                    </span>
+                    {order.discount && order.discount > 0 ? (
+                      <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.5 rounded-md mt-0.5">
+                        🏷️ {order.discountCode || 'Promo'} (-₹{order.discount})
+                      </span>
+                    ) : null}
+                  </div>
                   
                   <div className="flex items-center gap-1.5 sm:gap-2">
                     {/* Accept Button */}
                     <button
                       onClick={() => handleUpdateStatus(order._id, "preparing")}
                       disabled={isUpdating}
-                      className="flex items-center gap-0.5 sm:gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[10px] sm:text-sm font-bold transition-all duration-300 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex items-center gap-0.5 sm:gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[10px] sm:text-sm font-bold transition-all duration-300 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Check size={12} strokeWidth={3} />
                       <span className="sm:inline">Accept</span>
@@ -266,7 +283,7 @@ export default function NewOrdersPage() {
                     <button
                       onClick={() => handleUpdateStatus(order._id, "cancelled")}
                       disabled={isUpdating}
-                      className="flex items-center gap-0.5 sm:gap-1.5 bg-transparent border border-rose-500/50 text-rose-400 hover:bg-rose-500/10 hover:border-rose-500 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[10px] sm:text-sm font-bold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex items-center gap-0.5 sm:gap-1.5 bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 hover:border-rose-300 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[10px] sm:text-sm font-bold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                     >
                       <X size={12} strokeWidth={3} />
                       <span className="sm:inline">Reject</span>
@@ -280,7 +297,7 @@ export default function NewOrdersPage() {
                 {visibleItems.map((item, itemIndex) => (
                   <div
                     key={`${order._id}-${item.menuItemId}-${itemIndex}`}
-                    className="bg-surface/30 rounded-xl px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between border border-border/20 hover:border-primary/30 transition-all duration-300"
+                    className="bg-white rounded-xl px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between border border-border hover:border-primary/50 transition-all duration-300 shadow-sm"
                   >
                     <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                       {/* Quantity Badge */}
@@ -291,25 +308,45 @@ export default function NewOrdersPage() {
                         {item.name}
                       </span>
                     </div>
-                    <span className="text-xs sm:text-sm font-bold text-muted/80 whitespace-nowrap ml-2">
+                    <span className="text-xs sm:text-sm font-bold text-muted whitespace-nowrap ml-2">
                       ₹{(item.price * item.quantity).toFixed(2)}
                     </span>
                   </div>
                 ))}
                 
                 {showExpandButton && !isExpanded && remainingCount > 0 && (
-                  <div className="text-[10px] sm:text-xs text-muted/40 italic px-1">
+                  <div className="text-[10px] sm:text-xs text-muted italic px-1">
                     +{remainingCount} more item{remainingCount > 1 ? 's' : ''}
                   </div>
                 )}
               </div>
 
+              {/* ─── Customer Special Request / Note ─── */}
+              {(order.specialInstructions || order.notes) && (
+                <div className="mt-2.5 bg-amber-50 border border-amber-200 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 flex items-start gap-2.5">
+                  <MessageSquare size={14} className="mt-0.5 text-amber-600 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-amber-700">
+                        Customer Request / Note
+                      </span>
+                      <span className="text-[10px] text-amber-700 font-mono bg-amber-100/70 px-1.5 py-0.5 rounded border border-amber-300/50">
+                        Table {order.tableNumber}
+                      </span>
+                    </div>
+                    <p className="text-xs sm:text-sm text-text font-medium mt-1 whitespace-pre-wrap leading-relaxed">
+                      {order.specialInstructions || order.notes}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* ─── Expand/Collapse Toggle ─── */}
               {showExpandButton && (
-                <div className="mt-4 pt-3 border-t border-border/20">
+                <div className="mt-4 pt-3 border-t border-border">
                   <button
                     onClick={() => setExpandedOrders(prev => ({ ...prev, [order._id]: !isExpanded }))}
-                    className="w-full flex items-center justify-center gap-1.5 py-1.5 text-[11px] sm:text-xs font-medium text-primary/70 hover:text-primary transition-colors duration-200 rounded-lg hover:bg-primary/5"
+                    className="w-full flex items-center justify-center gap-1.5 py-1.5 text-[11px] sm:text-xs font-medium text-primary hover:text-primary-hover transition-colors duration-200 rounded-lg hover:bg-primary/5"
                   >
                     <span>{isExpanded ? 'Show Less' : 'View Details'}</span>
                     <ChevronDown size={14} className={`transform transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
