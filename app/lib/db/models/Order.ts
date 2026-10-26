@@ -120,12 +120,12 @@ OrderSchema.index({ cafeSlug: 1, createdAt: -1 });
 
 // Auto-increment order number per cafe
 OrderSchema.pre('save', async function (this: any) {
-  if (this.isNew) {
+  if (this.isNew && !this.orderNumber) {
     const lastOrder = await mongoose.model('Order')
       .findOne({ cafeSlug: this.cafeSlug })
       .sort({ orderNumber: -1 });
     
-    this.orderNumber = lastOrder ? lastOrder.orderNumber + 1 : 1000;
+    this.orderNumber = lastOrder && typeof lastOrder.orderNumber === 'number' ? lastOrder.orderNumber + 1 : 1000;
   }
 });
 

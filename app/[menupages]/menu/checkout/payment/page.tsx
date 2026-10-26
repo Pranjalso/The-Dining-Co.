@@ -99,25 +99,37 @@ function PaymentPageContent({ menupages }: { menupages: string }) {
     }
   }, [cafeData, menupages]);
 
-  // Restore form state and table number
+  // Restore form state, table number, and special instructions
   useEffect(() => {
     try {
       const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
       const urlTable = urlParams?.get('table');
+      const urlInstructions = urlParams?.get('instructions') || urlParams?.get('notes');
       const rawForm = window.sessionStorage.getItem(`sd:checkout:${menupages}`) || window.localStorage.getItem(`sd:checkout:${menupages}`);
       
       if (urlTable && urlTable.trim()) {
         setTableNumber(urlTable.trim());
-      } else if (rawForm) {
+      }
+      
+      if (rawForm) {
         const saved = JSON.parse(rawForm);
-        if (saved.tableNumber) setTableNumber(saved.tableNumber);
+        if (!urlTable && saved.tableNumber) setTableNumber(saved.tableNumber);
         if (saved.paymentMethod) setPaymentMethod(saved.paymentMethod);
-        if (saved.specialInstructions) {
-          setSpecialInstructions(saved.specialInstructions);
+        const instr = saved.specialInstructions || saved.notes;
+        if (instr && instr.trim()) {
+          setSpecialInstructions(instr.trim());
           setShowInstructions(true);
         }
       }
-    } catch {}
+
+      if (urlInstructions && urlInstructions.trim()) {
+        const decoded = decodeURIComponent(urlInstructions.trim());
+        setSpecialInstructions(decoded);
+        setShowInstructions(true);
+      }
+    } catch (err) {
+      console.error("Error restoring checkout state:", err);
+    }
   }, [menupages]);
 
   // Initial immediate restore from checkout lines storage or items catalog
@@ -315,6 +327,7 @@ function PaymentPageContent({ menupages }: { menupages: string }) {
           orderNumber: order.orderNumber,
           tableNumber: order.tableNumber,
           orderId: order._id,
+          specialInstructions: order.specialInstructions || specialInstructions?.trim() || undefined,
           status: 'pending',
           createdAt: Date.now(),
         }));
@@ -628,7 +641,18 @@ function PaymentPageContent({ menupages }: { menupages: string }) {
                       type="text"
                       placeholder="e.g. Less spicy, no onions, extra ice..."
                       value={specialInstructions}
-                      onChange={(e) => setSpecialInstructions(e.target.value)}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setSpecialInstructions(val);
+                        try {
+                          const raw = window.sessionStorage.getItem(`sd:checkout:${menupages}`) || "{}";
+                          const current = JSON.parse(raw);
+                          current.specialInstructions = val;
+                          current.notes = val;
+                          window.sessionStorage.setItem(`sd:checkout:${menupages}`, JSON.stringify(current));
+                          window.localStorage.setItem(`sd:checkout:${menupages}`, JSON.stringify(current));
+                        } catch {}
+                      }}
                       className="w-full px-3 py-2 bg-white border border-[#E5DFD4] rounded-xl text-xs text-stone-900 placeholder:text-stone-400 outline-none focus:border-[#B8860B]/60"
                       maxLength={160}
                     />

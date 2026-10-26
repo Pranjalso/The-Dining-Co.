@@ -195,19 +195,24 @@ export default function CheckoutPage() {
   useEffect(() => {
     try {
       if (!menupages) return;
-      const raw = window.sessionStorage.getItem(`sd:checkout:${menupages}`);
+      const raw = window.sessionStorage.getItem(`sd:checkout:${menupages}`) || window.localStorage.getItem(`sd:checkout:${menupages}`);
       const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
       const urlTable = urlParams?.get('table');
+      const urlInstructions = urlParams?.get('instructions') || urlParams?.get('notes');
+
       if (urlTable && urlTable.trim()) {
         setTableNumber(urlTable.trim());
-      } else if (raw) {
+      }
+
+      if (raw) {
         const saved = JSON.parse(raw) as { tableNumber?: string; paymentMethod?: "cash" | "upi"; specialInstructions?: string };
-        if (saved.tableNumber) setTableNumber(saved.tableNumber);
-        else setTableNumber("");
+        if (!urlTable && saved.tableNumber) setTableNumber(saved.tableNumber);
         if (saved.paymentMethod) setPaymentMethod(saved.paymentMethod);
         if (saved.specialInstructions) setSpecialInstructions(saved.specialInstructions);
-      } else {
-        setTableNumber("");
+      }
+
+      if (urlInstructions && urlInstructions.trim()) {
+        setSpecialInstructions(decodeURIComponent(urlInstructions.trim()));
       }
     } catch {}
   }, [menupages]);
@@ -217,6 +222,7 @@ export default function CheckoutPage() {
       if (!menupages) return;
       const payload = { tableNumber, paymentMethod, specialInstructions };
       window.sessionStorage.setItem(`sd:checkout:${menupages}`, JSON.stringify(payload));
+      window.localStorage.setItem(`sd:checkout:${menupages}`, JSON.stringify(payload));
     } catch {}
   }, [menupages, tableNumber, paymentMethod, specialInstructions]);
 
@@ -789,10 +795,12 @@ export default function CheckoutPage() {
                   return;
                 }
                 try {
+                  const cleanInstructions = specialInstructions.trim();
                   const payload = { 
                     tableNumber: tableNumber.trim(), 
                     paymentMethod, 
-                    specialInstructions,
+                    specialInstructions: cleanInstructions,
+                    notes: cleanInstructions,
                     discount,
                     discountCode: appliedPromo?.code
                   };
@@ -802,8 +810,17 @@ export default function CheckoutPage() {
                     window.sessionStorage.setItem(`sd:checkoutLines:${menupages}`, JSON.stringify(lines));
                     window.localStorage.setItem(`sd:checkoutLines:${menupages}`, JSON.stringify(lines));
                   }
-                } catch {}
-                router.push(`/${menupages}/menu/checkout/payment?table=${encodeURIComponent(tableNumber.trim())}`);
+                  
+                  const qParams = new URLSearchParams({
+                    table: tableNumber.trim(),
+                  });
+                  if (cleanInstructions) {
+                    qParams.set('instructions', cleanInstructions);
+                  }
+                  router.push(`/${menupages}/menu/checkout/payment?${qParams.toString()}`);
+                } catch {
+                  router.push(`/${menupages}/menu/checkout/payment?table=${encodeURIComponent(tableNumber.trim())}`);
+                }
               }}
               disabled={lines.length === 0 || submitting || !tableNumber.trim() || isLoading}
               className={`block w-full py-3.5 rounded-xl font-bold transition-all duration-300 text-center ${

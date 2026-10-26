@@ -198,16 +198,23 @@ function OrderCard({ order, rating }: { order: Order; rating?: any }) {
         </div>
       </div>
 
-      {/* ─── Customer Special Request / Note ─── */}
-      {(order.specialInstructions || order.notes) && (
-        <div className="bg-amber-50 border border-amber-200 rounded-md sm:rounded-xl p-2 sm:p-2.5 mb-1 sm:mb-2 flex items-start gap-2">
-          <MessageSquare size={12} className="mt-0.5 text-amber-600 flex-shrink-0" />
+      {/* ─── Customer Special Request / Kitchen Note ─── */}
+      {Boolean(order.specialInstructions?.trim() || order.notes?.trim()) && (
+        <div className="bg-amber-50/90 border border-amber-300 rounded-lg sm:rounded-xl p-2.5 sm:p-3 mb-2 flex items-start gap-2 shadow-sm">
+          <div className="w-5 h-5 rounded-md bg-amber-200 border border-amber-300 flex items-center justify-center flex-shrink-0 text-amber-900 mt-0.5">
+            <MessageSquare size={11} className="text-amber-900" />
+          </div>
           <div className="min-w-0 flex-1">
-            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-amber-700 block">
-              Customer Note (Table {order.tableNumber}):
-            </span>
-            <p className="text-[10px] sm:text-xs text-text font-medium mt-0.5 whitespace-pre-wrap">
-              {order.specialInstructions || order.notes}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-amber-950 bg-amber-200/90 px-1.5 py-0.5 rounded border border-amber-300">
+                Customer Note
+              </span>
+              <span className="text-[9px] sm:text-[10px] text-amber-900 font-bold font-mono bg-white px-1.5 py-0.5 rounded border border-amber-200">
+                Table {order.tableNumber}
+              </span>
+            </div>
+            <p className="text-[11px] sm:text-xs text-stone-900 font-bold mt-1 whitespace-pre-wrap bg-white/70 p-1.5 rounded border border-amber-200/60">
+              "{order.specialInstructions?.trim() || order.notes?.trim()}"
             </p>
           </div>
         </div>

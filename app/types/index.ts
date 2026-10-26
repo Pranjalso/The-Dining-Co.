@@ -56,6 +56,8 @@ export interface IOrder {
   paymentStatus: 'pending' | 'completed' | 'failed';
   orderStatus: 'pending' | 'preparing' | 'ready' | 'served' | 'cancelled';
   upiId?: string;
+  specialInstructions?: string;
+  notes?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }

@@ -11,7 +11,8 @@ import {
   PartyPopper,
   XCircle,
   AlertCircle,
-  X
+  X,
+  MessageSquare
 } from "lucide-react";
 import { Suspense, useEffect, useState, useRef } from "react";
 import useSWR from "swr";
@@ -67,6 +68,7 @@ function OrderConfirmationContent({ menupages }: { menupages: string }) {
 
   const [orderNumber, setOrderNumber] = useState<string | null>(orderNumberParam);
   const [tableNumber, setTableNumber] = useState<string | null>(tableParam);
+  const [specialInstructions, setSpecialInstructions] = useState<string>('');
   const [orderStatus, setOrderStatus] = useState<string>('pending');
   const [paymentStatus, setPaymentStatus] = useState<string>('pending');
   const [orderTotal, setOrderTotal] = useState<number>(0);
@@ -84,18 +86,20 @@ function OrderConfirmationContent({ menupages }: { menupages: string }) {
         const parsed = JSON.parse(rawLatest);
         if (parsed.orderNumber && !orderNumber) setOrderNumber(String(parsed.orderNumber));
         if (parsed.tableNumber && !tableNumber) setTableNumber(String(parsed.tableNumber));
+        if (parsed.specialInstructions) setSpecialInstructions(String(parsed.specialInstructions));
         if (parsed.status === 'cancelled') {
           setIsRejected(true);
           setOrderStatus('cancelled');
         }
       }
       const rawCheckout = window.sessionStorage.getItem(`sd:checkout:${menupages}`);
-      if (rawCheckout && !tableNumber) {
+      if (rawCheckout) {
         const parsed = JSON.parse(rawCheckout);
-        if (parsed.tableNumber) setTableNumber(String(parsed.tableNumber));
+        if (parsed.tableNumber && !tableNumber) setTableNumber(String(parsed.tableNumber));
+        if (parsed.specialInstructions && !specialInstructions) setSpecialInstructions(String(parsed.specialInstructions));
       }
     } catch {}
-  }, [menupages, orderNumber, tableNumber]);
+  }, [menupages, orderNumber, tableNumber, specialInstructions]);
 
   // Status check with SWR (polling every 3 seconds as a reliable backup)
   const { data: statusData } = useSWR(
@@ -119,6 +123,9 @@ function OrderConfirmationContent({ menupages }: { menupages: string }) {
       }
       if (data.total) {
         setOrderTotal(Number(data.total));
+      }
+      if (data.specialInstructions || data.notes) {
+        setSpecialInstructions(data.specialInstructions || data.notes);
       }
       if (data.paymentStatus) {
         setPaymentStatus(data.paymentStatus);
@@ -451,6 +458,28 @@ function OrderConfirmationContent({ menupages }: { menupages: string }) {
               </div>
             </div>
           </motion.div>
+
+          {/* Kitchen Request / Special Instructions Note */}
+          {specialInstructions && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.28 }}
+              className="w-full bg-amber-500/10 border border-amber-500/25 rounded-2xl p-4 mt-3 text-left shadow-sm"
+            >
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-800 flex-shrink-0 mt-0.5">
+                  <MessageSquare className="w-4 h-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-[11px] font-bold tracking-wider uppercase text-amber-800/80">Kitchen Request Sent</span>
+                  <p className="text-sm font-semibold text-amber-950 mt-0.5 break-words italic">
+                    &ldquo;{specialInstructions}&rdquo;
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
 
           {/* Customer Rating & Feedback Card */}
           <div id="customer-rating-section" className="w-full">

@@ -321,21 +321,23 @@ export default function NewOrdersPage() {
                 )}
               </div>
 
-              {/* ─── Customer Special Request / Note ─── */}
-              {(order.specialInstructions || order.notes) && (
-                <div className="mt-2.5 bg-amber-50 border border-amber-200 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 flex items-start gap-2.5">
-                  <MessageSquare size={14} className="mt-0.5 text-amber-600 flex-shrink-0" />
+              {/* ─── Customer Special Request / Kitchen Note ─── */}
+              {Boolean(order.specialInstructions?.trim() || order.notes?.trim()) && (
+                <div className="mt-3 bg-amber-50/90 border-2 border-amber-300 rounded-xl px-3.5 sm:px-4 py-2.5 sm:py-3 flex items-start gap-2.5 shadow-sm">
+                  <div className="w-6 h-6 rounded-lg bg-amber-200 border border-amber-300 flex items-center justify-center flex-shrink-0 text-amber-900 mt-0.5">
+                    <MessageSquare size={13} className="text-amber-900" />
+                  </div>
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-amber-700">
-                        Customer Request / Note
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-amber-950 bg-amber-200/90 px-2 py-0.5 rounded-md border border-amber-300">
+                        Kitchen Request
                       </span>
-                      <span className="text-[10px] text-amber-700 font-mono bg-amber-100/70 px-1.5 py-0.5 rounded border border-amber-300/50">
+                      <span className="text-[10px] sm:text-xs text-amber-900 font-bold font-mono bg-white px-2 py-0.5 rounded-md border border-amber-300">
                         Table {order.tableNumber}
                       </span>
                     </div>
-                    <p className="text-xs sm:text-sm text-text font-medium mt-1 whitespace-pre-wrap leading-relaxed">
-                      {order.specialInstructions || order.notes}
+                    <p className="text-xs sm:text-sm text-stone-900 font-bold mt-1.5 whitespace-pre-wrap leading-relaxed bg-white/80 p-2.5 rounded-lg border border-amber-200/80 shadow-inner">
+                      "{order.specialInstructions?.trim() || order.notes?.trim()}"
                     </p>
                   </div>
                 </div>
