@@ -10,16 +10,29 @@ if (!fs.existsSync(scratchDir)) {
   fs.mkdirSync(scratchDir, { recursive: true });
 }
 
-// 1. Render high-res master PNG from SVG using macOS QuickLook
+// 1. Render high-res master PNG from SVG using headless Chrome for pixel-perfect bleed
 const masterPng = path.join(scratchDir, 'master-icon.png');
-console.log('Rendering master icon from SVG...');
-execSync(`qlmanage -t -s 512 -o "${scratchDir}" "${svgPath}"`);
-const qlOutput = path.join(scratchDir, 'icon.svg.png');
-if (fs.existsSync(qlOutput)) {
-  fs.renameSync(qlOutput, masterPng);
-} else {
-  throw new Error('QuickLook failed to produce thumbnail');
-}
+const htmlWrapper = path.join(scratchDir, 'render.html');
+const svgContent = fs.readFileSync(svgPath, 'utf8');
+
+const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 512px; height: 512px; overflow: hidden; background: transparent; }
+  svg { width: 512px; height: 512px; display: block; }
+</style>
+</head>
+<body>${svgContent}</body>
+</html>`;
+
+fs.writeFileSync(htmlWrapper, htmlContent, 'utf8');
+console.log('Rendering master 512x512 King icon with headless Chrome...');
+const chromePath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+execSync(`"${chromePath}" --headless --disable-gpu --screenshot="${masterPng}" --window-size=512,512 --default-background-color=00000000 "file://${htmlWrapper}" > /dev/null 2>&1`);
+
 
 // 2. Generate various standard sizes using sips
 const sizes = [16, 32, 48, 64, 180, 192, 512];

@@ -1,82 +1,89 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
   <defs>
-    <!-- Background Gradient: Deep Obsidian & Espresso -->
-    <linearGradient id="tdcBgApp" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#241E1A"/>
-      <stop offset="50%" stop-color="#171412"/>
+    <!-- Background Gradient: Deep Luxury Obsidian & Warm Espresso -->
+    <linearGradient id="kingBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#231E1B"/>
       <stop offset="100%" stop-color="#0E0C0B"/>
     </linearGradient>
 
-    <!-- Metallic Gold Foil Border -->
-    <linearGradient id="tdcGoldBorderApp" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FCEBA2"/>
-      <stop offset="35%" stop-color="#D4AF37"/>
-      <stop offset="70%" stop-color="#B8860B"/>
-      <stop offset="100%" stop-color="#7A5606"/>
+    <!-- Metallic Gold Crown Gradient -->
+    <linearGradient id="kingGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF5A0"/>
+      <stop offset="25%" stop-color="#FCD34D"/>
+      <stop offset="65%" stop-color="#D97706"/>
+      <stop offset="100%" stop-color="#B45309"/>
     </linearGradient>
 
-    <!-- Royal Crown Gold Gradient -->
-    <linearGradient id="tdcCrownApp" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FFF2B2"/>
-      <stop offset="30%" stop-color="#ECC648"/>
-      <stop offset="70%" stop-color="#B8860B"/>
-      <stop offset="100%" stop-color="#8C6405"/>
+    <!-- Gold Accent / Border Gradient -->
+    <linearGradient id="kingBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDE68A"/>
+      <stop offset="50%" stop-color="#D97706"/>
+      <stop offset="100%" stop-color="#78350F"/>
     </linearGradient>
 
-    <!-- Highlight Reflection -->
-    <linearGradient id="tdcHighlightApp" x1="30%" y1="0%" x2="70%" y2="100%">
+    <!-- Subtle Crown Shimmer Highlight -->
+    <linearGradient id="kingShimmer" x1="30%" y1="0%" x2="70%" y2="100%">
       <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95"/>
-      <stop offset="45%" stop-color="#FCEBA2" stop-opacity="0.6"/>
-      <stop offset="100%" stop-color="#D4AF37" stop-opacity="0"/>
+      <stop offset="60%" stop-color="#FDE68A" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#D97706" stop-opacity="0"/>
     </linearGradient>
-
-    <!-- Ambient Center Warmth -->
-    <radialGradient id="tdcGlowApp" cx="50%" cy="40%" r="55%">
-      <stop offset="0%" stop-color="#D4AF37" stop-opacity="0.28"/>
-      <stop offset="100%" stop-color="#D4AF37" stop-opacity="0"/>
-    </radialGradient>
   </defs>
 
-  <!-- Squircle Base Canvas -->
-  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#tdcBgApp)"/>
-  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#tdcGlowApp)"/>
-  
-  <!-- Outer Gold Border -->
-  <rect x="2.5" y="2.5" width="59" height="59" rx="15.5" fill="none" stroke="url(#tdcGoldBorderApp)" stroke-width="1.8"/>
+  <!-- Luxury Squircle Canvas -->
+  <rect x="1" y="1" width="30" height="30" rx="7.5" fill="url(#kingBg)"/>
+  <rect x="1" y="1" width="30" height="30" rx="7.5" fill="none" stroke="url(#kingBorder)" stroke-width="1.2"/>
 
-  <!-- Inner Hairline Border -->
-  <rect x="5.5" y="5.5" width="53" height="53" rx="12.5" fill="none" stroke="#D4AF37" stroke-opacity="0.25" stroke-width="0.8"/>
+  <!-- Royal King Cross / Emblem at Crown Apex -->
+  <!-- Cross vertical bar -->
+  <rect x="15" y="4.5" width="2" height="5" rx="0.5" fill="url(#kingGold)"/>
+  <!-- Cross horizontal bar -->
+  <rect x="13.5" y="6" width="5" height="1.8" rx="0.4" fill="url(#kingGold)"/>
+  <circle cx="16" cy="6.9" r="0.8" fill="#FFFFFF"/>
 
-  <!-- Royal Crown Structure -->
-  <!-- Base Arch Ribbon -->
-  <path d="M15 44 C 23 46.5, 41 46.5, 49 44 L 47.5 40 C 40 42.2, 24 42.2, 16.5 40 Z" fill="url(#tdcCrownApp)"/>
-  
-  <!-- Base band gems -->
-  <circle cx="21" cy="42" r="1.2" fill="#FFFFFF"/>
-  <circle cx="32" cy="43.2" r="1.5" fill="#FFFFFF"/>
-  <circle cx="43" cy="42" r="1.2" fill="#FFFFFF"/>
+  <!-- King Crown Body (5 Bold Royal Peaks) -->
+  <path d="M 5.5 13 
+           L 9.5 17 
+           L 13 11 
+           L 16 14.5 
+           L 19 11 
+           L 22.5 17 
+           L 26.5 13 
+           L 24.5 22.5 
+           C 20 23.8 12 23.8 7.5 22.5 
+           Z" 
+        fill="url(#kingGold)" 
+        stroke="#78350F" 
+        stroke-width="0.6" 
+        stroke-linejoin="round"/>
 
-  <!-- Crown Body -->
-  <path d="M16 39.5 L 13.5 25.5 L 24 33 L 32 17.5 L 40 33 L 50.5 25.5 L 48 39.5 C 40 41.8, 24 41.8, 16 39.5 Z" fill="url(#tdcCrownApp)"/>
+  <!-- Crown Base Arch Band -->
+  <path d="M 6.8 24 
+           C 11.5 25.5 20.5 25.5 25.2 24 
+           L 25.5 26.2 
+           C 20.5 27.7 11.5 27.7 6.5 26.2 
+           Z" 
+        fill="url(#kingGold)" 
+        stroke="#78350F" 
+        stroke-width="0.5"/>
 
-  <!-- Crown Highlight Facets -->
-  <path d="M32 17.5 L 36.5 29 L 32 37.5 L 27.5 29 Z" fill="url(#tdcHighlightApp)"/>
-  <path d="M24 33 L 27.5 29 L 26 38 Z" fill="#7A5606" opacity="0.45"/>
-  <path d="M40 33 L 36.5 29 L 38 38 Z" fill="#7A5606" opacity="0.45"/>
+  <!-- Central Crest Diamond Facet -->
+  <polygon points="16,15 18,19 16,22.5 14,19" fill="url(#kingShimmer)"/>
 
-  <!-- Crown Peak Jewels -->
-  <circle cx="13.5" cy="25" r="2.6" fill="url(#tdcGoldBorderApp)"/>
-  <circle cx="13.5" cy="24.4" r="1.2" fill="#FFFFFF"/>
+  <!-- Royal Peak Jewels (Orbs on each crown tip) -->
+  <circle cx="5.5" cy="12.5" r="1.3" fill="url(#kingGold)"/>
+  <circle cx="5.5" cy="12.2" r="0.5" fill="#FFFFFF"/>
 
-  <circle cx="24" cy="32" r="2.2" fill="url(#tdcGoldBorderApp)"/>
-  <circle cx="24" cy="31.4" r="1" fill="#FFFFFF"/>
+  <circle cx="13" cy="10.5" r="1.4" fill="url(#kingGold)"/>
+  <circle cx="13" cy="10.2" r="0.5" fill="#FFFFFF"/>
 
-  <circle cx="32" cy="16.5" r="3.2" fill="url(#tdcGoldBorderApp)"/>
-  <circle cx="32" cy="15.6" r="1.5" fill="#FFFFFF"/>
+  <circle cx="19" cy="10.5" r="1.4" fill="url(#kingGold)"/>
+  <circle cx="19" cy="10.2" r="0.5" fill="#FFFFFF"/>
 
-  <circle cx="40" cy="32" r="2.2" fill="url(#tdcGoldBorderApp)"/>
-  <circle cx="40" cy="31.4" r="1" fill="#FFFFFF"/>
+  <circle cx="26.5" cy="12.5" r="1.3" fill="url(#kingGold)"/>
+  <circle cx="26.5" cy="12.2" r="0.5" fill="#FFFFFF"/>
 
-  <circle cx="50.5" cy="25" r="2.6" fill="url(#tdcGoldBorderApp)"/>
-  <circle cx="50.5" cy="24.4" r="1.2" fill="#FFFFFF"/>
+  <!-- Base Band Regal Gemstones -->
+  <circle cx="10" cy="25.2" r="0.8" fill="#FFFFFF"/>
+  <circle cx="16" cy="25.9" r="1" fill="#FFFFFF"/>
+  <circle cx="22" cy="25.2" r="0.8" fill="#FFFFFF"/>
 </svg>
