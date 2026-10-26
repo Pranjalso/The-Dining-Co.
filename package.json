@@ -7,8 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "seed": "ts-node --project tsconfig.seed.json src/scripts/seed.ts",
-    "seed:prod": "NODE_ENV=production ts-node --project tsconfig.seed.json src/scripts/seed.ts"
+    "seed": "ts-node scripts/seed.ts",
+    "seed:prod": "NODE_ENV=production ts-node scripts/seed.ts"
   },
   "dependencies": {
     "@next/font": "^14.2.15",
