@@ -97,8 +97,15 @@
 }
 
 @layer base {
-  * {
+  *, ::before, ::after {
     border-color: var(--color-border);
+    box-sizing: border-box;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+    max-width: 100vw;
   }
   
   body {
@@ -108,10 +115,10 @@
     font-feature-settings: "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-  }
-  
-  html {
-    scroll-behavior: smooth;
+    overflow-x: hidden;
+    max-width: 100%;
+    position: relative;
+    width: 100%;
   }
   
   h1, h2, h3, h4, h5, h6 {

@@ -15,7 +15,7 @@ import Link from "next/link";
 
 const Footer = () => {
   return (
-    <footer className="bg-[#F3EFE6] border-t border-[#E5DFD4]">
+    <footer className="bg-[#F3EFE6] border-t border-[#E5DFD4] overflow-hidden w-full max-w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main footer content */}
         <div className="py-12 md:py-16">

@@ -22,10 +22,10 @@ export default function HomeClient() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#FBF8F3]">
+    <div className="min-h-screen bg-[#FBF8F3] overflow-x-hidden w-full max-w-full relative">
       <ScrollAnimations />
       <Header />
-      <main>
+      <main className="overflow-x-hidden w-full max-w-full">
         <Hero />
         <About />
         <Features />

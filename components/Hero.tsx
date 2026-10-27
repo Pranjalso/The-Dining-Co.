@@ -5,12 +5,12 @@ import Link from "next/link";
 
 const Hero = () => {
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden bg-[#FBF8F3] pt-20">
+    <section className="relative min-h-screen flex items-center overflow-hidden bg-[#FBF8F3] pt-20 w-full max-w-full">
       {/* Background Elements */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-primary/5 to-transparent"></div>
         <div className="absolute bottom-0 left-0 w-1/3 h-1/2 bg-gradient-to-t from-[#E5DFD4]/30 to-transparent"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] h-[320px] sm:w-[500px] sm:h-[500px] lg:w-[600px] lg:h-[600px] bg-primary/10 rounded-full blur-3xl pointer-events-none max-w-full"></div>
       </div>
 
       {/* Decorative Luxury Accents */}
@@ -48,34 +48,34 @@ const Hero = () => {
             </div>
 
             {/* Authentic Core Pillars (No fake numbers) */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 py-2">
-              <div className="flex items-center gap-3 p-3 bg-white/70 rounded-2xl border border-[#E5DFD4]">
-                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20 shrink-0">
-                  <ShieldCheck className="text-primary w-5 h-5" />
+            <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 py-2 w-full">
+              <div className="flex items-center gap-2.5 sm:gap-3 p-2.5 sm:p-3 bg-white/70 rounded-2xl border border-[#E5DFD4] min-w-0">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20 shrink-0">
+                  <ShieldCheck className="text-primary w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <div>
-                  <div className="text-base font-extrabold text-[#1C1917]">0% Cut</div>
-                  <div className="text-[11px] text-[#78716C]">Zero Commission</div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-3 bg-white/70 rounded-2xl border border-[#E5DFD4]">
-                <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center border border-emerald-500/20 shrink-0">
-                  <Zap className="text-emerald-600 w-5 h-5" />
-                </div>
-                <div>
-                  <div className="text-base font-extrabold text-[#1C1917]">Direct UPI</div>
-                  <div className="text-[11px] text-[#78716C]">Instant Bank Pay</div>
+                <div className="min-w-0">
+                  <div className="text-sm sm:text-base font-extrabold text-[#1C1917] truncate">0% Cut</div>
+                  <div className="text-[10px] sm:text-[11px] text-[#78716C] truncate">Zero Commission</div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 p-3 bg-white/70 rounded-2xl border border-[#E5DFD4] col-span-2 sm:col-span-1">
-                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20 shrink-0">
-                  <Smartphone className="text-primary w-5 h-5" />
+              <div className="flex items-center gap-2.5 sm:gap-3 p-2.5 sm:p-3 bg-white/70 rounded-2xl border border-[#E5DFD4] min-w-0">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center border border-emerald-500/20 shrink-0">
+                  <Zap className="text-emerald-600 w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <div>
-                  <div className="text-base font-extrabold text-[#1C1917]">Zero App</div>
-                  <div className="text-[11px] text-[#78716C]">Instant Browser Scan</div>
+                <div className="min-w-0">
+                  <div className="text-sm sm:text-base font-extrabold text-[#1C1917] truncate">Direct UPI</div>
+                  <div className="text-[10px] sm:text-[11px] text-[#78716C] truncate">Instant Bank Pay</div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5 sm:gap-3 p-2.5 sm:p-3 bg-white/70 rounded-2xl border border-[#E5DFD4] col-span-1 sm:col-span-1 min-w-0">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20 shrink-0">
+                  <Smartphone className="text-primary w-4 h-4 sm:w-5 sm:h-5" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-sm sm:text-base font-extrabold text-[#1C1917] truncate">Zero App</div>
+                  <div className="text-[10px] sm:text-[11px] text-[#78716C] truncate">Instant Browser Scan</div>
                 </div>
               </div>
             </div>
@@ -186,9 +186,9 @@ const Hero = () => {
             </div>
 
             {/* Floating Badges */}
-            <div className="absolute -top-3 -right-3 sm:-top-5 sm:-right-5 bg-white rounded-2xl p-3 shadow-xl border border-[#E5DFD4] animate-float">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
+            <div className="absolute -top-2 right-1 sm:-top-5 sm:-right-5 bg-white rounded-2xl p-2.5 sm:p-3 shadow-xl border border-[#E5DFD4] animate-float max-w-[calc(100vw-40px)]">
+              <div className="flex items-center gap-2 sm:gap-2.5">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 bg-primary/10 rounded-xl flex items-center justify-center text-primary shrink-0">
                   <QrCode className="w-4 h-4" />
                 </div>
                 <div>
@@ -198,9 +198,9 @@ const Hero = () => {
               </div>
             </div>
 
-            <div className="absolute -bottom-3 -left-3 sm:-bottom-5 sm:-left-5 bg-white rounded-2xl p-3 shadow-xl border border-[#E5DFD4] animate-float" style={{ animationDelay: '1.5s' }}>
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-600">
+            <div className="absolute -bottom-2 left-1 sm:-bottom-5 sm:-left-5 bg-white rounded-2xl p-2.5 sm:p-3 shadow-xl border border-[#E5DFD4] animate-float max-w-[calc(100vw-40px)]" style={{ animationDelay: '1.5s' }}>
+              <div className="flex items-center gap-2 sm:gap-2.5">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-600 shrink-0">
                   <Star className="w-4 h-4 fill-emerald-500 text-emerald-500" />
                 </div>
                 <div>

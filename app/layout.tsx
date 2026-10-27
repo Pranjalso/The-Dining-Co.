@@ -54,8 +54,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>
+    <html lang="en" className="overflow-x-hidden max-w-full">
+      <body className="overflow-x-hidden max-w-full min-h-screen">
         <Providers>{children}</Providers>
       </body>
     </html>

@@ -87,9 +87,9 @@ const plans: Plan[] = [
 
 const Pricing = () => {
   return (
-    <section id="pricing" className="section-padding bg-background scroll-mt-20 relative">
+    <section id="pricing" className="section-padding bg-background scroll-mt-20 relative overflow-hidden w-full max-w-full">
       {/* Ambient background glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-primary/5 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] h-[320px] sm:w-[500px] sm:h-[400px] lg:w-[700px] lg:h-[500px] bg-primary/5 rounded-full blur-[100px] sm:blur-[140px] pointer-events-none max-w-full" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}

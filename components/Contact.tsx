@@ -275,7 +275,7 @@ const Contact = () => {
   };
 
   return (
-    <section id="contact" className="section-padding bg-background scroll-mt-20">
+    <section id="contact" className="section-padding bg-background scroll-mt-20 overflow-hidden w-full max-w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 animate-on-scroll">
