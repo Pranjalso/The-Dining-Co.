@@ -29,13 +29,79 @@ export type ServiceRequestItem = {
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-// Synthesize pleasant, crisp front-desk bell chime
+// Play desk bell chime using preloaded HTML5 Audio with Web Audio fallback
+let serviceBellAudioInstance: HTMLAudioElement | null = null;
+let sharedAudioCtx: AudioContext | null = null;
+
+if (typeof window !== "undefined") {
+  try {
+    serviceBellAudioInstance = new Audio("/sounds/service-bell.mp3");
+    serviceBellAudioInstance.preload = "auto";
+  } catch (e) {
+    console.warn("Could not preload service bell audio:", e);
+  }
+}
+
+export function unlockDeskBellAudio() {
+  if (typeof window === "undefined") return;
+  try {
+    if (!sharedAudioCtx) {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (AudioCtx) sharedAudioCtx = new AudioCtx();
+    }
+    if (sharedAudioCtx && sharedAudioCtx.state === "suspended") {
+      sharedAudioCtx.resume();
+    }
+    if (serviceBellAudioInstance) {
+      serviceBellAudioInstance.volume = 0.01;
+      const p = serviceBellAudioInstance.play();
+      if (p !== undefined) {
+        p.then(() => {
+          serviceBellAudioInstance?.pause();
+          if (serviceBellAudioInstance) {
+            serviceBellAudioInstance.currentTime = 0;
+            serviceBellAudioInstance.volume = 1.0;
+          }
+        }).catch(() => {});
+      }
+    }
+  } catch (err) {
+    console.warn("Error unlocking audio:", err);
+  }
+}
+
 export function playDeskBellChime() {
   if (typeof window === "undefined") return;
+
+  // 1. Try playing preloaded HTML5 Audio file first
+  if (serviceBellAudioInstance) {
+    try {
+      serviceBellAudioInstance.currentTime = 0;
+      serviceBellAudioInstance.volume = 1.0;
+      const playPromise = serviceBellAudioInstance.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((e) => {
+          console.warn("HTML5 audio playback blocked, trying Web Audio API:", e);
+          playWebAudioSynthesizer();
+        });
+        return;
+      }
+    } catch (e) {
+      // Fall through to Web Audio synthesizer
+    }
+  }
+
+  // 2. Fallback: Synthesized Web Audio API bell
+  playWebAudioSynthesizer();
+}
+
+function playWebAudioSynthesizer() {
   try {
     const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioCtx) return;
-    const ctx = new AudioCtx();
+    if (!sharedAudioCtx) sharedAudioCtx = new AudioCtx();
+    const ctx = sharedAudioCtx;
+    if (ctx.state === "suspended") ctx.resume();
     const now = ctx.currentTime;
 
     // Harmonic bell frequencies (bright brass timbre)
@@ -46,17 +112,17 @@ export function playDeskBellChime() {
       osc.type = "sine";
       osc.frequency.setValueAtTime(freq, now);
 
-      const initVol = idx === 0 ? 0.35 : idx === 1 ? 0.15 : 0.08;
+      const initVol = idx === 0 ? 0.6 : idx === 1 ? 0.3 : 0.15;
       gain.gain.setValueAtTime(initVol, now);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + (idx === 0 ? 1.2 : 0.7));
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + (idx === 0 ? 1.4 : 0.8));
 
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.start(now);
-      osc.stop(now + 1.2);
+      osc.stop(now + 1.4);
     });
   } catch (err) {
-    console.warn("Could not play bell sound:", err);
+    console.warn("Could not play synthesized bell sound:", err);
   }
 }
 
@@ -84,6 +150,21 @@ export default function AdminServiceAlerts({ cafeSlug, soundEnabled = true }: Pr
   });
 
   const requests: ServiceRequestItem[] = data?.success && Array.isArray(data.data) ? data.data : [];
+
+  // Unlock audio context on user interaction with the dashboard
+  useEffect(() => {
+    const handleUserInteraction = () => {
+      unlockDeskBellAudio();
+    };
+    window.addEventListener("click", handleUserInteraction, { once: true });
+    window.addEventListener("keydown", handleUserInteraction, { once: true });
+    window.addEventListener("touchstart", handleUserInteraction, { once: true });
+    return () => {
+      window.removeEventListener("click", handleUserInteraction);
+      window.removeEventListener("keydown", handleUserInteraction);
+      window.removeEventListener("touchstart", handleUserInteraction);
+    };
+  }, []);
 
   // Listen to realtime Pusher events
   useEffect(() => {

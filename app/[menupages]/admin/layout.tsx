@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 
 import useLocalStorage from "@/hooks/use-local-storage";
-import AdminServiceAlerts from "@/components/AdminServiceAlerts";
+import AdminServiceAlerts, { unlockDeskBellAudio } from "@/components/AdminServiceAlerts";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -57,6 +57,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           audioRef.current.pause();
           audioRef.current.currentTime = 0;
           setAudioUnlocked(true);
+          unlockDeskBellAudio();
           if (broadcastRef.current) {
             broadcastRef.current.postMessage({ type: 'AUDIO_UNLOCKED' });
           }
@@ -144,6 +145,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         if (playPromise !== undefined) {
           await playPromise;
           setAudioUnlocked(true);
+          unlockDeskBellAudio();
           console.log("Audio system explicitly unlocked via icon click");
           audioRef.current.volume = 0.9;
         }
