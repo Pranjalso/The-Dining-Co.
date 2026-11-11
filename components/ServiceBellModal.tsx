@@ -68,6 +68,8 @@ type Props = {
 
 export default function ServiceBellModal({ cafeSlug, tableNumber }: Props) {
   const [isOpen, setIsOpen] = useState(false);
+  const [effectiveTable, setEffectiveTable] = useState(tableNumber || "");
+  const [tableInputPrompt, setTableInputPrompt] = useState(false);
   const [loadingType, setLoadingType] = useState<string | null>(null);
   const [customNote, setCustomNote] = useState("");
   const [paymentPreference, setPaymentPreference] = useState<"upi" | "cash">("upi");
@@ -77,6 +79,21 @@ export default function ServiceBellModal({ cafeSlug, tableNumber }: Props) {
     time: number;
   } | null>(null);
   const [cooldown, setCooldown] = useState(0);
+
+  // Sync or restore table number from props, URL or localStorage
+  useEffect(() => {
+    if (tableNumber) {
+      setEffectiveTable(tableNumber);
+      try {
+        localStorage.setItem(`cafe-table-${cafeSlug}`, tableNumber);
+      } catch (_) {}
+    } else {
+      try {
+        const stored = localStorage.getItem(`cafe-table-${cafeSlug}`);
+        if (stored) setEffectiveTable(stored);
+      } catch (_) {}
+    }
+  }, [tableNumber, cafeSlug]);
 
   // Countdown timer for cooldown
   useEffect(() => {
@@ -88,8 +105,8 @@ export default function ServiceBellModal({ cafeSlug, tableNumber }: Props) {
   }, [cooldown]);
 
   const handleSubmit = async (type: ServiceOption["id"]) => {
-    if (!tableNumber) {
-      alert("Please ensure your table number is selected before calling service.");
+    if (!effectiveTable || effectiveTable.trim() === "") {
+      setTableInputPrompt(true);
       return;
     }
 
@@ -99,7 +116,7 @@ export default function ServiceBellModal({ cafeSlug, tableNumber }: Props) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          tableNumber,
+          tableNumber: effectiveTable,
           requestType: type,
           customNote: selectedType === type ? customNote : undefined,
           paymentMethodPreference: type === "bill" ? paymentPreference : undefined,
@@ -193,13 +210,24 @@ export default function ServiceBellModal({ cafeSlug, tableNumber }: Props) {
                     <h3 className="text-lg font-bold text-gray-900 leading-tight">
                       Table Assistance
                     </h3>
-                    <p className="text-xs text-gray-500">
-                      {tableNumber ? (
-                        <span className="font-semibold text-orange-600">Table: {tableNumber}</span>
+                    <div className="text-xs text-gray-500 flex items-center gap-1.5 mt-0.5">
+                      {effectiveTable ? (
+                        <>
+                          <span className="font-semibold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-md border border-orange-200">
+                            Table: {effectiveTable}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setTableInputPrompt(!tableInputPrompt)}
+                            className="text-[10px] text-gray-400 hover:text-orange-600 underline"
+                          >
+                            change
+                          </button>
+                        </>
                       ) : (
-                        "Instant call to floor staff"
+                        <span className="text-amber-600 font-medium">Please specify table</span>
                       )}
-                    </p>
+                    </div>
                   </div>
                 </div>
                 <button
@@ -209,6 +237,38 @@ export default function ServiceBellModal({ cafeSlug, tableNumber }: Props) {
                   <X className="w-4 h-4" />
                 </button>
               </div>
+
+              {/* Table Input Prompt if not detected */}
+              {(!effectiveTable || tableInputPrompt) && (
+                <div className="mt-3 p-3 bg-amber-50 rounded-2xl border border-amber-200 flex flex-col gap-2">
+                  <label className="text-xs font-semibold text-amber-900">
+                    Which table are you seated at?
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={effectiveTable}
+                      onChange={(e) => setEffectiveTable(e.target.value)}
+                      placeholder="e.g. Table 4, Patio 1..."
+                      className="flex-1 px-3 py-1.5 bg-white rounded-xl border border-amber-300 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (effectiveTable.trim()) {
+                          try {
+                            localStorage.setItem(`cafe-table-${cafeSlug}`, effectiveTable.trim());
+                          } catch (_) {}
+                          setTableInputPrompt(false);
+                        }
+                      }}
+                      className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-semibold"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Service Options Grid */}
               <div className="mt-4 space-y-2.5">
