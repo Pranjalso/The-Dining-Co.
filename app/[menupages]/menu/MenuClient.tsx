@@ -21,6 +21,7 @@ import {
 import useSWR from "swr";
 import { getPusherClient } from "@/lib/pusher-client";
 import OfferPopupModal, { OfferItem } from "@/components/OfferPopupModal";
+import ServiceBellModal from "@/components/ServiceBellModal";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -1016,6 +1017,12 @@ export default function MenuClient({
           offers={activeOffers}
           cafeName={effectiveCafeName}
           onApplyOffer={handleApplyOffer}
+        />
+
+        {/* Floating Call Waiter & Service Bell */}
+        <ServiceBellModal
+          cafeSlug={menupages}
+          tableNumber={tableNumber}
         />
       </div>
     </div>

@@ -15,6 +15,6 @@ export const getPusherClient = (): PusherClient | null => {
       cluster,
     });
   }
-
   return pusherClientInstance;
 };
+

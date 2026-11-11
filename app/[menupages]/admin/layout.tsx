@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 
 import useLocalStorage from "@/hooks/use-local-storage";
+import AdminServiceAlerts from "@/components/AdminServiceAlerts";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -401,6 +402,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               
               <div className="flex-1"></div>
               
+              {/* Table Service Assistance Alerts */}
+              {menupages && (
+                <AdminServiceAlerts
+                  cafeSlug={menupages}
+                  soundEnabled={soundEnabled}
+                />
+              )}
+
               {/* Cafe Status Indicator */}
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
                 <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
