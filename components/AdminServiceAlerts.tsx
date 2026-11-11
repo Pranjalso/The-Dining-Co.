@@ -104,22 +104,28 @@ function playWebAudioSynthesizer() {
     if (ctx.state === "suspended") ctx.resume();
     const now = ctx.currentTime;
 
-    // Harmonic bell frequencies (bright brass timbre)
-    const freqs = [1046.5, 2093.0, 3135.96]; // C6 + harmonics
-    freqs.forEach((freq, idx) => {
+    // Harmonic 4-tone ascending hospitality chime (C5 -> E5 -> G5 -> C6)
+    const notes = [
+      { freq: 523.25, time: 0, dur: 0.35, vol: 0.4 },
+      { freq: 659.25, time: 0.14, dur: 0.35, vol: 0.45 },
+      { freq: 783.99, time: 0.28, dur: 0.4, vol: 0.5 },
+      { freq: 1046.5, time: 0.44, dur: 0.8, vol: 0.65 },
+    ];
+
+    notes.forEach((n) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = "sine";
-      osc.frequency.setValueAtTime(freq, now);
+      osc.frequency.setValueAtTime(n.freq, now + n.time);
 
-      const initVol = idx === 0 ? 0.6 : idx === 1 ? 0.3 : 0.15;
-      gain.gain.setValueAtTime(initVol, now);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + (idx === 0 ? 1.4 : 0.8));
+      gain.gain.setValueAtTime(0.0001, now + n.time);
+      gain.gain.exponentialRampToValueAtTime(n.vol, now + n.time + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + n.time + n.dur);
 
       osc.connect(gain);
       gain.connect(ctx.destination);
-      osc.start(now);
-      osc.stop(now + 1.4);
+      osc.start(now + n.time);
+      osc.stop(now + n.time + n.dur);
     });
   } catch (err) {
     console.warn("Could not play synthesized bell sound:", err);
