@@ -16,36 +16,35 @@ export const GET = withCafeAccess(async (
 
     let startDate, endDate;
 
-    // Base the date calculations on the provided date string if available, otherwise use today
-    const baseDate = date ? new Date(date) : new Date();
-    if (isNaN(baseDate.getTime())) {
-      return NextResponse.json({ success: false, message: 'Invalid date provided' }, { status: 400 });
-    }
+    // Extract optional client timezone offset in minutes (e.g. -330 for IST = UTC+5:30)
+    const tzOffsetParam = searchParams.get('tzOffset');
+    const tzOffsetMinutes = tzOffsetParam !== null ? Number(tzOffsetParam) : -new Date().getTimezoneOffset();
+    // Invert sign for offset math: offsetFromUtcMs = -tzOffsetMinutes * 60000
+    // e.g. IST getTimezoneOffset() is -330, so client is +330m ahead of UTC.
+
+    // Robust Date Builder that parses "YYYY-MM-DD" accurately
+    const parseLocalDate = (dateStr?: string | null) => {
+      if (dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        const [y, m, d] = dateStr.split('-').map(Number);
+        return new Date(y, m - 1, d);
+      }
+      return new Date();
+    };
+
+    const baseDate = parseLocalDate(date);
 
     if (period === 'today' || period === 'custom') {
-      startDate = new Date(baseDate);
-      startDate.setHours(0, 0, 0, 0);
-      endDate = new Date(baseDate);
-      endDate.setHours(23, 59, 59, 999);
+      startDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), 0, 0, 0, 0);
+      endDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), 23, 59, 59, 999);
     } else if (period === 'yesterday') {
-      const yesterday = new Date(baseDate);
-      yesterday.setDate(yesterday.getDate() - 1);
-      startDate = new Date(yesterday);
-      startDate.setHours(0, 0, 0, 0);
-      endDate = new Date(yesterday);
-      endDate.setHours(23, 59, 59, 999);
+      startDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate() - 1, 0, 0, 0, 0);
+      endDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate() - 1, 23, 59, 59, 999);
     } else if (period === '7d') {
-      endDate = new Date(baseDate);
-      endDate.setHours(23, 59, 59, 999);
-      startDate = new Date(baseDate);
-      startDate.setDate(startDate.getDate() - 6);
-      startDate.setHours(0, 0, 0, 0);
+      endDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), 23, 59, 59, 999);
+      startDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate() - 6, 0, 0, 0, 0);
     } else if (period === '30d') {
-      endDate = new Date(baseDate);
-      endDate.setHours(23, 59, 59, 999);
-      startDate = new Date(baseDate);
-      startDate.setDate(startDate.getDate() - 29);
-      startDate.setHours(0, 0, 0, 0);
+      endDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), 23, 59, 59, 999);
+      startDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate() - 29, 0, 0, 0, 0);
     }
 
     const query: any = {
@@ -94,11 +93,19 @@ export const GET = withCafeAccess(async (
     // Generate chart data efficiently using aggregation
     let chartData: any[] = [];
     if (period === 'today' || period === 'yesterday' || (period === 'custom' && date)) {
+      // Calculate timezone string for MongoDB (e.g. "+05:30" or "-05:00")
+      const totalMinutesAhead = -tzOffsetMinutes;
+      const sign = totalMinutesAhead >= 0 ? '+' : '-';
+      const absMinutes = Math.abs(totalMinutesAhead);
+      const tzHours = String(Math.floor(absMinutes / 60)).padStart(2, '0');
+      const tzMins = String(absMinutes % 60).padStart(2, '0');
+      const mongoTz = `${sign}${tzHours}:${tzMins}`;
+
       const hourlyAggregation = await Order.aggregate([
         { $match: query },
         {
           $project: {
-            hour: { $hour: '$createdAt' }
+            hour: { $hour: { date: '$createdAt', timezone: mongoTz } }
           }
         },
         {
@@ -121,11 +128,18 @@ export const GET = withCafeAccess(async (
         return { name: `${displayHour}.00 ${periodSuffix}`, orders: count };
       });
     } else {
+      const totalMinutesAhead = -tzOffsetMinutes;
+      const sign = totalMinutesAhead >= 0 ? '+' : '-';
+      const absMinutes = Math.abs(totalMinutesAhead);
+      const tzHours = String(Math.floor(absMinutes / 60)).padStart(2, '0');
+      const tzMins = String(absMinutes % 60).padStart(2, '0');
+      const mongoTz = `${sign}${tzHours}:${tzMins}`;
+
       const dailyAggregation = await Order.aggregate([
         { $match: query },
         {
           $project: {
-            date: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }
+            date: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt', timezone: mongoTz } }
           }
         },
         {
@@ -136,12 +150,14 @@ export const GET = withCafeAccess(async (
         }
       ]);
 
-      // For overall, 30d, 7d - we show the appropriate day range
+      // For overall, 30d, 7d - we show the appropriate day range in local time
       const days = period === '7d' ? 7 : 30;
       for (let i = days - 1; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        const dateStr = d.toISOString().split('T')[0];
+        const d = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate() - i);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const dateStr = `${y}-${m}-${day}`;
         const dayMatch = dailyAggregation.find(item => item._id === dateStr);
         chartData.push({ 
           name: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), 

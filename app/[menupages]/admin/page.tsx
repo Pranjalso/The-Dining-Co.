@@ -104,14 +104,20 @@ const DashboardSkeleton = () => {
 
 // ─── Helpers ───
 function getTodayDateString() {
-  const today = new Date();
-  return today.toISOString().split('T')[0];
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 function getYesterdayDateString() {
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  return yesterday.toISOString().split('T')[0];
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 export default function DashboardPage() {
@@ -124,8 +130,13 @@ export default function DashboardPage() {
   
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Define dynamic cache key based on filters
-  const statsUrl = slug ? `/api/orders/${slug}/stats?period=${period}${period === "custom" || period === "today" || period === "yesterday" ? `&date=${selectedDate}` : ""}` : null;
+  // Client timezone offset
+  const tzOffset = typeof window !== 'undefined' ? new Date().getTimezoneOffset() : -330;
+
+  // Define dynamic cache key based on filters with explicit tzOffset
+  const statsUrl = slug 
+    ? `/api/orders/${slug}/stats?period=${period}${period === "custom" || period === "today" || period === "yesterday" ? `&date=${selectedDate}` : ""}&tzOffset=${tzOffset}` 
+    : null;
 
   // Use SWR for memory caching and fast data fetching
   const { data, isLoading: swrLoading, isValidating } = useSWR(statsUrl, {
