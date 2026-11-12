@@ -148,33 +148,33 @@ export default function ServiceBellModal({ cafeSlug, tableNumber }: Props) {
   return (
     <>
       {/* Floating Service Bell Button */}
-      <div className="fixed bottom-24 right-4 z-40 flex flex-col items-end gap-2">
+      <div className="fixed bottom-20 right-4.5 z-40 flex flex-col items-end gap-2 pointer-events-auto">
         {/* Active confirmation toast pill if requested recently */}
         {cooldown > 0 && lastSubmitted && (
           <motion.div
             initial={{ opacity: 0, y: 10, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="bg-white/95 backdrop-blur-md shadow-lg border border-primary/20 rounded-full px-3.5 py-1.5 flex items-center gap-2 text-xs font-semibold text-primary"
+            className="bg-stone-900/95 text-white backdrop-blur-md shadow-xl border border-white/10 rounded-full px-3.5 py-1.5 flex items-center gap-2 text-xs font-semibold"
           >
-            <CheckCircle2 className="w-4 h-4 text-emerald-500 animate-pulse" />
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
             <span>Staff notified ({lastSubmitted.label})</span>
-            <span className="text-gray-400 font-normal">· {cooldown}s</span>
+            <span className="text-stone-400 font-normal">· {cooldown}s</span>
           </motion.div>
         )}
 
         <motion.button
           id="service-bell-button"
-          whileHover={{ scale: 1.06 }}
-          whileTap={{ scale: 0.94 }}
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.92 }}
           onClick={() => setIsOpen(true)}
-          className="relative bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white p-3.5 sm:p-4 rounded-full shadow-xl shadow-orange-500/25 border-2 border-white flex items-center justify-center group focus:outline-none"
+          className="relative bg-gradient-to-tr from-[#9C7006] via-[#B8860B] to-[#D4AF37] text-white p-3.5 rounded-full shadow-[0_8px_24px_rgba(184,134,11,0.35)] border-2 border-white flex items-center justify-center group focus:outline-none transition-shadow"
           aria-label="Call Waiter & Service Bell"
         >
-          {/* Subtle pulse ring */}
-          <span className="absolute -inset-1 rounded-full bg-orange-400/40 animate-ping pointer-events-none" />
+          {/* Gentle pulse ring */}
+          <span className="absolute -inset-1 rounded-full bg-[#B8860B]/30 animate-ping pointer-events-none" />
 
-          <Bell className="w-6 h-6 transition-transform group-hover:rotate-12 duration-300" />
+          <Bell className="w-5 h-5 transition-transform group-hover:rotate-12 duration-300 drop-shadow-xs" />
           <span className="sr-only">Call Waiter</span>
         </motion.button>
       </div>

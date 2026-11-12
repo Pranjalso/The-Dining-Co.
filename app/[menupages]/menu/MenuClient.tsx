@@ -22,6 +22,7 @@ import useSWR from "swr";
 import { getPusherClient } from "@/lib/pusher-client";
 import OfferPopupModal, { OfferItem } from "@/components/OfferPopupModal";
 import ServiceBellModal from "@/components/ServiceBellModal";
+import ElegantPaymentModal from "@/components/ElegantPaymentModal";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -730,61 +731,6 @@ export default function MenuClient({
               </button>
             </div>
           )}
-          {/* Payment Received Alert Banner */}
-          {paymentAlert && (
-            <motion.div 
-              initial={{ opacity: 0, y: -8, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              className="mx-4 mt-3 bg-white border border-[#E5DFD4] rounded-2xl p-4 shadow-[0_4px_16px_rgba(28,25,23,0.06)] relative overflow-hidden"
-            >
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600" />
-              <div className="flex items-start gap-3 pt-0.5">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200/80 flex items-center justify-center flex-shrink-0 text-emerald-700 shadow-xs">
-                  <CheckCircle2 className="w-5 h-5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                      <h4 className="text-xs font-bold text-emerald-800 uppercase tracking-wider">
-                        Payment Received! 🎉
-                      </h4>
-                    </div>
-                    <button
-                      onClick={() => {
-                        if (typeof window !== 'undefined' && paymentAlert.orderNumber) {
-                          window.sessionStorage.setItem(`sd:ackPayment:${paymentAlert.orderNumber}`, 'true');
-                        }
-                        setPaymentAlert(null);
-                      }}
-                      className="text-stone-400 hover:text-stone-700 p-1 rounded-lg transition-colors -mr-1"
-                      aria-label="Dismiss alert"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                  <p className="text-xs text-stone-700 font-medium mt-1 leading-relaxed">
-                    {paymentAlert.message || `Payment received for Table ${paymentAlert.tableNumber}! Thank you for dining with us.`}
-                  </p>
-                  <div className="mt-3 flex items-center gap-2">
-                    <Link
-                      href={`/${menupages}/menu/order-confirmation?orderNumber=${paymentAlert.orderNumber}&table=${encodeURIComponent(paymentAlert.tableNumber || '')}`}
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 active:scale-95 px-3.5 py-1.5 rounded-xl transition-all shadow-sm"
-                    >
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>View Confirmation & Rate</span>
-                    </Link>
-                    {paymentAlert.tableNumber && (
-                      <span className="text-[11px] font-mono font-semibold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
-                        Table {paymentAlert.tableNumber}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
           {/* Order Rejected Alert Banner */}
           {rejectedAlert && (
             <motion.div 
@@ -905,14 +851,14 @@ export default function MenuClient({
                   return (
                     <div
                       key={String(item.id)}
-                      className="flex items-center justify-between bg-white border border-[#E5DFD4] rounded-xl p-2.5 sm:p-3 hover:border-[#B8860B]/40 transition-all duration-200 shadow-2xs hover:shadow-xs"
+                      className="group flex items-center justify-between bg-white border border-[#E5DFD4] hover:border-[#B8860B]/60 rounded-2xl p-3 sm:p-3.5 transition-all duration-300 shadow-[0_2px_8px_rgba(28,25,23,0.03)] hover:shadow-[0_6px_20px_rgba(184,134,11,0.08)] hover:-translate-y-0.5"
                     >
-                      <div className="flex items-center gap-3 flex-1 min-w-0 pr-2">
-                        <div className="w-15 h-15 sm:w-16 sm:h-16 rounded-xl overflow-hidden flex-shrink-0 shadow-2xs border border-[#E5DFD4] bg-[#F3EFE6] p-0.5">
+                      <div className="flex items-center gap-3.5 flex-1 min-w-0 pr-3">
+                        <div className="relative w-16 h-16 sm:w-18 sm:h-18 rounded-2xl overflow-hidden flex-shrink-0 shadow-xs border border-[#E5DFD4]/80 bg-[#F3EFE6] p-0.5">
                           <img 
                             src={item.image} 
                             alt={item.name}
-                            className="w-full h-full object-cover rounded-[10px] transition-transform duration-500 hover:scale-105"
+                            className="w-full h-full object-cover rounded-[14px] transition-transform duration-500 group-hover:scale-108"
                             onError={(e) => {
                               (e.target as HTMLImageElement).src = fallbackCatImg;
                             }}
@@ -920,15 +866,15 @@ export default function MenuClient({
                         </div>
                         
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-stone-900 text-xs sm:text-sm line-clamp-1">
+                          <h3 className="font-bold text-stone-900 text-sm sm:text-base tracking-tight line-clamp-1 group-hover:text-[#B8860B] transition-colors">
                             {item.name}
                           </h3>
                           {item.description && (
-                            <p className="text-[10px] sm:text-[11px] text-stone-500 line-clamp-1 mt-0.5 leading-snug">
+                            <p className="text-[11px] text-stone-500 line-clamp-2 mt-0.5 leading-snug font-normal">
                               {item.description}
                             </p>
                           )}
-                          <p className="text-xs sm:text-sm font-black text-stone-900 mt-1 font-price tabular-nums">
+                          <p className="text-sm sm:text-base font-black text-stone-900 mt-1 font-price tabular-nums">
                             ₹{item.price}
                           </p>
                         </div>
@@ -938,28 +884,28 @@ export default function MenuClient({
                         {qty === 0 ? (
                           <button
                             onClick={() => updateQuantity(item, 1)}
-                            className="px-3 py-1.5 bg-white text-[#B8860B] hover:bg-[#B8860B] hover:text-white border border-[#B8860B] rounded-lg text-xs font-bold transition-all duration-200 shadow-2xs min-w-[62px] uppercase tracking-wide active:scale-95 cursor-pointer"
+                            className="px-3.5 py-2 bg-white text-[#B8860B] hover:bg-gradient-to-r hover:from-[#B8860B] hover:to-[#9C7006] hover:text-white border-2 border-[#B8860B] rounded-xl text-xs font-extrabold transition-all duration-200 shadow-2xs min-w-[70px] uppercase tracking-wider active:scale-95 cursor-pointer"
                           >
                             + ADD
                           </button>
                         ) : (
-                          <div className="flex items-center bg-[#F3EFE6] border border-[#E5DFD4] rounded-lg p-0.5 shadow-inner">
+                          <div className="flex items-center bg-[#F3EFE6] border border-[#E5DFD4] rounded-xl p-1 shadow-inner gap-1">
                             <button
                               onClick={() => updateQuantity(item, -1)}
-                              className="w-6 h-6 bg-white text-stone-700 hover:text-[#B8860B] rounded-md flex items-center justify-center transition-all duration-150 border border-[#E5DFD4] shadow-2xs active:scale-90 cursor-pointer"
+                              className="w-7 h-7 bg-white text-stone-700 hover:text-[#B8860B] rounded-lg flex items-center justify-center transition-all duration-150 border border-[#E5DFD4] shadow-2xs active:scale-90 cursor-pointer"
                               aria-label="Decrease quantity"
                             >
-                              <Minus className="w-3 h-3" />
+                              <Minus className="w-3.5 h-3.5 stroke-[2.5]" />
                             </button>
-                            <span className="w-6 text-center font-extrabold text-xs text-stone-900 select-none font-price tabular-nums">
+                            <span className="w-6 text-center font-black text-xs text-stone-900 select-none font-price tabular-nums">
                               {qty}
                             </span>
                             <button
                               onClick={() => updateQuantity(item, 1)}
-                              className="w-6 h-6 bg-[#B8860B] text-white hover:bg-[#9C7006] rounded-md flex items-center justify-center transition-all duration-150 shadow-2xs active:scale-90 cursor-pointer"
+                              className="w-7 h-7 bg-gradient-to-r from-[#B8860B] to-[#9C7006] text-white hover:from-[#A2760A] hover:to-[#855D05] rounded-lg flex items-center justify-center transition-all duration-150 shadow-2xs active:scale-90 cursor-pointer"
                               aria-label="Increase quantity"
                             >
-                              <Plus className="w-3 h-3" />
+                              <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                             </button>
                           </div>
                         )}
@@ -978,18 +924,23 @@ export default function MenuClient({
         </div>
 
         {/* Cart Bottom Bar */}
-        <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-40 bg-white/95 backdrop-blur-xl border-t border-[#E5DFD4] shadow-[0_-4px_20px_rgba(28,25,23,0.06)]">
-          <div className="px-4 py-2.5">
+        <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-40 bg-white/95 backdrop-blur-xl border-t border-[#E5DFD4] shadow-[0_-8px_30px_rgba(28,25,23,0.08)]">
+          <div className="px-4 py-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-[#B8860B]/10 border border-[#B8860B]/20 flex items-center justify-center shadow-2xs">
-                  <ShoppingCart className="w-4 h-4 text-[#B8860B]" />
+              <div className="flex items-center gap-3">
+                <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#B8860B]/15 to-[#B8860B]/5 border border-[#B8860B]/25 flex items-center justify-center shadow-xs">
+                  <ShoppingCart className="w-5 h-5 text-[#B8860B]" />
+                  {uniqueItemsCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-[#B8860B] text-white text-[9px] min-w-[17px] h-4 px-1 rounded-full flex items-center justify-center font-black border-2 border-white">
+                      {uniqueItemsCount}
+                    </span>
+                  )}
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-stone-500 uppercase tracking-wider">
-                    {uniqueItemsCount} {uniqueItemsCount === 1 ? 'Item' : 'Items'}
+                  <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">
+                    Your Selection
                   </p>
-                  <p className="text-base sm:text-lg font-black text-stone-900 tracking-tight font-price tabular-nums">
+                  <p className="text-base sm:text-lg font-black text-stone-900 tracking-tight font-price tabular-nums leading-tight">
                     ₹{totalPrice}
                   </p>
                 </div>
@@ -997,14 +948,14 @@ export default function MenuClient({
               <Link
                 href={`/${menupages}/menu/checkout`}
                 aria-disabled={uniqueItemsCount === 0}
-                className={`px-4 py-2 rounded-xl font-bold transition-all duration-300 text-xs flex items-center gap-1.5 ${
+                className={`px-5 py-2.5 rounded-xl font-bold transition-all duration-300 text-xs flex items-center gap-2 ${
                   uniqueItemsCount === 0
                     ? 'bg-[#F3EFE6] text-stone-400 cursor-not-allowed pointer-events-none border border-[#E5DFD4]'
-                    : 'bg-gradient-to-r from-[#B8860B] to-[#9C7006] hover:from-[#A2760A] hover:to-[#855D05] text-white shadow-md shadow-[#B8860B]/20 hover:scale-[1.01] active:scale-[0.98]'
+                    : 'bg-gradient-to-r from-[#B8860B] via-[#A2760A] to-[#855D05] hover:brightness-105 text-white shadow-lg shadow-[#B8860B]/25 hover:scale-[1.02] active:scale-[0.98]'
                 }`}
               >
-                <span>Checkout</span>
-                <span className="font-bold">→</span>
+                <span>View Cart & Checkout</span>
+                <span className="font-extrabold text-sm">→</span>
               </Link>
             </div>
           </div>
@@ -1017,6 +968,18 @@ export default function MenuClient({
           offers={activeOffers}
           cafeName={effectiveCafeName}
           onApplyOffer={handleApplyOffer}
+        />
+
+        {/* Elegant Payment Received Modal */}
+        <ElegantPaymentModal
+          data={paymentAlert}
+          cafeSlug={menupages}
+          onDismiss={() => {
+            if (typeof window !== "undefined" && paymentAlert?.orderNumber) {
+              window.sessionStorage.setItem(`sd:ackPayment:${paymentAlert.orderNumber}`, "true");
+            }
+            setPaymentAlert(null);
+          }}
         />
 
         {/* Floating Call Waiter & Service Bell */}
