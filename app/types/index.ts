@@ -25,6 +25,24 @@ export interface ICafe {
   updatedAt?: Date;
 }
 
+export interface IModifierOption {
+  name: string;
+  price: number;
+}
+
+export interface IModifierGroup {
+  name: string;
+  minSelect?: number;
+  maxSelect?: number;
+  options: IModifierOption[];
+}
+
+export interface IOrderItemModifier {
+  groupName: string;
+  name: string;
+  price: number;
+}
+
 export interface IMenuItem {
   _id?: string;
   cafeSlug: string;
@@ -34,6 +52,7 @@ export interface IMenuItem {
   description?: string;
   imageUrl: string;
   isAvailable: boolean;
+  modifierGroups?: IModifierGroup[];
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -48,6 +67,7 @@ export interface IOrder {
     name: string;
     price: number;
     quantity: number;
+    selectedModifiers?: IOrderItemModifier[];
   }>;
   subtotal: number;
   tax: number;

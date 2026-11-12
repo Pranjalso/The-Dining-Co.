@@ -27,6 +27,7 @@ type OrderItem = {
   name: string;
   price: number;
   quantity: number;
+  selectedModifiers?: Array<{ groupName: string; name: string; price: number }>;
 };
 
 type PaymentMethod = "cash" | "upi";
@@ -170,7 +171,21 @@ function OrderCard({ order, rating }: { order: Order; rating?: any }) {
                   <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-lg bg-primary/10 text-primary text-[7px] sm:text-[10px] font-bold flex items-center justify-center flex-shrink-0 border border-primary/20">
                     {item.quantity}
                   </span>
-                  <span className="font-medium text-text truncate">{item.name}</span>
+                  <div className="min-w-0 flex-1">
+                    <span className="font-medium text-text truncate block">{item.name}</span>
+                    {item.selectedModifiers && item.selectedModifiers.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-0.5">
+                        {item.selectedModifiers.map((mod: any, modIdx: number) => (
+                          <span
+                            key={modIdx}
+                            className="inline-flex items-center px-1 py-0.2 text-[8px] font-medium bg-[#B8860B]/10 text-[#9C7006] rounded border border-[#B8860B]/20"
+                          >
+                            +{mod.name}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <span className="font-semibold text-muted whitespace-nowrap ml-1 sm:ml-2">₹{(item.price * item.quantity).toFixed(2)}</span>
               </div>

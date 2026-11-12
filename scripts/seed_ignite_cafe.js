@@ -31,6 +31,38 @@ const menuItemsData = [
     description: '16-hour slow-steeped single-origin Arabica cold brew served over handcrafted ice with citrus notes.',
     imageUrl: 'https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?w=600&auto=format&fit=crop',
     isAvailable: true,
+    modifierGroups: [
+      {
+        name: 'Milk Choice',
+        minSelect: 0,
+        maxSelect: 1,
+        options: [
+          { name: 'Black (No Milk)', price: 0 },
+          { name: 'Regular Dairy Milk', price: 0 },
+          { name: 'Almond Milk', price: 40 },
+          { name: 'Oat Milk', price: 50 },
+        ],
+      },
+      {
+        name: 'Serving Size',
+        minSelect: 1,
+        maxSelect: 1,
+        options: [
+          { name: 'Regular (300ml)', price: 0 },
+          { name: 'Large (450ml)', price: 40 },
+        ],
+      },
+      {
+        name: 'Flavor Shot',
+        minSelect: 0,
+        maxSelect: 2,
+        options: [
+          { name: 'Vanilla Shot', price: 30 },
+          { name: 'Caramel Drizzle', price: 35 },
+          { name: 'Hazelnut Shot', price: 30 },
+        ],
+      },
+    ],
   },
   {
     name: 'Ignite Caramel Macchiato',
@@ -39,6 +71,36 @@ const menuItemsData = [
     description: 'Freshly steamed milk with vanilla-flavored syrup marked with bold espresso and topped with caramel drizzle.',
     imageUrl: 'https://images.unsplash.com/photo-1485808191629-597e7a83042d?w=600&auto=format&fit=crop',
     isAvailable: true,
+    modifierGroups: [
+      {
+        name: 'Milk Choice',
+        minSelect: 1,
+        maxSelect: 1,
+        options: [
+          { name: 'Whole Dairy Milk', price: 0 },
+          { name: 'Almond Milk', price: 40 },
+          { name: 'Oat Milk', price: 50 },
+        ],
+      },
+      {
+        name: 'Temperature',
+        minSelect: 1,
+        maxSelect: 1,
+        options: [
+          { name: 'Hot Steamed', price: 0 },
+          { name: 'Iced On Rock Glass', price: 20 },
+        ],
+      },
+      {
+        name: 'Add-ons',
+        minSelect: 0,
+        maxSelect: 2,
+        options: [
+          { name: 'Extra Espresso Shot', price: 40 },
+          { name: 'Extra Caramel Cream', price: 30 },
+        ],
+      },
+    ],
   },
   {
     name: 'Classic Velvet Cappuccino',
@@ -47,6 +109,27 @@ const menuItemsData = [
     description: 'Rich dark espresso roast layered with equal parts warm milk and silky thick foam, dusted with Belgian cocoa.',
     imageUrl: 'https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=600&auto=format&fit=crop',
     isAvailable: true,
+    modifierGroups: [
+      {
+        name: 'Milk Choice',
+        minSelect: 1,
+        maxSelect: 1,
+        options: [
+          { name: 'Full Cream Milk', price: 0 },
+          { name: 'Almond Milk', price: 40 },
+          { name: 'Oat Milk', price: 50 },
+        ],
+      },
+      {
+        name: 'Size',
+        minSelect: 1,
+        maxSelect: 1,
+        options: [
+          { name: 'Regular Cup', price: 0 },
+          { name: 'Large Mug (+₹40)', price: 40 },
+        ],
+      },
+    ],
   },
   {
     name: 'Spanish Cortado',
@@ -63,6 +146,28 @@ const menuItemsData = [
     description: 'Blended espresso, roasted hazelnut syrup, chilled milk, and crushed ice crowned with whipped cream.',
     imageUrl: 'https://images.unsplash.com/photo-1578314675249-a6910f80cc4e?w=600&auto=format&fit=crop',
     isAvailable: true,
+    modifierGroups: [
+      {
+        name: 'Milk Choice',
+        minSelect: 1,
+        maxSelect: 1,
+        options: [
+          { name: 'Regular Milk', price: 0 },
+          { name: 'Almond Milk', price: 40 },
+          { name: 'Oat Milk', price: 50 },
+        ],
+      },
+      {
+        name: 'Sweetness',
+        minSelect: 1,
+        maxSelect: 1,
+        options: [
+          { name: 'Standard Sweet', price: 0 },
+          { name: 'Less Sugar', price: 0 },
+          { name: 'Sugar Free', price: 0 },
+        ],
+      },
+    ],
   },
 
   // --- Coolers & Refreshers ---
@@ -99,6 +204,18 @@ const menuItemsData = [
     description: 'Crisp russet potato fries tossed in Italian white truffle oil, grated aged parmesan, and cracked pepper with garlic dip.',
     imageUrl: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=600&auto=format&fit=crop',
     isAvailable: true,
+    modifierGroups: [
+      {
+        name: 'Extra Dips & Toppings',
+        minSelect: 0,
+        maxSelect: 3,
+        options: [
+          { name: 'Extra Truffle Oil', price: 60 },
+          { name: 'Melted Cheddar Cheese', price: 40 },
+          { name: 'Spicy Sriracha Mayo', price: 25 },
+        ],
+      },
+    ],
   },
   {
     name: 'Peri-Peri Paneer Popcorn',
@@ -107,6 +224,18 @@ const menuItemsData = [
     description: 'Crispy golden bite-sized cottage cheese crunchies tossed in an aromatic South African peri-peri glaze.',
     imageUrl: 'https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?w=600&auto=format&fit=crop',
     isAvailable: true,
+    modifierGroups: [
+      {
+        name: 'Spice Level',
+        minSelect: 1,
+        maxSelect: 1,
+        options: [
+          { name: 'Mild Herb', price: 0 },
+          { name: 'Classic Medium Peri-Peri', price: 0 },
+          { name: 'Extra Hot Ghost Pepper', price: 20 },
+        ],
+      },
+    ],
   },
   {
     name: 'Cheesy Jalapeño Poppers',
@@ -123,6 +252,17 @@ const menuItemsData = [
     description: 'Crusty artisan baguette brushed with roasted garlic butter, fresh parsley, and melted golden mozzarella.',
     imageUrl: 'https://images.unsplash.com/photo-1573140247632-f8fd74997d5c?w=600&auto=format&fit=crop',
     isAvailable: true,
+    modifierGroups: [
+      {
+        name: 'Add-ons',
+        minSelect: 0,
+        maxSelect: 2,
+        options: [
+          { name: 'Extra Mozzarella Melt', price: 30 },
+          { name: 'Pickled Jalapeños', price: 20 },
+        ],
+      },
+    ],
   },
 
   // --- Artisanal Pizzas & Pastas ---
@@ -133,6 +273,28 @@ const menuItemsData = [
     description: 'Thin hand-stretched crust topped with roasted button & shiitake mushrooms, fior di latte, and truffle cream.',
     imageUrl: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&auto=format&fit=crop',
     isAvailable: true,
+    modifierGroups: [
+      {
+        name: 'Crust Type',
+        minSelect: 1,
+        maxSelect: 1,
+        options: [
+          { name: 'Thin Hand-Tossed Crust', price: 0 },
+          { name: 'Cheese Burst Crust', price: 60 },
+          { name: 'Whole Wheat Sourdough', price: 40 },
+        ],
+      },
+      {
+        name: 'Extra Toppings',
+        minSelect: 0,
+        maxSelect: 3,
+        options: [
+          { name: 'Extra Truffle Glaze', price: 60 },
+          { name: 'Sun-Dried Tomatoes', price: 35 },
+          { name: 'Extra Fior Di Latte Cheese', price: 50 },
+        ],
+      },
+    ],
   },
   {
     name: 'Quattro Formaggi Margherita',
@@ -141,6 +303,17 @@ const menuItemsData = [
     description: 'San Marzano tomato base with fresh mozzarella, bocconcini, smoked scamorza, and sweet basil leaves.',
     imageUrl: 'https://images.unsplash.com/photo-1604382355076-af4b0eb60143?w=600&auto=format&fit=crop',
     isAvailable: true,
+    modifierGroups: [
+      {
+        name: 'Crust Type',
+        minSelect: 1,
+        maxSelect: 1,
+        options: [
+          { name: 'Classic Neapolitan Crust', price: 0 },
+          { name: 'Cheese Burst Crust', price: 60 },
+        ],
+      },
+    ],
   },
   {
     name: 'Spicy Arrabbiata Penne',
@@ -149,6 +322,27 @@ const menuItemsData = [
     description: 'Al dente penne in fiery slow-simmered plum tomato sauce with bird’s eye chillies, black olives, and fresh basil.',
     imageUrl: 'https://images.unsplash.com/photo-1621996346565-e3d5d6281691?w=600&auto=format&fit=crop',
     isAvailable: true,
+    modifierGroups: [
+      {
+        name: 'Spice Level',
+        minSelect: 1,
+        maxSelect: 1,
+        options: [
+          { name: 'Mild', price: 0 },
+          { name: 'Authentic Spicy', price: 0 },
+          { name: 'Extra Fiery Chilly', price: 20 },
+        ],
+      },
+      {
+        name: 'Add-ons',
+        minSelect: 0,
+        maxSelect: 2,
+        options: [
+          { name: 'Extra Parmesan Snow', price: 35 },
+          { name: 'Garlic Bread (2 pcs)', price: 50 },
+        ],
+      },
+    ],
   },
   {
     name: 'Creamy Sundried Tomato & Pesto Fusilli',
@@ -167,6 +361,27 @@ const menuItemsData = [
     description: 'Spiced herb potato & corn patty, melted gouda, crisp lettuce, gherkins, and smoked chipotle sauce in brioche.',
     imageUrl: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop',
     isAvailable: true,
+    modifierGroups: [
+      {
+        name: 'Patty & Cheese Extras',
+        minSelect: 0,
+        maxSelect: 3,
+        options: [
+          { name: 'Extra Melted Cheddar Slice', price: 30 },
+          { name: 'Double Patty', price: 70 },
+          { name: 'Caramelized Onions', price: 25 },
+        ],
+      },
+      {
+        name: 'Fries & Drink Pairing',
+        minSelect: 0,
+        maxSelect: 1,
+        options: [
+          { name: 'Add Seasoned French Fries', price: 79 },
+          { name: 'Add Cold Brew Combo', price: 129 },
+        ],
+      },
+    ],
   },
   {
     name: 'Grilled Pesto Panini Sandwich',
@@ -175,6 +390,26 @@ const menuItemsData = [
     description: 'Pressed ciabatta stuffed with fresh bocconcini mozzarella, farm tomatoes, and fragrant basil pesto sauce.',
     imageUrl: 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=600&auto=format&fit=crop',
     isAvailable: true,
+    modifierGroups: [
+      {
+        name: 'Bread Choice',
+        minSelect: 1,
+        maxSelect: 1,
+        options: [
+          { name: 'Artisan Ciabatta', price: 0 },
+          { name: 'Multigrain Sourdough', price: 20 },
+        ],
+      },
+      {
+        name: 'Add-ons',
+        minSelect: 0,
+        maxSelect: 2,
+        options: [
+          { name: 'Extra Bocconcini Cheese', price: 40 },
+          { name: 'Jalapeño Relish', price: 20 },
+        ],
+      },
+    ],
   },
 
   // --- Desserts & Bakes ---
@@ -185,6 +420,18 @@ const menuItemsData = [
     description: 'Warm, gooey molten-centered 70% dark Belgian chocolate cake served with Madagascar vanilla bean ice cream.',
     imageUrl: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=600&auto=format&fit=crop',
     isAvailable: true,
+    modifierGroups: [
+      {
+        name: 'Ice Cream Scoop',
+        minSelect: 1,
+        maxSelect: 1,
+        options: [
+          { name: 'Madagascar Vanilla Bean', price: 0 },
+          { name: 'Belgian Dark Chocolate', price: 30 },
+          { name: 'Salted Caramel Crunch', price: 40 },
+        ],
+      },
+    ],
   },
   {
     name: 'Classic Espresso Tiramisu',

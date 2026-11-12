@@ -69,6 +69,7 @@ export default async function MenuPage({ params, searchParams }: PageProps) {
         category: item.category,
         image: item.imageUrl || fallbackCatImg,
         description: item.description || '',
+        modifierGroups: item.modifierGroups || [],
       }));
     }
 

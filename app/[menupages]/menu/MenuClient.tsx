@@ -4,12 +4,12 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  ShoppingCart, 
-  Plus, 
-  Minus, 
-  Scan, 
-  QrCode, 
+import {
+  ShoppingCart,
+  Plus,
+  Minus,
+  Scan,
+  QrCode,
   UtensilsCrossed,
   Loader2,
   XCircle,
@@ -23,6 +23,7 @@ import { getPusherClient } from "@/lib/pusher-client";
 import OfferPopupModal, { OfferItem } from "@/components/OfferPopupModal";
 import ServiceBellModal from "@/components/ServiceBellModal";
 import ElegantPaymentModal from "@/components/ElegantPaymentModal";
+import ItemCustomizationModal, { ModifierGroup } from "@/components/ItemCustomizationModal";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -55,7 +56,7 @@ function playPaymentSuccessChime() {
     gain2.connect(ctx.destination);
     osc2.start(now + 0.12);
     osc2.stop(now + 0.65);
-  } catch {}
+  } catch { }
 }
 
 type MenuItem = {
@@ -65,6 +66,7 @@ type MenuItem = {
   category: string;
   image: string;
   description?: string;
+  modifierGroups?: ModifierGroup[];
 };
 
 type MenuClientProps = {
@@ -76,10 +78,10 @@ type MenuClientProps = {
   initialTable?: string;
 };
 
-export default function MenuClient({ 
-  menupages, 
-  cafeName, 
-  initialItems, 
+export default function MenuClient({
+  menupages,
+  cafeName,
+  initialItems,
   initialCategories,
   initialOffers = [],
   initialTable = "",
@@ -105,6 +107,7 @@ export default function MenuClient({
     total?: number;
     message?: string;
   } | null>(null);
+  const [customizingItem, setCustomizingItem] = useState<MenuItem | null>(null);
 
   // Fetch public cafe info for live cafe name fallback
   const { data: cafePublicData } = useSWR(
@@ -146,7 +149,7 @@ export default function MenuClient({
         setShowWelcomeIntro(false);
         try {
           window.sessionStorage.setItem(`sd:welcomed:${menupages}`, 'true');
-        } catch {}
+        } catch { }
       }
     }, intervalStep);
 
@@ -158,7 +161,7 @@ export default function MenuClient({
     if (typeof window !== 'undefined') {
       try {
         window.sessionStorage.setItem(`sd:welcomed:${menupages}`, 'true');
-      } catch {}
+      } catch { }
     }
   };
 
@@ -166,10 +169,10 @@ export default function MenuClient({
   const { data: offersData } = useSWR(
     menupages ? `/api/offers/${menupages}?activeOnly=true` : null,
     fetcher,
-    { 
+    {
       fallbackData: { success: true, count: initialOffers.length, data: initialOffers },
       revalidateOnFocus: true,
-      dedupingInterval: 10000 
+      dedupingInterval: 10000
     }
   );
   const activeOffers: OfferItem[] = useMemo(() => {
@@ -187,7 +190,7 @@ export default function MenuClient({
     if (typeof window === 'undefined') return;
     try {
       window.sessionStorage.removeItem(`sd:offers_dismissed:${menupages}`);
-    } catch {}
+    } catch { }
   }, [menupages]);
 
   // Trigger Offer Popup Form after Namaste screen exits (runs once per visit)
@@ -220,7 +223,7 @@ export default function MenuClient({
         };
         window.sessionStorage.setItem(`sd:appliedOffer:${menupages}`, JSON.stringify(payload));
         window.localStorage.setItem(`sd:appliedOffer:${menupages}`, JSON.stringify(payload));
-      } catch {}
+      } catch { }
     }
     setShowOfferPopup(false);
   };
@@ -250,7 +253,7 @@ export default function MenuClient({
           });
         }
       }
-    } catch {}
+    } catch { }
   }, [menupages]);
 
   // Auto-capture table number from QR code query parameter (e.g. ?table=4)
@@ -275,7 +278,7 @@ export default function MenuClient({
           if (saved?.tableNumber) setTableNumber(String(saved.tableNumber));
         }
       }
-    } catch {}
+    } catch { }
   }, [menupages]);
 
   // Real-time table notification via Pusher
@@ -298,7 +301,7 @@ export default function MenuClient({
         const parsed = JSON.parse(rawCheckout);
         if (parsed.tableNumber) tableNumber = String(parsed.tableNumber);
       }
-    } catch {}
+    } catch { }
 
     const channels: any[] = [];
 
@@ -324,7 +327,7 @@ export default function MenuClient({
                 status: 'cancelled',
               }));
             }
-          } catch {}
+          } catch { }
         }
       }
 
@@ -351,7 +354,7 @@ export default function MenuClient({
                 paymentStatus: 'completed',
               }));
             }
-          } catch {}
+          } catch { }
         }
       }
     };
@@ -381,11 +384,11 @@ export default function MenuClient({
         try {
           ch.unbind('order-status-updated', handleStatusUpdate);
           ch.unbind('payment-received', handleStatusUpdate);
-        } catch {}
+        } catch { }
       });
     };
   }, [menupages]);
-  
+
   // Use SWR for fetching category items
   const { data: categoryData, isLoading: loadingCategory } = useSWR(
     activeCategory ? `/api/menu/${menupages}?category=${encodeURIComponent(activeCategory)}` : null,
@@ -406,6 +409,7 @@ export default function MenuClient({
         category: item.category,
         image: item.imageUrl,
         description: item.description,
+        modifierGroups: item.modifierGroups || [],
       })) as MenuItem[];
       setItems(mapped);
     }
@@ -423,7 +427,7 @@ export default function MenuClient({
         const saved = window.sessionStorage.getItem(`sd:activeCat:${menupages}`);
         if (saved) setActiveCategory(saved);
       }
-    } catch {}
+    } catch { }
   }, [menupages]);
 
   // Save active category
@@ -432,7 +436,7 @@ export default function MenuClient({
       if (typeof window !== 'undefined' && activeCategory) {
         window.sessionStorage.setItem(`sd:activeCat:${menupages}`, activeCategory);
       }
-    } catch {}
+    } catch { }
   }, [menupages, activeCategory]);
 
   // Load catalog from sessionStorage
@@ -442,12 +446,12 @@ export default function MenuClient({
         const raw = window.sessionStorage.getItem(`sd:items:${menupages}`);
         const existing = raw ? JSON.parse(raw) as Array<{ id: string | number; name: string; price: number; image: string; description?: string }> : [];
         setCatalog(existing);
-        
+
         const rawChk = window.sessionStorage.getItem(`sd:checkoutLines:${menupages}`);
         const chk = rawChk ? JSON.parse(rawChk) as Array<{ id: string | number; name: string; price: number; image: string; description?: string }> : [];
         setFallbackLines(chk);
       }
-    } catch {}
+    } catch { }
   }, [menupages]);
 
   // Load cart quantities from localStorage
@@ -468,7 +472,7 @@ export default function MenuClient({
   // Save cart quantities to localStorage whenever they change
   useEffect(() => {
     if (!isInitialized) return;
-    
+
     try {
       if (typeof window !== 'undefined') {
         window.localStorage.setItem(`sd:cart:${menupages}`, JSON.stringify(quantities));
@@ -491,20 +495,66 @@ export default function MenuClient({
     }
   }, [uniqueItemsCount, menupages, router]);
 
+  const handleAddClick = (item: MenuItem) => {
+    if (item.modifierGroups && item.modifierGroups.length > 0) {
+      setCustomizingItem(item);
+    } else {
+      updateQuantity(item, 1);
+    }
+  };
+
+  const handleCustomizationConfirm = (customized: {
+    cartKey: string;
+    baseId: string;
+    name: string;
+    price: number;
+    image?: string;
+    description?: string;
+    selectedModifiers: Array<{ groupName: string; name: string; price: number }>;
+  }) => {
+    const key = customized.cartKey;
+    setQuantities(prev => {
+      const nextQty = (prev[key] || 0) + 1;
+      const next = { ...prev, [key]: nextQty };
+
+      // Update catalog and checkout lines
+      try {
+        const raw = window.sessionStorage.getItem(`sd:items:${menupages}`);
+        const list: Array<any> = raw ? JSON.parse(raw) : [];
+        const idx = list.findIndex(it => String(it.id) === key);
+        const payload = {
+          id: key,
+          baseId: customized.baseId,
+          name: customized.name,
+          price: customized.price,
+          image: customized.image || '',
+          description: customized.description || '',
+          selectedModifiers: customized.selectedModifiers,
+        };
+        if (idx === -1) list.push(payload);
+        else list[idx] = payload;
+        window.sessionStorage.setItem(`sd:items:${menupages}`, JSON.stringify(list));
+        setCatalog(list);
+      } catch {}
+
+      return next;
+    });
+  };
+
   const updateQuantity = (item: MenuItem, change: number) => {
     const id = item.id;
     setQuantities(prev => {
       const current = prev[id] || 0;
       const newQty = current + change;
       let next: Record<string | number, number>;
-      
+
       if (newQty <= 0) {
         const { [id]: _, ...rest } = prev;
         next = rest;
       } else {
         next = { ...prev, [id]: newQty };
       }
-      
+
       // Update catalog when adding items
       if (newQty > 0) {
         try {
@@ -512,19 +562,19 @@ export default function MenuClient({
           const list: Array<{ id: string | number; name: string; price: number; image: string; description?: string }> = raw ? JSON.parse(raw) : [];
           const idStr = String(id);
           const idx = list.findIndex((it) => String(it.id) === idStr);
-          
+
           const payload = { id, name: item.name, price: item.price, image: item.image, description: item.description || '' };
           if (idx === -1) {
             list.push(payload);
           } else {
             list[idx] = payload;
           }
-          
+
           window.sessionStorage.setItem(`sd:items:${menupages}`, JSON.stringify(list));
           setCatalog(list);
-        } catch {}
+        } catch { }
       }
-      
+
       return next;
     });
   };
@@ -535,44 +585,49 @@ export default function MenuClient({
   const cartItems = useMemo(() => {
     const itemsWithQty = Object.entries(quantities)
       .map(([id, qty]) => {
-        const inView = items.find(i => String(i.id) === String(id));
-        if (inView) return { ...inView, qty };
-        
+        // First check catalog for customized or standard items
         const fromCatalog = catalog.find(c => String(c.id) === String(id));
         if (fromCatalog) {
           return {
             id: fromCatalog.id,
+            baseId: (fromCatalog as any).baseId,
             name: fromCatalog.name,
             price: fromCatalog.price,
             category: '',
             image: fromCatalog.image,
             description: fromCatalog.description,
+            selectedModifiers: (fromCatalog as any).selectedModifiers,
             qty
-          } as MenuItem & { qty: number };
+          } as MenuItem & { qty: number; baseId?: string; selectedModifiers?: any[] };
         }
-        
+
+        const inView = items.find(i => String(i.id) === String(id));
+        if (inView) return { ...inView, qty };
+
         const fromFallback = fallbackLines.find(c => String(c.id) === String(id));
         if (fromFallback) {
           return {
             id: fromFallback.id,
+            baseId: (fromFallback as any).baseId,
             name: fromFallback.name,
             price: fromFallback.price,
             category: '',
             image: fromFallback.image,
             description: fromFallback.description,
+            selectedModifiers: (fromFallback as any).selectedModifiers,
             qty
-          } as MenuItem & { qty: number };
+          } as MenuItem & { qty: number; baseId?: string; selectedModifiers?: any[] };
         }
-        
+
         return null;
       })
-      .filter(Boolean) as Array<MenuItem & { qty: number }>;
-      
+      .filter(Boolean) as Array<MenuItem & { qty: number; baseId?: string; selectedModifiers?: any[] }>;
+
     return itemsWithQty;
   }, [quantities, items, catalog, fallbackLines]);
 
   // Total price from ALL items in cart
-  const totalPrice = useMemo(() => 
+  const totalPrice = useMemo(() =>
     cartItems.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 0), 0),
     [cartItems]
   );
@@ -583,16 +638,18 @@ export default function MenuClient({
       if (typeof window !== 'undefined' && cartItems.length > 0) {
         const payload = cartItems.map(item => ({
           id: String(item.id),
+          baseId: (item as any).baseId || (String(item.id).includes('::') ? String(item.id).split('::')[0] : String(item.id)),
           name: item.name,
           price: item.price,
           qty: item.qty,
           image: item.image,
           description: item.description,
+          selectedModifiers: (item as any).selectedModifiers,
         }));
         window.sessionStorage.setItem(`sd:checkoutLines:${menupages}`, JSON.stringify(payload));
         window.localStorage.setItem(`sd:checkoutLines:${menupages}`, JSON.stringify(payload));
       }
-    } catch {}
+    } catch { }
   }, [cartItems, menupages]);
 
   return (
@@ -604,8 +661,8 @@ export default function MenuClient({
             key="namaste-welcome-screen"
             initial={{ opacity: 0, y: 0 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ 
-              y: "-100%", 
+            exit={{
+              y: "-100%",
             }}
             className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#FBF8F3]/98 backdrop-blur-2xl px-6 text-center select-none cursor-pointer"
             onClick={handleDismissIntro}
@@ -615,9 +672,9 @@ export default function MenuClient({
 
             {/* Pure Transparent Joined Palms (Namaste) - Zero background */}
             <div className="relative mb-4 flex items-center justify-center">
-              <img 
-                src="/images/namaste-transparent.png" 
-                alt="Namaste" 
+              <img
+                src="/images/namaste-transparent.png"
+                alt="Namaste"
                 className="w-36 h-44 sm:w-40 sm:h-48 object-contain drop-shadow-[0_8px_30px_rgba(184,134,11,0.35)] select-none pointer-events-none"
               />
             </div>
@@ -657,7 +714,7 @@ export default function MenuClient({
             {/* 2-Second Timer Progress Bar & Smooth slide hint */}
             <div className="mt-8 w-full max-w-xs relative z-10">
               <div className="w-full bg-[#E5DFD4] h-1.5 rounded-full overflow-hidden border border-primary/20">
-                <div 
+                <div
                   className="h-full bg-gradient-to-r from-primary via-primary-hover to-primary transition-all duration-75 ease-linear rounded-full"
                   style={{ width: `${introProgress}%` }}
                 />
@@ -733,7 +790,7 @@ export default function MenuClient({
           )}
           {/* Order Rejected Alert Banner */}
           {rejectedAlert && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: -8, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               className="mx-4 mt-3 bg-white border border-[#E5DFD4] rounded-2xl p-4 shadow-[0_4px_16px_rgba(28,25,23,0.06)] relative overflow-hidden"
@@ -793,13 +850,12 @@ export default function MenuClient({
                     onClick={() => setActiveCategory(cat.name)}
                     className="flex flex-col items-center gap-1.5 min-w-[62px] max-w-[76px] py-1 transition-all duration-200 group focus:outline-none shrink-0"
                   >
-                    <div className={`w-14 h-14 rounded-2xl overflow-hidden transition-all duration-200 bg-white p-0.5 border shadow-2xs ${
-                      isActive 
-                        ? "border-[#B8860B] ring-2 ring-[#B8860B] ring-offset-2 ring-offset-[#FBF8F3] shadow-sm" 
-                        : "border-[#E5DFD4] opacity-85 group-hover:opacity-100 group-hover:border-[#B8860B]/40"
-                    }`}>
-                      <img 
-                        src={cat.image} 
+                    <div className={`w-14 h-14 rounded-2xl overflow-hidden transition-all duration-200 bg-white p-0.5 border shadow-2xs ${isActive
+                      ? "border-[#B8860B] ring-2 ring-[#B8860B] ring-offset-2 ring-offset-[#FBF8F3] shadow-sm"
+                      : "border-[#E5DFD4] opacity-85 group-hover:opacity-100 group-hover:border-[#B8860B]/40"
+                      }`}>
+                      <img
+                        src={cat.image}
                         alt={cat.name}
                         className="w-full h-full object-cover rounded-[12px] group-hover:scale-105 transition-transform duration-300"
                         onError={(e) => {
@@ -807,9 +863,8 @@ export default function MenuClient({
                         }}
                       />
                     </div>
-                    <span className={`text-[11px] leading-tight text-center line-clamp-2 transition-colors duration-200 ${
-                      isActive ? "text-stone-900 font-bold" : "text-stone-500 font-medium group-hover:text-stone-800"
-                    }`}>
+                    <span className={`text-[11px] leading-tight text-center line-clamp-2 transition-colors duration-200 ${isActive ? "text-stone-900 font-bold" : "text-stone-500 font-medium group-hover:text-stone-800"
+                      }`}>
                       {cat.name}
                     </span>
                   </button>
@@ -847,7 +902,7 @@ export default function MenuClient({
                 .filter(item => item.category === activeCategory)
                 .map((item) => {
                   const qty = getQuantity(item.id);
-                  
+
                   return (
                     <div
                       key={String(item.id)}
@@ -855,8 +910,8 @@ export default function MenuClient({
                     >
                       <div className="flex items-center gap-3.5 flex-1 min-w-0 pr-3">
                         <div className="relative w-16 h-16 sm:w-18 sm:h-18 rounded-2xl overflow-hidden flex-shrink-0 shadow-xs border border-[#E5DFD4]/80 bg-[#F3EFE6] p-0.5">
-                          <img 
-                            src={item.image} 
+                          <img
+                            src={item.image}
                             alt={item.name}
                             className="w-full h-full object-cover rounded-[14px] transition-transform duration-500 group-hover:scale-108"
                             onError={(e) => {
@@ -864,7 +919,7 @@ export default function MenuClient({
                             }}
                           />
                         </div>
-                        
+
                         <div className="flex-1 min-w-0">
                           <h3 className="font-bold text-stone-900 text-sm sm:text-base tracking-tight line-clamp-1 group-hover:text-[#B8860B] transition-colors">
                             {item.name}
@@ -877,13 +932,25 @@ export default function MenuClient({
                           <p className="text-sm sm:text-base font-black text-stone-900 mt-1 font-price tabular-nums">
                             ₹{item.price}
                           </p>
+                          {item.modifierGroups && item.modifierGroups.length > 0 && (
+                            <span className="inline-block mt-0.5 text-[9px] font-bold uppercase tracking-wider text-[#B8860B] bg-[#B8860B]/10 px-1.5 py-0.5 rounded">
+                              Customizable
+                            </span>
+                          )}
                         </div>
                       </div>
 
                       <div className="flex-shrink-0">
-                        {qty === 0 ? (
+                        {item.modifierGroups && item.modifierGroups.length > 0 ? (
                           <button
-                            onClick={() => updateQuantity(item, 1)}
+                            onClick={() => handleAddClick(item)}
+                            className="px-3.5 py-2 bg-white text-[#B8860B] hover:bg-gradient-to-r hover:from-[#B8860B] hover:to-[#9C7006] hover:text-white border-2 border-[#B8860B] rounded-xl text-xs font-extrabold transition-all duration-200 shadow-2xs min-w-[70px] uppercase tracking-wider active:scale-95 cursor-pointer flex items-center justify-center gap-1"
+                          >
+                            <span>+ ADD</span>
+                          </button>
+                        ) : qty === 0 ? (
+                          <button
+                            onClick={() => handleAddClick(item)}
                             className="px-3.5 py-2 bg-white text-[#B8860B] hover:bg-gradient-to-r hover:from-[#B8860B] hover:to-[#9C7006] hover:text-white border-2 border-[#B8860B] rounded-xl text-xs font-extrabold transition-all duration-200 shadow-2xs min-w-[70px] uppercase tracking-wider active:scale-95 cursor-pointer"
                           >
                             + ADD
@@ -948,11 +1015,10 @@ export default function MenuClient({
               <Link
                 href={`/${menupages}/menu/checkout`}
                 aria-disabled={uniqueItemsCount === 0}
-                className={`px-5 py-2.5 rounded-xl font-bold transition-all duration-300 text-xs flex items-center gap-2 ${
-                  uniqueItemsCount === 0
-                    ? 'bg-[#F3EFE6] text-stone-400 cursor-not-allowed pointer-events-none border border-[#E5DFD4]'
-                    : 'bg-gradient-to-r from-[#B8860B] via-[#A2760A] to-[#855D05] hover:brightness-105 text-white shadow-lg shadow-[#B8860B]/25 hover:scale-[1.02] active:scale-[0.98]'
-                }`}
+                className={`px-5 py-2.5 rounded-xl font-bold transition-all duration-300 text-xs flex items-center gap-2 ${uniqueItemsCount === 0
+                  ? 'bg-[#F3EFE6] text-stone-400 cursor-not-allowed pointer-events-none border border-[#E5DFD4]'
+                  : 'bg-gradient-to-r from-[#B8860B] via-[#A2760A] to-[#855D05] hover:brightness-105 text-white shadow-lg shadow-[#B8860B]/25 hover:scale-[1.02] active:scale-[0.98]'
+                  }`}
               >
                 <span>View Cart & Checkout</span>
                 <span className="font-extrabold text-sm">→</span>
@@ -986,6 +1052,14 @@ export default function MenuClient({
         <ServiceBellModal
           cafeSlug={menupages}
           tableNumber={tableNumber}
+        />
+
+        {/* Item Customization Modal */}
+        <ItemCustomizationModal
+          isOpen={Boolean(customizingItem)}
+          onClose={() => setCustomizingItem(null)}
+          item={customizingItem}
+          onConfirm={handleCustomizationConfirm}
         />
       </div>
     </div>

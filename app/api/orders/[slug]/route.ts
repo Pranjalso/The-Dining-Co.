@@ -129,11 +129,16 @@ export const POST = async (
     const { slug } = params;
     const body = await req.json();
 
-    const itemsInput: Array<{ menuItemId: string; quantity: number }> = Array.isArray(body.items)
+    const itemsInput: Array<{
+      menuItemId: string;
+      quantity: number;
+      selectedModifiers?: Array<{ groupName: string; name: string; price: number }>;
+    }> = Array.isArray(body.items)
       ? body.items
           .map((it: any) => ({
             menuItemId: String(it.menuItemId || it.id),
             quantity: Number(it.quantity),
+            selectedModifiers: Array.isArray(it.selectedModifiers) ? it.selectedModifiers : undefined,
           }))
           .filter((i: { menuItemId: string; quantity: number }) => i.menuItemId && i.quantity > 0)
       : [];
@@ -153,19 +158,57 @@ export const POST = async (
       );
     }
     const menuItems = await MenuItem.find({ _id: { $in: ids }, cafeSlug: slug });
-    const priceMap = new Map(
-      menuItems.map(mi => [String(mi._id), { name: mi.name, price: mi.price }])
+    const itemMap = new Map(
+      menuItems.map(mi => [String(mi._id), mi])
     );
 
     const items = itemsInput
       .map(i => {
-        const found = priceMap.get(String(i.menuItemId));
+        const found = itemMap.get(String(i.menuItemId));
         if (!found) return null;
+        
+        // Calculate validated modifier pricing
+        const selectedModifiers: Array<{ groupName: string; name: string; price: number }> = [];
+        let modifiersExtra = 0;
+        
+        if (Array.isArray(i.selectedModifiers) && i.selectedModifiers.length > 0) {
+          const availableGroups = (found.modifierGroups || []) as Array<{
+            name: string;
+            options: Array<{ name: string; price: number }>;
+          }>;
+          
+          for (const mod of i.selectedModifiers) {
+            const grp = availableGroups.find(g => g.name === mod.groupName);
+            if (grp) {
+              const opt = grp.options.find(o => o.name === mod.name);
+              if (opt) {
+                selectedModifiers.push({
+                  groupName: grp.name,
+                  name: opt.name,
+                  price: opt.price,
+                });
+                modifiersExtra += opt.price;
+              }
+            } else if (typeof mod.name === 'string' && typeof mod.price === 'number') {
+              // Backward/graceful compatibility
+              selectedModifiers.push({
+                groupName: mod.groupName || 'Add-on',
+                name: mod.name,
+                price: Math.max(0, mod.price),
+              });
+              modifiersExtra += Math.max(0, mod.price);
+            }
+          }
+        }
+
+        const unitPrice = found.price + modifiersExtra;
+
         return {
           menuItemId: i.menuItemId,
           name: found.name,
-          price: found.price,
+          price: unitPrice,
           quantity: i.quantity,
+          selectedModifiers: selectedModifiers.length > 0 ? selectedModifiers : undefined,
         };
       })
       .filter(Boolean) as Array<{
@@ -173,6 +216,7 @@ export const POST = async (
       name: string;
       price: number;
       quantity: number;
+      selectedModifiers?: Array<{ groupName: string; name: string; price: number }>;
     }>;
 
     if (items.length === 0) {

@@ -1,5 +1,17 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
+export interface IModifierOption {
+  name: string;
+  price: number;
+}
+
+export interface IModifierGroup {
+  name: string; // e.g. "Milk Choice", "Temperature & Size", "Add-ons"
+  minSelect?: number; // 0 for optional, 1 for required
+  maxSelect?: number; // 1 for radio/single choice, >1 for multiple checkboxes
+  options: IModifierOption[];
+}
+
 export interface IMenuItemDocument extends Document {
   cafeSlug: string;
   name: string;
@@ -8,7 +20,26 @@ export interface IMenuItemDocument extends Document {
   description?: string;
   imageUrl: string;
   isAvailable: boolean;
+  modifierGroups?: IModifierGroup[];
 }
+
+const ModifierOptionSchema = new Schema(
+  {
+    name: { type: String, required: true, trim: true },
+    price: { type: Number, required: true, default: 0, min: 0 },
+  },
+  { _id: false }
+);
+
+const ModifierGroupSchema = new Schema(
+  {
+    name: { type: String, required: true, trim: true },
+    minSelect: { type: Number, default: 0, min: 0 },
+    maxSelect: { type: Number, default: 1, min: 1 },
+    options: [ModifierOptionSchema],
+  },
+  { _id: false }
+);
 
 const MenuItemSchema = new Schema<IMenuItemDocument>(
   {
@@ -44,6 +75,7 @@ const MenuItemSchema = new Schema<IMenuItemDocument>(
       type: Boolean,
       default: true,
     },
+    modifierGroups: [ModifierGroupSchema],
   },
   {
     timestamps: true,

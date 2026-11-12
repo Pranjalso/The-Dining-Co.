@@ -13,6 +13,7 @@ type OrderItem = {
   name: string;
   price: number;
   quantity: number;
+  selectedModifiers?: Array<{ groupName: string; name: string; price: number }>;
 };
 
 type PaymentMethod = "cash" | "upi";
@@ -304,9 +305,23 @@ export default function NewOrdersPage() {
                       <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-primary/10 text-primary text-[10px] sm:text-xs font-bold flex items-center justify-center flex-shrink-0 border border-primary/20">
                         {item.quantity}
                       </span>
-                      <span className="text-xs sm:text-sm font-semibold text-text truncate">
-                        {item.name}
-                      </span>
+                      <div className="min-w-0 flex-1">
+                        <span className="text-xs sm:text-sm font-semibold text-text truncate block">
+                          {item.name}
+                        </span>
+                        {item.selectedModifiers && item.selectedModifiers.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-0.5">
+                            {item.selectedModifiers.map((mod, modIdx) => (
+                              <span
+                                key={modIdx}
+                                className="inline-flex items-center px-1.5 py-0.2 text-[10px] font-medium bg-[#B8860B]/10 text-[#9C7006] rounded border border-[#B8860B]/20"
+                              >
+                                +{mod.name} {mod.price > 0 ? `(₹${mod.price})` : ''}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <span className="text-xs sm:text-sm font-bold text-muted whitespace-nowrap ml-2">
                       ₹{(item.price * item.quantity).toFixed(2)}

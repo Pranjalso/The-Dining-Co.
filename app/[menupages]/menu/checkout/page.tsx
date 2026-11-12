@@ -26,12 +26,14 @@ import CustomerRatingCard from "@/components/CustomerRatingCard";
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 type CartLine = {
-  id: string;
+  id: string; // Cart key (e.g. "baseId" or "baseId::group:opt")
+  baseId?: string; // Real menuItemId for DB lookup
   name: string;
   price: number;
   qty: number;
   image?: string;
   description?: string;
+  selectedModifiers?: Array<{ groupName: string; name: string; price: number }>;
 };
 
 export default function CheckoutPage() {
@@ -386,10 +388,11 @@ export default function CheckoutPage() {
         discount,
         discountCode: appliedPromo?.code || undefined,
         items: lines.map(l => ({
-          menuItemId: l.id,
+          menuItemId: l.baseId || (l.id.includes('::') ? l.id.split('::')[0] : l.id),
           name: l.name,
           price: l.price,
           quantity: l.qty,
+          selectedModifiers: l.selectedModifiers && l.selectedModifiers.length > 0 ? l.selectedModifiers : undefined,
         })),
       };
       const res = await fetch(`/api/orders/${menupages}`, {
@@ -516,6 +519,18 @@ export default function CheckoutPage() {
                       <div className="flex-1 min-w-0 flex items-center justify-between gap-2">
                         <div className="min-w-0">
                           <h3 className="font-bold text-sm text-stone-900 truncate">{item.name}</h3>
+                          {item.selectedModifiers && item.selectedModifiers.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-0.5 mb-1">
+                              {item.selectedModifiers.map((mod, modIdx) => (
+                                <span
+                                  key={modIdx}
+                                  className="inline-flex items-center px-1.5 py-0.2 text-[10px] font-semibold bg-[#B8860B]/10 text-[#9C7006] rounded border border-[#B8860B]/20"
+                                >
+                                  +{mod.name} {mod.price > 0 ? `(₹${mod.price})` : ''}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                           <p className="text-xs text-stone-500 font-medium">₹{item.price} × {item.qty}</p>
                         </div>
                         <div className="flex flex-col items-end gap-1.5 flex-shrink-0">

@@ -1,5 +1,11 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
+export interface IOrderItemModifier {
+  groupName: string;
+  name: string;
+  price: number;
+}
+
 export interface IOrderDocument extends Document {
   cafeSlug: string;
   orderNumber: number;
@@ -9,6 +15,7 @@ export interface IOrderDocument extends Document {
     name: string;
     price: number;
     quantity: number;
+    selectedModifiers?: IOrderItemModifier[];
   }>;
   subtotal: number;
   discount?: number;
@@ -57,6 +64,13 @@ const OrderSchema = new Schema<IOrderDocument>(
           required: true,
           min: 1,
         },
+        selectedModifiers: [
+          {
+            groupName: { type: String, required: true },
+            name: { type: String, required: true },
+            price: { type: Number, required: true, default: 0 },
+          },
+        ],
       },
     ],
     subtotal: {

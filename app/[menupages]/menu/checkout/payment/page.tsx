@@ -43,7 +43,16 @@ function PaymentPageContent({ menupages }: { menupages: string }) {
   const [isEditingTable, setIsEditingTable] = useState(false);
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [showInstructions, setShowInstructions] = useState(false);
-  const [lines, setLines] = useState<Array<{ id: string; name: string; price: number; qty: number; image?: string; description?: string }>>([]);
+  const [lines, setLines] = useState<Array<{
+    id: string;
+    baseId?: string;
+    name: string;
+    price: number;
+    qty: number;
+    image?: string;
+    description?: string;
+    selectedModifiers?: Array<{ groupName: string; name: string; price: number }>;
+  }>>([]);
   const [orderNumber, setOrderNumber] = useState<number | null>(null);
   const [taxRate, setTaxRate] = useState(0);
   const [showTax, setShowTax] = useState<boolean | null>(null);
@@ -305,10 +314,11 @@ function PaymentPageContent({ menupages }: { menupages: string }) {
         discount,
         discountCode: appliedPromo?.code || undefined,
         items: lines.map(l => ({
-          menuItemId: l.id,
+          menuItemId: l.baseId || (l.id.includes('::') ? l.id.split('::')[0] : l.id),
           name: l.name,
           price: l.price,
           quantity: l.qty,
+          selectedModifiers: l.selectedModifiers && l.selectedModifiers.length > 0 ? l.selectedModifiers : undefined,
         })),
       };
       const res = await fetch(`/api/orders/${menupages}`, {
@@ -468,11 +478,25 @@ function PaymentPageContent({ menupages }: { menupages: string }) {
                 {/* Itemized summary rows */}
                 <div className="pt-2.5 space-y-1.5">
                   {lines.map((l) => (
-                    <div key={l.id} className="flex justify-between items-center text-xs">
-                      <span className="text-stone-700 truncate max-w-[220px]">
-                        {l.name} <span className="text-stone-400 font-bold ml-1">× {l.qty}</span>
-                      </span>
-                      <span className="font-bold text-stone-900">₹{l.price * l.qty}</span>
+                    <div key={l.id} className="py-1 border-b border-[#E5DFD4]/50 last:border-0">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-stone-700 font-semibold truncate max-w-[220px]">
+                          {l.name} <span className="text-stone-400 font-bold ml-1">× {l.qty}</span>
+                        </span>
+                        <span className="font-bold text-stone-900 font-price">₹{l.price * l.qty}</span>
+                      </div>
+                      {l.selectedModifiers && l.selectedModifiers.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-0.5">
+                          {l.selectedModifiers.map((mod, modIdx) => (
+                            <span
+                              key={modIdx}
+                              className="text-[10px] text-[#9C7006] font-medium"
+                            >
+                              +{mod.name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ))}
                   {discount > 0 && (
