@@ -31,20 +31,29 @@ export const GET = withCafeAccess(async (
       return new Date();
     };
 
-    const baseDate = parseLocalDate(date);
-
+    let targetDate: Date;
     if (period === 'today' || period === 'custom') {
-      startDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), 0, 0, 0, 0);
-      endDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), 23, 59, 59, 999);
+      targetDate = parseLocalDate(date);
+      startDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 0, 0, 0, 0);
+      endDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 23, 59, 59, 999);
     } else if (period === 'yesterday') {
-      startDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate() - 1, 0, 0, 0, 0);
-      endDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate() - 1, 23, 59, 59, 999);
+      targetDate = date ? parseLocalDate(date) : (() => {
+        const d = new Date();
+        d.setDate(d.getDate() - 1);
+        return d;
+      })();
+      startDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 0, 0, 0, 0);
+      endDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 23, 59, 59, 999);
     } else if (period === '7d') {
-      endDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), 23, 59, 59, 999);
-      startDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate() - 6, 0, 0, 0, 0);
+      targetDate = parseLocalDate(date);
+      endDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 23, 59, 59, 999);
+      startDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate() - 6, 0, 0, 0, 0);
     } else if (period === '30d') {
-      endDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), 23, 59, 59, 999);
-      startDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate() - 29, 0, 0, 0, 0);
+      targetDate = parseLocalDate(date);
+      endDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 23, 59, 59, 999);
+      startDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate() - 29, 0, 0, 0, 0);
+    } else {
+      targetDate = parseLocalDate(date);
     }
 
     const query: any = {
@@ -153,7 +162,7 @@ export const GET = withCafeAccess(async (
       // For overall, 30d, 7d - we show the appropriate day range in local time
       const days = period === '7d' ? 7 : 30;
       for (let i = days - 1; i >= 0; i--) {
-        const d = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate() - i);
+        const d = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate() - i);
         const y = d.getFullYear();
         const m = String(d.getMonth() + 1).padStart(2, '0');
         const day = String(d.getDate()).padStart(2, '0');
