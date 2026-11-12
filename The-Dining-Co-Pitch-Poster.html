@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>The Dining Co. — Smart Cafe OS Presentation Poster</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #0f172a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 40px 20px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: #1e293b;
+    }
+
+    /* Standard Professional Print/Pitch Poster Dimensions (A4 Ratio / 1200 x 1700 approx) */
+    .poster-canvas {
+      width: 1200px;
+      min-height: 1680px;
+      background: #FFFFFF;
+      position: relative;
+      box-shadow: 0 35px 80px -15px rgba(0,0,0,0.6);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Ambient Decorative Gradients */
+    .ambient-glow-top {
+      position: absolute;
+      top: -120px;
+      right: -80px;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(184, 134, 11, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+      pointer-events: none;
+    }
+
+    .ambient-glow-bottom {
+      position: absolute;
+      bottom: -150px;
+      left: -100px;
+      width: 650px;
+      height: 650px;
+      background: radial-gradient(circle, rgba(234, 88, 12, 0.12) 0%, rgba(255, 255, 255, 0) 70%);
+      pointer-events: none;
+    }
+
+    /* Top Action Bar for PDF export */
+    .top-action-bar {
+      position: fixed;
+      top: 16px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-action {
+      background: #B8860B;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(184, 134, 11, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .btn-action:hover {
+      background: #9C7006;
+      transform: translateY(-2px);
+    }
+
+    /* HEADER */
+    header {
+      padding: 55px 70px 30px;
+      border-bottom: 2px solid #F3EFE6;
+      position: relative;
+      background: linear-gradient(180deg, #FFFDF9 0%, #FFFFFF 100%);
+    }
+
+    .brand-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .brand-logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-symbol {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #B8860B 0%, #855D05 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      font-weight: 900;
+      box-shadow: 0 8px 20px rgba(184, 134, 11, 0.35);
+    }
+
+    .brand-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px;
+      font-weight: 900;
+      color: #1c1917;
+      letter-spacing: -0.5px;
+      line-height: 1;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 2.5px;
+      color: #B8860B;
+      margin-top: 4px;
+    }
+
+    .partner-badge {
+      background: #FBF8F3;
+      border: 1.5px solid #E5DFD4;
+      padding: 8px 18px;
+      border-radius: 50px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #78716c;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .partner-badge span.dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      display: inline-block;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+    }
+
+    .hero-pitch {
+      max-width: 900px;
+    }
+
+    .tagline-pill {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 30px;
+      background: rgba(184, 134, 11, 0.1);
+      color: #9C7006;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(184, 134, 11, 0.2);
+    }
+
+    .hero-pitch h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 46px;
+      font-weight: 900;
+      color: #0c0a09;
+      line-height: 1.18;
+      margin-bottom: 14px;
+    }
+
+    .hero-pitch h1 span.gold {
+      color: #B8860B;
+      font-style: italic;
+    }
+
+    .hero-pitch p {
+      font-size: 17px;
+      color: #57534e;
+      line-height: 1.6;
+      font-weight: 500;
+    }
+
+    /* KEY IMPACT NUMBERS */
+    .metric-ribbon {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      padding: 30px 70px;
+      background: #FBF8F3;
+      border-bottom: 2px solid #F3EFE6;
+    }
+
+    .metric-card {
+      background: #FFFFFF;
+      padding: 20px 22px;
+      border-radius: 18px;
+      border: 1.5px solid #E5DFD4;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+
+    .metric-value {
+      font-size: 32px;
+      font-weight: 900;
+      color: #B8860B;
+      line-height: 1;
+      margin-bottom: 6px;
+      font-feature-settings: "tnum";
+    }
+
+    .metric-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: #1c1917;
+      margin-bottom: 3px;
+    }
+
+    .metric-desc {
+      font-size: 11px;
+      color: #78716c;
+      line-height: 1.4;
+    }
+
+    /* MAIN PILLARS GRID */
+    .content-body {
+      padding: 40px 70px 30px;
+      flex: 1;
+    }
+
+    .section-header {
+      margin-bottom: 26px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 26px;
+      font-weight: 900;
+      color: #1c1917;
+    }
+
+    .section-sub {
+      font-size: 13px;
+      color: #78716c;
+      font-weight: 600;
+    }
+
+    .pillars-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-bottom: 36px;
+    }
+
+    .pillar-card {
+      background: #FFFFFF;
+      border: 1.5px solid #E5DFD4;
+      border-radius: 22px;
+      padding: 26px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.04);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .pillar-card.highlight {
+      border-color: #B8860B;
+      background: linear-gradient(180deg, #FFFFFF 0%, #FFFDF9 100%);
+      box-shadow: 0 10px 30px rgba(184, 134, 11, 0.12);
+    }
+
+    .pillar-icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 18px;
+    }
+
+    .icon-amber { background: #FEF3C7; color: #D97706; }
+    .icon-emerald { background: #D1FAE5; color: #059669; }
+    .icon-indigo { background: #E0E7FF; color: #4F46E5; }
+    .icon-rose { background: #FFE4E6; color: #E11D48; }
+    .icon-blue { background: #DBEAFE; color: #2563EB; }
+    .icon-purple { background: #F3E8FF; color: #9333EA; }
+
+    .pillar-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #1c1917;
+      margin-bottom: 8px;
+      line-height: 1.25;
+    }
+
+    .pillar-text {
+      font-size: 13px;
+      color: #57534e;
+      line-height: 1.55;
+      margin-bottom: 16px;
+      flex: 1;
+    }
+
+    .feature-list {
+      list-style: none;
+      border-top: 1px dashed #E5DFD4;
+      padding-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .feature-item {
+      font-size: 12px;
+      font-weight: 600;
+      color: #292524;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feature-item svg {
+      width: 15px;
+      height: 15px;
+      color: #B8860B;
+      flex-shrink: 0;
+    }
+
+    /* TABLE SERVICE BELL HIGHLIGHT BANNER */
+    .spotlight-banner {
+      background: linear-gradient(135deg, #1c1917 0%, #0c0a09 100%);
+      color: white;
+      border-radius: 24px;
+      padding: 30px 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 30px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.18);
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 36px;
+    }
+
+    .spotlight-banner::after {
+      content: "";
+      position: absolute;
+      top: -60px;
+      right: 200px;
+      width: 250px;
+      height: 250px;
+      background: radial-gradient(circle, rgba(184, 134, 11, 0.25) 0%, rgba(0,0,0,0) 70%);
+      pointer-events: none;
+    }
+
+    .spotlight-left {
+      max-width: 660px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .spotlight-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(184, 134, 11, 0.2);
+      border: 1px solid rgba(184, 134, 11, 0.4);
+      color: #FBBF24;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 30px;
+      margin-bottom: 12px;
+    }
+
+    .spotlight-left h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 26px;
+      font-weight: 800;
+      color: #FFFFFF;
+      margin-bottom: 8px;
+      line-height: 1.25;
+    }
+
+    .spotlight-left p {
+      font-size: 13.5px;
+      color: #d6d3d1;
+      line-height: 1.55;
+    }
+
+    .spotlight-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+
+    .action-tag {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 6px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fafaf9;
+    }
+
+    .spotlight-right {
+      position: relative;
+      z-index: 2;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .bell-circle-preview {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #B8860B 0%, #9C7006 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 30px rgba(184, 134, 11, 0.45);
+      border: 3px solid rgba(255, 255, 255, 0.25);
+    }
+
+    /* FOOTER / OWNER CONTACT */
+    footer {
+      padding: 30px 70px 40px;
+      background: #FBF8F3;
+      border-top: 2px solid #F3EFE6;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-left {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .footer-headline {
+      font-size: 15px;
+      font-weight: 800;
+      color: #1c1917;
+    }
+
+    .footer-desc {
+      font-size: 12px;
+      color: #78716c;
+    }
+
+    .footer-contact-box {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #FFFFFF;
+      border: 1.5px solid #E5DFD4;
+      padding: 10px 18px;
+      border-radius: 16px;
+    }
+
+    .contact-item svg {
+      width: 18px;
+      height: 18px;
+      color: #B8860B;
+    }
+
+    .contact-text-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      color: #a8a29e;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .contact-text-val {
+      font-size: 13px;
+      font-weight: 800;
+      color: #1c1917;
+    }
+
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+      .top-action-bar {
+        display: none !important;
+      }
+      .poster-canvas {
+        box-shadow: none;
+        width: 100%;
+        min-height: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Print Button for PDF Export -->
+  <div class="top-action-bar">
+    <button class="btn-action" onclick="window.print()">
+      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+      Export Pitch Poster (PDF)
+    </button>
+  </div>
+
+  <div class="poster-canvas">
+    <div class="ambient-glow-top"></div>
+    <div class="ambient-glow-bottom"></div>
+
+    <!-- HEADER SECTION -->
+    <header>
+      <div class="brand-row">
+        <div class="brand-logo-wrap">
+          <div class="brand-symbol">D</div>
+          <div>
+            <div class="brand-title">The Dining Co.</div>
+            <div class="brand-sub">Premium Dining & Kitchen Operating System</div>
+          </div>
+        </div>
+
+        <div class="partner-badge">
+          <span class="dot"></span>
+          <span>Official Cafe Onboarding Presentation</span>
+        </div>
+      </div>
+
+      <div class="hero-pitch">
+        <div class="tagline-pill">Contactless Dine-In • Kitchen Automation • Growth</div>
+        <h1>
+          Elevate Your Cafe With <span class="gold">Next-Gen Table QR</span> Ordering & Live Kitchen Management
+        </h1>
+        <p>
+          Say goodbye to delayed waiters, miscommunicated food tickets, and static paper menus. The Dining Co. empowers your guests to order, customize, and settle bills directly from their phones with <strong>zero app downloads</strong> — while your kitchen operates at peak efficiency.
+        </p>
+      </div>
+    </header>
+
+    <!-- METRICS RIBBON -->
+    <div class="metric-ribbon">
+      <div class="metric-card">
+        <div class="metric-value">+28%</div>
+        <div class="metric-title">Higher Average Order Value</div>
+        <div class="metric-desc">Visual dish cards, combo popups & instant add-ons</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">-20 Min</div>
+        <div class="metric-title">Faster Table Turnaround</div>
+        <div class="metric-desc">Guests order immediately upon sitting with zero wait</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">0 Error</div>
+        <div class="metric-title">Kitchen Miscommunication</div>
+        <div class="metric-desc">Custom dietary notes route straight to chef screen</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">100% Free</div>
+        <div class="metric-title">Zero Menu Printing Costs</div>
+        <div class="metric-desc">Toggle prices or 86 sold-out dishes in 1 tap</div>
+      </div>
+    </div>
+
+    <!-- MAIN PILLARS SECTION -->
+    <div class="content-body">
+      <div class="section-header">
+        <div>
+          <div class="section-title">The Complete Cafe Operating Ecosystem</div>
+          <div class="section-sub">Everything your staff, chefs, and guests need in one unified cloud system</div>
+        </div>
+      </div>
+
+      <div class="pillars-grid">
+
+        <!-- 1. Customer Ordering -->
+        <div class="pillar-card highlight">
+          <div class="pillar-icon-box icon-amber">📱</div>
+          <div class="pillar-title">Dine-In QR Menu (Zero Install)</div>
+          <div class="pillar-text">
+            Guests scan table QR to access high-speed interactive menu. Works smoothly on iPhone Safari and Android Chrome without app downloads.
+          </div>
+          <ul class="feature-list">
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Multi-category filtering & instant dish search</span>
+            </li>
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>High-res imagery with Veg/Non-Veg indicators</span>
+            </li>
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Direct table routing mapped to QR code</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- 2. Live Kitchen Display -->
+        <div class="pillar-card highlight">
+          <div class="pillar-icon-box icon-emerald">🍳</div>
+          <div class="pillar-title">Live Kitchen Dashboard (KDS)</div>
+          <div class="pillar-text">
+            Incoming orders ring in real time with distinct chimes. Staff manages ticket stages with a single tap: Accept ➔ Preparing ➔ Served.
+          </div>
+          <ul class="feature-list">
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Instant audio alert upon incoming table orders</span>
+            </li>
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Preparation timers & ticket grouping</span>
+            </li>
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Chef note displays for custom spice levels</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- 3. Smart Table Service Bell -->
+        <div class="pillar-card highlight">
+          <div class="pillar-icon-box icon-rose">🔔</div>
+          <div class="pillar-title">Floating Call Waiter & Service Bell</div>
+          <div class="pillar-text">
+            Eliminates awkward hand-waving. Guests tap the floating bell to summon servers, ask for water, extra cutlery, table cleaning, or final bill.
+          </div>
+          <ul class="feature-list">
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>1-tap Water / Cutlery / Bill / Cleaning call</span>
+            </li>
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Hotel concierge chime on admin dashboard</span>
+            </li>
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Cooldown debouncer prevents customer spam</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- 4. Dynamic Menu & 86 Manager -->
+        <div class="pillar-card">
+          <div class="pillar-icon-box icon-indigo">🍽️</div>
+          <div class="pillar-title">Real-Time Menu & Pricing Control</div>
+          <div class="pillar-text">
+            Instant control over your entire menu. Run out of avocados or milk? Mark sold out in 1 second; changes reflect live across all customer screens.
+          </div>
+          <ul class="feature-list">
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>1-tap "Sold Out" availability toggles</span>
+            </li>
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Instant price, image & description updates</span>
+            </li>
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Category hierarchy management</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- 5. Promotional Engine & Offers -->
+        <div class="pillar-card">
+          <div class="pillar-icon-box icon-purple">🏷️</div>
+          <div class="pillar-title">Dynamic Offers & Popups</div>
+          <div class="pillar-text">
+            Boost high-margin items with automated welcome popups, combo discounts, promo codes, and scheduled weekend happy hour deals.
+          </div>
+          <ul class="feature-list">
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Welcome promo banners on QR scan</span>
+            </li>
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>1-tap coupon code copying & redemption</span>
+            </li>
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Percentage or Flat order discounts</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- 6. QR Generator & Ratings -->
+        <div class="pillar-card">
+          <div class="pillar-icon-box icon-blue">⭐</div>
+          <div class="pillar-title">Table QR Generator & Feedback</div>
+          <div class="pillar-text">
+            Download print-ready high-resolution QR codes mapped to individual tables. Collect direct 5-star customer ratings right after checkout.
+          </div>
+          <ul class="feature-list">
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Downloadable table tent & sticker QR codes</span>
+            </li>
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Direct guest star ratings & food reviews</span>
+            </li>
+            <li class="feature-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Daily revenue reconciliation logs</span>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- SPOTLIGHT: SERVICE BELL INNOVATION -->
+      <div class="spotlight-banner">
+        <div class="spotlight-left">
+          <div class="spotlight-badge">⭐ Exclusive Feature</div>
+          <h3>The "Service Bell" Hospitality Experience</h3>
+          <p>
+            Traditional QR menus leave diners stranded after ordering. With The Dining Co., guests enjoy continuous VIP service right from their phone:
+          </p>
+          <div class="spotlight-actions">
+            <div class="action-tag">💧 Bring Water</div>
+            <div class="action-tag">🍴 Extra Cutlery & Napkins</div>
+            <div class="action-tag">🧾 Request Final Bill (Cash/UPI)</div>
+            <div class="action-tag">🧹 Clean Table</div>
+            <div class="action-tag">🔔 Call Waiter</div>
+          </div>
+        </div>
+
+        <div class="spotlight-right">
+          <div class="bell-circle-preview">
+            <svg width="34" height="34" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+          </div>
+          <span style="font-size: 11px; font-weight: 800; color: #FBBF24; text-transform: uppercase; letter-spacing: 1px;">Live Desk Alert</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- FOOTER / PARTNER CONTACT -->
+    <footer>
+      <div class="footer-left">
+        <div class="footer-headline">Zero Expensive Hardware • Works on Any iPad, Tablet or Smartphone</div>
+        <div class="footer-desc">Instant 5-minute setup. No long-term contracts. 100% cloud-hosted.</div>
+      </div>
+
+      <div class="footer-contact-box">
+        <div class="contact-item">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          <div>
+            <div class="contact-text-label">Platform Demo</div>
+            <div class="contact-text-val">thediningco.com</div>
+          </div>
+        </div>
+
+        <div class="contact-item">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+          <div>
+            <div class="contact-text-label">Cafe Onboarding</div>
+            <div class="contact-text-val">contact@thediningco.com</div>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+</body>
+</html>
