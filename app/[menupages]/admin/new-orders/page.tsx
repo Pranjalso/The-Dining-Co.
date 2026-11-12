@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Package, Clock, Armchair, Check, X, Wallet, Smartphone, Loader2, ChevronDown, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import useSWR, { mutate } from "swr";
+import { getPusherClient } from "@/lib/pusher-client";
 
 // ─── Types ───
 type OrderItem = {
@@ -82,27 +83,64 @@ export default function NewOrdersPage() {
   const [expandedOrders, setExpandedOrders] = useState<Record<string, boolean>>({});
 
   const ordersUrl = slug ? `/api/orders/${slug}?status=pending` : null;
-  const { data, isLoading: swrLoading } = useSWR(ordersUrl, {
-    refreshInterval: 10000,
+  const { data, isLoading: swrLoading, mutate: boundMutate } = useSWR(ordersUrl, {
+    refreshInterval: 4000,
     revalidateOnFocus: true,
   });
 
   const orders = data?.success ? (data.data as Order[]) : [];
   const loading = swrLoading;
 
+  // Real-time listener via Pusher for immediate instant order arrivals & updates
+  useEffect(() => {
+    if (!slug) return;
+    const pusher = getPusherClient();
+    if (!pusher) return;
+
+    const channelName = `cafe-${slug.toLowerCase()}`;
+    const channel = pusher.subscribe(channelName);
+
+    const handleOrderEvent = () => {
+      boundMutate();
+      window.dispatchEvent(new Event('refresh-admin-stats'));
+    };
+
+    channel.bind('new-order', handleOrderEvent);
+    channel.bind('order-status-updated', handleOrderEvent);
+
+    return () => {
+      channel.unbind('new-order', handleOrderEvent);
+      channel.unbind('order-status-updated', handleOrderEvent);
+      pusher.unsubscribe(channelName);
+    };
+  }, [slug, boundMutate]);
+
   const handleUpdateStatus = async (orderId: string, newStatus: OrderStatus) => {
     setUpdating(orderId);
     const targetOrder = orders.find(o => o._id === orderId);
+
+    // ⚡ Optimistic UI update: Remove the order from view instantly (0ms latency feel)
+    const previousData = data;
+    if (data?.success && Array.isArray(data.data)) {
+      boundMutate(
+        {
+          ...data,
+          data: data.data.filter((o: Order) => o._id !== orderId),
+        },
+        false // Do not revalidate immediately, keep instant feel
+      );
+    }
+
     try {
       const res = await fetch(`/api/orders/${slug}?id=${orderId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ orderStatus: newStatus }),
       });
-      const data = await res.json();
-      if (data.success) {
-        const orderNum = targetOrder?.orderNumber ?? data.data?.orderNumber;
-        const tableNum = targetOrder?.tableNumber ?? data.data?.tableNumber;
+      const resData = await res.json();
+      if (resData.success) {
+        const orderNum = targetOrder?.orderNumber ?? resData.data?.orderNumber;
+        const tableNum = targetOrder?.tableNumber ?? resData.data?.tableNumber;
         toast({
           title: newStatus === 'preparing' ? 'Order Accepted' : 'Order Rejected',
           description: newStatus === 'preparing' 
@@ -111,12 +149,16 @@ export default function NewOrdersPage() {
           variant: newStatus === 'cancelled' ? 'destructive' : 'default',
         });
         
-        mutate(ordersUrl);
+        // Revalidate cache in background
+        boundMutate();
         window.dispatchEvent(new Event('refresh-admin-stats'));
       } else {
-        throw new Error(data.message || "Failed to update order");
+        // Rollback optimistic update on failure
+        if (previousData) boundMutate(previousData, false);
+        throw new Error(resData.message || "Failed to update order");
       }
     } catch (err: any) {
+      if (previousData) boundMutate(previousData, false);
       toast({
         title: "Error",
         description: err.message || "Something went wrong",

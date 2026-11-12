@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import useSWR, { mutate } from "swr";
+import { getPusherClient } from "@/lib/pusher-client";
 
 // ─── Types ───
 type OrderItem = {
@@ -287,14 +288,14 @@ export default function OrdersPage() {
   const preparingUrl = slug ? `/api/orders/${slug}?status=preparing,ready&paymentStatus=pending` : null;
   const servedUrl = slug ? `/api/orders/${slug}?status=served&paymentStatus=pending` : null;
 
-  const { data: preparingData, isLoading: preparingLoading } = useSWR(preparingUrl, {
-    refreshInterval: 10000,
+  const { data: preparingData, isLoading: preparingLoading, mutate: mutatePreparing } = useSWR(preparingUrl, {
+    refreshInterval: 4000,
     revalidateOnFocus: true,
     keepPreviousData: true,
   });
 
-  const { data: servedData, isLoading: servedLoading } = useSWR(servedUrl, {
-    refreshInterval: 10000,
+  const { data: servedData, isLoading: servedLoading, mutate: mutateServed } = useSWR(servedUrl, {
+    refreshInterval: 4000,
     revalidateOnFocus: true,
     keepPreviousData: true,
   });
@@ -302,6 +303,33 @@ export default function OrdersPage() {
   const pendingOrders = preparingData?.success ? (preparingData.data as Order[]) : [];
   const servedOrders = servedData?.success ? (servedData.data as Order[]) : [];
   const loading = preparingLoading || servedLoading;
+
+  // Real-time synchronization via Pusher
+  useEffect(() => {
+    if (!slug) return;
+    const pusher = getPusherClient();
+    if (!pusher) return;
+
+    const channelName = `cafe-${slug.toLowerCase()}`;
+    const channel = pusher.subscribe(channelName);
+
+    const handleUpdate = () => {
+      mutatePreparing();
+      mutateServed();
+      window.dispatchEvent(new Event('refresh-admin-stats'));
+    };
+
+    channel.bind('new-order', handleUpdate);
+    channel.bind('order-status-updated', handleUpdate);
+    channel.bind('payment-received', handleUpdate);
+
+    return () => {
+      channel.unbind('new-order', handleUpdate);
+      channel.unbind('order-status-updated', handleUpdate);
+      channel.unbind('payment-received', handleUpdate);
+      pusher.unsubscribe(channelName);
+    };
+  }, [slug, mutatePreparing, mutateServed]);
 
   // Check if mobile view
   useEffect(() => {
@@ -317,6 +345,34 @@ export default function OrdersPage() {
 
   const handleMarkAsServed = async (orderId: string) => {
     setUpdatingId(orderId);
+    const targetOrder = pendingOrders.find(o => o._id === orderId);
+
+    // ⚡ Optimistic UI update: Instantly move order from preparing to served without delay
+    const prevPrep = preparingData;
+    const prevServed = servedData;
+
+    if (targetOrder) {
+      const movedOrder: Order = { ...targetOrder, orderStatus: 'served' };
+      if (preparingData?.success && Array.isArray(preparingData.data)) {
+        mutatePreparing(
+          {
+            ...preparingData,
+            data: preparingData.data.filter((o: Order) => o._id !== orderId),
+          },
+          false
+        );
+      }
+      if (servedData?.success && Array.isArray(servedData.data)) {
+        mutateServed(
+          {
+            ...servedData,
+            data: [movedOrder, ...servedData.data],
+          },
+          false
+        );
+      }
+    }
+
     try {
       const res = await fetch(`/api/orders/${slug}?id=${orderId}`, {
         method: "PATCH",
@@ -327,13 +383,20 @@ export default function OrdersPage() {
       if (data.success) {
         toast({
           title: "Order Served",
-          description: `Order #${pendingOrders.find(o => o._id === orderId)?.orderNumber} marked as served.`,
+          description: `Order #${targetOrder?.orderNumber ?? data.data?.orderNumber} marked as served.`,
         });
         
-        mutate(preparingUrl);
-        mutate(servedUrl);
+        mutatePreparing();
+        mutateServed();
+        window.dispatchEvent(new Event('refresh-admin-stats'));
+      } else {
+        if (prevPrep) mutatePreparing(prevPrep, false);
+        if (prevServed) mutateServed(prevServed, false);
+        throw new Error(data.message || "Failed to update order");
       }
     } catch (err: any) {
+      if (prevPrep) mutatePreparing(prevPrep, false);
+      if (prevServed) mutateServed(prevServed, false);
       toast({
         title: "Error",
         description: err.message || "Failed to update order",
@@ -346,6 +409,20 @@ export default function OrdersPage() {
 
   const handleMoveToPayment = async (orderId: string) => {
     setUpdatingId(orderId);
+    const targetOrder = servedOrders.find(o => o._id === orderId);
+
+    // ⚡ Optimistic UI update: Instantly remove settled order from active served tab
+    const prevServed = servedData;
+    if (servedData?.success && Array.isArray(servedData.data)) {
+      mutateServed(
+        {
+          ...servedData,
+          data: servedData.data.filter((o: Order) => o._id !== orderId),
+        },
+        false
+      );
+    }
+
     try {
       const res = await fetch(`/api/orders/${slug}?id=${orderId}`, {
         method: "PATCH",
@@ -356,14 +433,17 @@ export default function OrdersPage() {
       if (data.success) {
         toast({
           title: "Payment Completed",
-          description: `Order #${servedOrders.find(o => o._id === orderId)?.orderNumber} moved to payment completed.`,
+          description: `Order #${targetOrder?.orderNumber ?? data.data?.orderNumber} moved to payment completed.`,
         });
         
-        mutate(servedUrl);
+        mutateServed();
+        window.dispatchEvent(new Event('refresh-admin-stats'));
       } else {
+        if (prevServed) mutateServed(prevServed, false);
         throw new Error(data.message || "Failed to update payment status");
       }
     } catch (err: any) {
+      if (prevServed) mutateServed(prevServed, false);
       toast({
         title: "Error",
         description: err.message || "Failed to update order",
