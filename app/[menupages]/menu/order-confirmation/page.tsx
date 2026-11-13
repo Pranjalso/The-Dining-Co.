@@ -573,11 +573,11 @@ function OrderConfirmationContent({ menupages }: { menupages: string }) {
             className="w-full space-y-3 mt-6"
           >
             <Link
-              href={`/${menupages}/menu`}
+              href={`/${menupages}/menu?table=${encodeURIComponent(tableNumber || 'Table 4')}`}
               className="block w-full bg-primary hover:bg-primary-hover text-white text-center py-3.5 rounded-xl font-bold transition-all duration-300 shadow-lg shadow-primary/20 hover:scale-[1.01] active:scale-[0.98]"
             >
               <ShoppingBag className="w-5 h-5 inline mr-2" />
-              Order More
+              Add More Items to Table Tab
             </Link>
           </motion.div>
 

@@ -36,6 +36,8 @@ type Order = {
   upiId?: string;
   specialInstructions?: string;
   notes?: string;
+  parentOrderNumber?: number;
+  isAddonRound?: boolean;
 };
 
 // New Orders Skeleton Loader
@@ -276,6 +278,13 @@ export default function NewOrdersPage() {
                       <h3 className="text-text font-bold text-sm sm:text-lg tracking-tight">
                         Order #{order.orderNumber}
                       </h3>
+
+                      {/* Continuous Table Tab Badge */}
+                      {order.parentOrderNumber && (
+                        <span className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 text-[10px] sm:text-xs font-bold whitespace-nowrap">
+                          Tab Extension (Primary #{order.parentOrderNumber})
+                        </span>
+                      )}
                       
                       {/* Payment Method Badge */}
                       <div className={`flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg ${paymentBadge.bgColor} ${paymentBadge.textColor} border ${paymentBadge.borderColor} text-[10px] sm:text-xs font-bold whitespace-nowrap`}>

@@ -279,9 +279,32 @@ export const POST = async (
 
     const specialInstructions = body.specialInstructions || body.notes || body.description || '';
 
+    // Check if there is an existing open tab for this table
+    const cleanTable = String(body.tableNumber).trim();
+    let parentOrderNumber: number | undefined = undefined;
+    let isAddonRound = false;
+
+    if (body.parentOrderNumber) {
+      parentOrderNumber = Number(body.parentOrderNumber);
+      isAddonRound = true;
+    } else {
+      // Auto-detect if table already has an active pending tab
+      const existingOpenOrder = await Order.findOne({
+        cafeSlug: slug,
+        tableNumber: cleanTable,
+        orderStatus: { $ne: 'cancelled' },
+        paymentStatus: 'pending',
+      }).sort({ createdAt: 1 }).select('orderNumber').lean();
+
+      if (existingOpenOrder && typeof existingOpenOrder.orderNumber === 'number') {
+        parentOrderNumber = existingOpenOrder.orderNumber;
+        isAddonRound = true;
+      }
+    }
+
     const order = await Order.create({
       orderNumber: nextOrderNumber,
-      tableNumber: String(body.tableNumber),
+      tableNumber: cleanTable,
       paymentMethod: body.paymentMethod,
       paymentStatus: body.paymentStatus || 'pending',
       items,
@@ -295,6 +318,8 @@ export const POST = async (
       upiId: body.upiId,
       specialInstructions,
       notes: specialInstructions,
+      parentOrderNumber,
+      isAddonRound,
     });
 
     // Trigger Pusher event
@@ -309,7 +334,16 @@ export const POST = async (
         total: order.total,
         specialInstructions: order.specialInstructions,
         notes: order.notes,
+        parentOrderNumber: order.parentOrderNumber,
+        isAddonRound: order.isAddonRound,
         timestamp: order.createdAt,
+      });
+
+      // Also trigger table-level event so active customer tabs refresh automatically
+      await pusher.trigger(`cafe-${slug}-table-${cleanTable}`, 'table-tab-updated', {
+        orderNumber: order.orderNumber,
+        parentOrderNumber: order.parentOrderNumber,
+        tableNumber: cleanTable,
       });
     } catch (pusherError) {
       console.error('Pusher trigger failed:', pusherError);

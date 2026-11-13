@@ -24,6 +24,8 @@ import OfferPopupModal, { OfferItem } from "@/components/OfferPopupModal";
 import ServiceBellModal from "@/components/ServiceBellModal";
 import ElegantPaymentModal from "@/components/ElegantPaymentModal";
 import ItemCustomizationModal, { ModifierGroup } from "@/components/ItemCustomizationModal";
+import ActiveTableTabBanner, { ActiveTableTabData } from "@/components/ActiveTableTabBanner";
+import TableTabDrawer from "@/components/TableTabDrawer";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -108,6 +110,22 @@ export default function MenuClient({
     message?: string;
   } | null>(null);
   const [customizingItem, setCustomizingItem] = useState<MenuItem | null>(null);
+  const [activeTabDrawerOpen, setActiveTabDrawerOpen] = useState<boolean>(false);
+
+  // Active Table Tab State & SWR Polling
+  const effectiveTable = tableNumber ? tableNumber.trim() : "";
+  const tabUrl = menupages && effectiveTable ? `/api/orders/${menupages}/tab?table=${encodeURIComponent(effectiveTable)}` : null;
+  const { data: tabResponse, mutate: mutateTab } = useSWR(tabUrl, fetcher, {
+    refreshInterval: 5000,
+    revalidateOnFocus: true,
+  });
+
+  const activeTabData: ActiveTableTabData | null = useMemo(() => {
+    if (tabResponse?.success && tabResponse?.hasActiveTab && tabResponse?.data) {
+      return tabResponse.data as ActiveTableTabData;
+    }
+    return null;
+  }, [tabResponse]);
 
   // Fetch public cafe info for live cafe name fallback
   const { data: cafePublicData } = useSWR(
@@ -364,6 +382,9 @@ export default function MenuClient({
       const tableChan = pusher.subscribe(`cafe-${menupages}-table-${clean}`);
       tableChan.bind('order-status-updated', handleStatusUpdate);
       tableChan.bind('payment-received', handleStatusUpdate);
+      tableChan.bind('table-tab-updated', () => {
+        mutateTab();
+      });
       channels.push(tableChan);
     }
 
@@ -758,6 +779,16 @@ export default function MenuClient({
 
         {/* Scrollable Content Area */}
         <div className="flex-1 overflow-y-auto pb-28">
+          {/* Active Table Tab Banner (Continuous Table Tab) */}
+          {activeTabData && (
+            <div className="mx-4 mt-2.5">
+              <ActiveTableTabBanner 
+                tabData={activeTabData} 
+                onOpenDetails={() => setActiveTabDrawerOpen(true)} 
+              />
+            </div>
+          )}
+
           {/* Active Offers Top Banner (Allows re-opening popup anytime) */}
           {activeOffers.length > 0 && (
             <div className="mx-4 mt-2.5">
@@ -1060,6 +1091,16 @@ export default function MenuClient({
           onClose={() => setCustomizingItem(null)}
           item={customizingItem}
           onConfirm={handleCustomizationConfirm}
+        />
+
+        {/* Continuous Table Tab Drawer */}
+        <TableTabDrawer
+          isOpen={activeTabDrawerOpen}
+          onClose={() => setActiveTabDrawerOpen(false)}
+          tabData={activeTabData}
+          onAddMoreItems={() => {
+            setActiveTabDrawerOpen(false);
+          }}
         />
       </div>
     </div>

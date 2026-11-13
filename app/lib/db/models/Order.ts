@@ -28,6 +28,8 @@ export interface IOrderDocument extends Document {
   upiId?: string;
   specialInstructions?: string;
   notes?: string;
+  parentOrderNumber?: number;
+  isAddonRound?: boolean;
 }
 
 const OrderSchema = new Schema<IOrderDocument>(
@@ -118,6 +120,14 @@ const OrderSchema = new Schema<IOrderDocument>(
     notes: {
       type: String,
       default: '',
+    },
+    parentOrderNumber: {
+      type: Number,
+      index: true,
+    },
+    isAddonRound: {
+      type: Boolean,
+      default: false,
     },
   },
   {

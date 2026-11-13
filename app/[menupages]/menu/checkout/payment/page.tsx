@@ -17,7 +17,8 @@ import {
   Edit2,
   ShoppingCart,
   Tag,
-  TicketPercent
+  TicketPercent,
+  Receipt,
 } from "lucide-react";
 import useSWR from "swr";
 
@@ -292,6 +293,17 @@ function PaymentPageContent({ menupages }: { menupages: string }) {
 
   const activeQrCode = dynamicQr || cafeUpiQr;
 
+  // Active table tab detection
+  const cleanTable = tableNumber ? tableNumber.trim() : "";
+  const tabCheckUrl = menupages && cleanTable ? `/api/orders/${menupages}/tab?table=${encodeURIComponent(cleanTable)}` : null;
+  const { data: tableTabData } = useSWR(tabCheckUrl, fetcher, {
+    revalidateOnFocus: true,
+    dedupingInterval: 10000,
+  });
+  const hasActiveTab = Boolean(tableTabData?.success && tableTabData?.hasActiveTab);
+  const activeTabRounds = tableTabData?.data?.totalRounds || 0;
+  const primaryOrderNum = tableTabData?.data?.primaryOrderNumber;
+
   const handlePayment = async () => {
     if (!tableNumber.trim()) {
       setError("Please specify your table number");
@@ -313,6 +325,7 @@ function PaymentPageContent({ menupages }: { menupages: string }) {
         notes: specialInstructions?.trim() || undefined,
         discount,
         discountCode: appliedPromo?.code || undefined,
+        parentOrderNumber: primaryOrderNum || undefined,
         items: lines.map(l => ({
           menuItemId: l.baseId || (l.id.includes('::') ? l.id.split('::')[0] : l.id),
           name: l.name,
@@ -406,6 +419,28 @@ function PaymentPageContent({ menupages }: { menupages: string }) {
             </div>
           ) : (
             <>
+              {/* Continuous Table Tab Badge */}
+              {hasActiveTab && (
+                <div className="bg-gradient-to-r from-amber-900/90 to-amber-800 text-white rounded-2xl p-4 shadow-md border border-amber-600/30 flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Receipt className="w-4 h-4 text-amber-300" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-500/30 text-amber-200 px-2 py-0.5 rounded-full border border-amber-400/30">
+                        Tab Extension · Round #{activeTabRounds + 1}
+                      </span>
+                      <span className="text-xs font-semibold text-amber-200">
+                        Table {cleanTable}
+                      </span>
+                    </div>
+                    <p className="text-xs text-amber-100/90 mt-1 leading-relaxed">
+                      This order will be added to your active table tab (Primary #{primaryOrderNum}). You can pay now or settle everything when you request your final bill.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Order Summary & Table Pill */}
               <div className="bg-white border border-[#E5DFD4] rounded-2xl p-4 shadow-sm">
                 <div className="flex items-center justify-between pb-3 border-b border-[#E5DFD4]">

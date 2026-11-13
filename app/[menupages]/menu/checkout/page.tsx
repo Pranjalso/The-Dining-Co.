@@ -150,6 +150,18 @@ export default function CheckoutPage() {
   const [taxRate, setTaxRate] = useState(0);
   const [showTax, setShowTax] = useState<boolean | null>(null);
 
+  // Check if this table has an active open tab
+  const cleanTableNumber = tableNumber.trim();
+  const tabCheckUrl = menupages && cleanTableNumber ? `/api/orders/${menupages}/tab?table=${encodeURIComponent(cleanTableNumber)}` : null;
+  const { data: tableTabData } = useSWR(tabCheckUrl, fetcher, {
+    revalidateOnFocus: true,
+    dedupingInterval: 10000,
+  });
+  const hasActiveTab = Boolean(tableTabData?.success && tableTabData?.hasActiveTab);
+  const activeTabTotal = tableTabData?.data?.total || 0;
+  const activeTabRounds = tableTabData?.data?.totalRounds || 0;
+  const primaryOrderNum = tableTabData?.data?.primaryOrderNumber;
+
   // Prefetch payment page
   useEffect(() => {
     if (lines.length > 0 && tableNumber.trim()) {
@@ -387,6 +399,7 @@ export default function CheckoutPage() {
         notes: specialInstructions.trim() || undefined,
         discount,
         discountCode: appliedPromo?.code || undefined,
+        parentOrderNumber: primaryOrderNum || undefined,
         items: lines.map(l => ({
           menuItemId: l.baseId || (l.id.includes('::') ? l.id.split('::')[0] : l.id),
           name: l.name,
@@ -482,6 +495,32 @@ export default function CheckoutPage() {
             </motion.div>
           ) : lines.length > 0 && !successOrder ? (
             <>
+              {/* Continuous Table Tab Notice */}
+              {hasActiveTab && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-gradient-to-r from-amber-900/90 to-amber-800 text-white rounded-2xl p-4 shadow-md border border-amber-600/30 flex items-start gap-3"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Table className="w-5 h-5 text-amber-300" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-500/30 text-amber-200 px-2 py-0.5 rounded-full border border-amber-400/30">
+                        Adding Round #{activeTabRounds + 1}
+                      </span>
+                      <span className="text-xs font-semibold text-amber-200">
+                        Table {cleanTableNumber}
+                      </span>
+                    </div>
+                    <p className="text-xs text-amber-100/90 mt-1 leading-relaxed">
+                      These items will be appended to your active tab (Order #{primaryOrderNum}). You can settle the full table tab at the end of your meal.
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+
               {/* Summary Badge */}
               <motion.div 
                 initial={{ opacity: 0, y: 10 }}
@@ -850,7 +889,7 @@ export default function CheckoutPage() {
                   Loading...
                 </span>
               ) : (
-                `Proceed to Payment · ₹${total}`
+                hasActiveTab ? `Append to Tab · ₹${total}` : `Proceed to Payment · ₹${total}`
               )}
             </button>
           ) : (

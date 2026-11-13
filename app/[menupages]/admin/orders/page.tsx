@@ -33,6 +33,8 @@ type Order = {
   items: OrderItem[];
   specialInstructions?: string;
   notes?: string;
+  parentOrderNumber?: number;
+  isAddonRound?: boolean;
 };
 
 // Helper to get payment method badge styles
@@ -111,6 +113,13 @@ function OrderCard({
               <h4 className="font-bold text-text text-sm sm:text-base tracking-tight truncate">
                 Order #{order.orderNumber}
               </h4>
+
+              {/* Continuous Table Tab Badge */}
+              {order.parentOrderNumber && (
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold whitespace-nowrap">
+                  Tab Extension (Primary #{order.parentOrderNumber})
+                </span>
+              )}
               
               {/* Payment Method Badge */}
               <div className={`flex items-center gap-1 px-2 py-0.5 rounded-lg ${paymentBadge.bgColor} ${paymentBadge.textColor} border ${paymentBadge.borderColor} text-[10px] font-bold whitespace-nowrap`}>
