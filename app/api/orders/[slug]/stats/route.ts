@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db/connect';
 import Order from '@/lib/db/models/Order';
@@ -19,42 +20,46 @@ export const GET = withCafeAccess(async (
     // Extract optional client timezone offset in minutes (e.g. -330 for IST = UTC+5:30)
     const tzOffsetParam = searchParams.get('tzOffset');
     const tzOffsetMinutes = tzOffsetParam !== null ? Number(tzOffsetParam) : -new Date().getTimezoneOffset();
-    // Invert sign for offset math: offsetFromUtcMs = -tzOffsetMinutes * 60000
-    // e.g. IST getTimezoneOffset() is -330, so client is +330m ahead of UTC.
 
-    // Robust Date Builder that parses "YYYY-MM-DD" accurately
+    // Parse "YYYY-MM-DD" accurately
     const parseLocalDate = (dateStr?: string | null) => {
       if (dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
         const [y, m, d] = dateStr.split('-').map(Number);
-        return new Date(y, m - 1, d);
+        return { y, m, d };
       }
-      return new Date();
+      const now = new Date();
+      const clientNow = new Date(now.getTime() - tzOffsetMinutes * 60000);
+      return { y: clientNow.getUTCFullYear(), m: clientNow.getUTCMonth() + 1, d: clientNow.getUTCDate() };
     };
 
-    let targetDate: Date;
-    if (period === 'today' || period === 'custom') {
-      targetDate = parseLocalDate(date);
-      startDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 0, 0, 0, 0);
-      endDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 23, 59, 59, 999);
-    } else if (period === 'yesterday') {
-      targetDate = date ? parseLocalDate(date) : (() => {
-        const d = new Date();
-        d.setDate(d.getDate() - 1);
-        return d;
-      })();
-      startDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 0, 0, 0, 0);
-      endDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 23, 59, 59, 999);
-    } else if (period === '7d') {
-      targetDate = parseLocalDate(date);
-      endDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 23, 59, 59, 999);
-      startDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate() - 6, 0, 0, 0, 0);
-    } else if (period === '30d') {
-      targetDate = parseLocalDate(date);
-      endDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 23, 59, 59, 999);
-      startDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate() - 29, 0, 0, 0, 0);
-    } else {
-      targetDate = parseLocalDate(date);
+    let target = parseLocalDate(date);
+
+    if (period === 'yesterday' && !date) {
+      const d = new Date(Date.UTC(target.y, target.m - 1, target.d));
+      d.setUTCDate(d.getUTCDate() - 1);
+      target = { y: d.getUTCFullYear(), m: d.getUTCMonth() + 1, d: d.getUTCDate() };
     }
+
+    // Precise UTC millisecond bounds based on client local midnight
+    const clientMidnightUtcMs = Date.UTC(target.y, target.m - 1, target.d, 0, 0, 0, 0) + (tzOffsetMinutes * 60000);
+
+    let startMs: number, endMs: number;
+    if (period === 'today' || period === 'yesterday' || period === 'custom') {
+      startMs = clientMidnightUtcMs;
+      endMs = clientMidnightUtcMs + 86400000 - 1;
+    } else if (period === '7d') {
+      endMs = clientMidnightUtcMs + 86400000 - 1;
+      startMs = clientMidnightUtcMs - (6 * 86400000);
+    } else if (period === '30d') {
+      endMs = clientMidnightUtcMs + 86400000 - 1;
+      startMs = clientMidnightUtcMs - (29 * 86400000);
+    } else {
+      startMs = clientMidnightUtcMs;
+      endMs = clientMidnightUtcMs + 86400000 - 1;
+    }
+
+    startDate = new Date(startMs);
+    endDate = new Date(endMs);
 
     const query: any = {
       cafeSlug: slug,
@@ -162,14 +167,15 @@ export const GET = withCafeAccess(async (
       // For overall, 30d, 7d - we show the appropriate day range in local time
       const days = period === '7d' ? 7 : 30;
       for (let i = days - 1; i >= 0; i--) {
-        const d = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate() - i);
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
+        const d = new Date(Date.UTC(target.y, target.m - 1, target.d));
+        d.setUTCDate(d.getUTCDate() - i);
+        const y = d.getUTCFullYear();
+        const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(d.getUTCDate()).padStart(2, '0');
         const dateStr = `${y}-${m}-${day}`;
         const dayMatch = dailyAggregation.find(item => item._id === dateStr);
         chartData.push({ 
-          name: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), 
+          name: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }), 
           orders: dayMatch ? dayMatch.count : 0 
         });
       }
