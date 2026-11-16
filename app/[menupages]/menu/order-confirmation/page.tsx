@@ -685,7 +685,7 @@ function OrderConfirmationContent({ menupages }: { menupages: string }) {
               className="block w-full bg-primary hover:bg-primary-hover text-white text-center py-3.5 rounded-xl font-bold transition-all duration-300 shadow-lg shadow-primary/20 hover:scale-[1.01] active:scale-[0.98]"
             >
               <ShoppingBag className="w-5 h-5 inline mr-2" />
-              Add More Items to Table Tab
+              {paymentStatus === 'completed' ? 'Order More' : 'Add More Items to Table Tab'}
             </Link>
           </motion.div>
 
