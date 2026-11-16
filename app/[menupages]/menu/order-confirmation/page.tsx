@@ -12,7 +12,8 @@ import {
   XCircle,
   AlertCircle,
   X,
-  MessageSquare
+  MessageSquare,
+  Eye
 } from "lucide-react";
 import { Suspense, useEffect, useState, useRef } from "react";
 import useSWR from "swr";
@@ -77,8 +78,66 @@ function OrderConfirmationContent({ menupages }: { menupages: string }) {
   const [rejectionMessage, setRejectionMessage] = useState<string>('');
   const [showPaymentModal, setShowPaymentModal] = useState<boolean>(false);
   const [showPreparedAlert, setShowPreparedAlert] = useState<boolean>(false);
+  const [isWakeLockActive, setIsWakeLockActive] = useState<boolean>(false);
+  const wakeLockSentinelRef = useRef<any>(null);
   const hasNotifiedPayment = useRef<boolean>(false);
   const hasNotifiedPrepared = useRef<boolean>(false);
+
+  // Screen Wake Lock API: Keep customer display awake while food is being prepared
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    let isMounted = true;
+
+    async function requestWakeLock() {
+      // Only keep screen awake while order is active (pending / preparing)
+      if (orderStatus === 'served' || orderStatus === 'ready' || orderStatus === 'cancelled') {
+        if (wakeLockSentinelRef.current) {
+          try {
+            await wakeLockSentinelRef.current.release();
+            wakeLockSentinelRef.current = null;
+            if (isMounted) setIsWakeLockActive(false);
+          } catch {}
+        }
+        return;
+      }
+
+      if ('wakeLock' in navigator && !wakeLockSentinelRef.current) {
+        try {
+          const sentinel = await (navigator as any).wakeLock.request('screen');
+          wakeLockSentinelRef.current = sentinel;
+          if (isMounted) setIsWakeLockActive(true);
+
+          sentinel.addEventListener('release', () => {
+            wakeLockSentinelRef.current = null;
+            if (isMounted) setIsWakeLockActive(false);
+          });
+        } catch (err) {
+          console.warn('Wake Lock request error or blocked:', err);
+        }
+      }
+    }
+
+    requestWakeLock();
+
+    // Re-acquire wake lock if user switches back to this tab
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && orderStatus !== 'served' && orderStatus !== 'ready' && orderStatus !== 'cancelled') {
+        requestWakeLock();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      isMounted = false;
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (wakeLockSentinelRef.current) {
+        wakeLockSentinelRef.current.release().catch(() => {});
+        wakeLockSentinelRef.current = null;
+      }
+    };
+  }, [orderStatus]);
 
   // Hydrate orderNumber and tableNumber from storage if missing
   useEffect(() => {
@@ -460,6 +519,18 @@ function OrderConfirmationContent({ menupages }: { menupages: string }) {
           >
             Your order has been placed successfully. We'll notify you when it's ready.
           </motion.p>
+
+          {/* Wake Lock Screen Awake Badge */}
+          {isWakeLockActive && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="mt-3 inline-flex items-center gap-2 px-3 py-1 bg-amber-500/10 border border-amber-500/25 rounded-full text-[11px] font-bold text-amber-900 shadow-2xs"
+            >
+              <Eye className="w-3.5 h-3.5 text-amber-700 animate-pulse" />
+              <span>Screen kept awake for live food alerts</span>
+            </motion.div>
+          )}
 
           {/* Estimated Time */}
           <motion.div 
