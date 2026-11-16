@@ -18,9 +18,11 @@ import {
   Crown,
   Star,
   FolderOpen,
-  Edit3
+  Edit3,
+  Sliders
 } from "lucide-react";
 import useSWR, { mutate } from "swr";
+import ItemModifiersModal, { ModifierGroup } from "@/components/ItemModifiersModal";
 
 type MenuItem = {
   id: string;
@@ -28,6 +30,7 @@ type MenuItem = {
   price: number;
   category: string;
   imageUrl: string;
+  modifierGroups?: ModifierGroup[];
   editing?: boolean;
   editName?: string;
   editPrice?: number;
@@ -123,6 +126,7 @@ export default function ManageMenuPage() {
 
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [newCategory, setNewCategory] = useState("");
+  const [editingModifiersItem, setEditingModifiersItem] = useState<MenuItem | null>(null);
 
   // Synchronize local menu state with SWR data
   useEffect(() => {
@@ -133,6 +137,7 @@ export default function ManageMenuPage() {
         price: it.price,
         category: it.category,
         imageUrl: it.imageUrl,
+        modifierGroups: it.modifierGroups || [],
       }));
       setMenu(items);
       
@@ -297,6 +302,28 @@ export default function ManageMenuPage() {
     const imageUrl = URL.createObjectURL(file);
     updateEditField(id, 'editImageUrl', imageUrl);
     setMenu(menu.map(m => m.id === id ? { ...m, editImageFile: file } : m));
+  };
+
+  const handleSaveModifiers = async (groups: ModifierGroup[]) => {
+    if (!editingModifiersItem) return;
+    const itemId = editingModifiersItem.id;
+    const payload = {
+      modifierGroups: groups,
+    };
+    const res = await fetch(`/api/menu/${menupages}?id=${encodeURIComponent(itemId)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+    const json = await res.json();
+    if (!res.ok || !json?.success) {
+      throw new Error(json?.message || "Failed to update customizations");
+    }
+
+    // Update local state
+    setMenu(prev => prev.map(m => m.id === itemId ? { ...m, modifierGroups: groups } : m));
+    mutateMenu();
   };
 
   const onDelete = async (id: string) => {
@@ -703,6 +730,25 @@ export default function ManageMenuPage() {
 
                       <td className="py-3 sm:py-4 px-3 sm:px-6">
                         <div className="flex items-center justify-center gap-2">
+                          {/* Customizations / Modifiers button */}
+                          <button
+                            type="button"
+                            onClick={() => setEditingModifiersItem(item)}
+                            className={`px-2.5 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs ${
+                              item.modifierGroups && item.modifierGroups.length > 0
+                                ? "bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100"
+                                : "bg-white text-muted hover:text-text border-[#E5DFD4] hover:bg-[#FBF8F3]"
+                            }`}
+                            title="Manage Item Modifiers & Customizations"
+                          >
+                            <Sliders size={13} className={item.modifierGroups && item.modifierGroups.length > 0 ? "text-amber-700" : "text-muted"} />
+                            <span className="hidden md:inline">
+                              {item.modifierGroups && item.modifierGroups.length > 0
+                                ? `${item.modifierGroups.length} Add-on${item.modifierGroups.length > 1 ? 's' : ''}`
+                                : "+ Add-ons"}
+                            </span>
+                          </button>
+
                           {item.editing ? (
                             <>
                               <button 
@@ -749,6 +795,17 @@ export default function ManageMenuPage() {
           </div>
         )}
       </motion.section>
+
+      {/* Item Customizations / Modifiers Modal */}
+      {editingModifiersItem && (
+        <ItemModifiersModal
+          isOpen={Boolean(editingModifiersItem)}
+          onClose={() => setEditingModifiersItem(null)}
+          itemName={editingModifiersItem.name}
+          initialGroups={editingModifiersItem.modifierGroups || []}
+          onSave={handleSaveModifiers}
+        />
+      )}
     </div>
   );
 }
