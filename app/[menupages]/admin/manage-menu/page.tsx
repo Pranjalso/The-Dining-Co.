@@ -645,28 +645,39 @@ export default function ManageMenuPage() {
                       
                       <td className="py-3 sm:py-4 px-3 sm:px-6">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex-shrink-0 overflow-hidden border border-border shadow-sm">
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex-shrink-0 overflow-hidden border border-border shadow-sm relative group">
                             {item.editing ? (
-                              item.editImageUrl ? (
-                                <img 
-                                  src={item.editImageUrl} 
-                                  alt={item.name} 
-                                  className="w-full h-full object-cover"
-                                  onError={(e) => {
-                                    (e.target as HTMLImageElement).src = getUnsplashImage(item.name);
-                                  }}
-                                />
-                              ) : (
-                                <div className="w-full h-full bg-surface flex items-center justify-center relative group cursor-pointer">
-                                  <ImageIcon size={14} className="text-primary/60" />
+                              <>
+                                {item.editImageUrl ? (
+                                  <img 
+                                    src={item.editImageUrl} 
+                                    alt={item.name} 
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).src = getUnsplashImage(item.name);
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="w-full h-full bg-surface flex items-center justify-center">
+                                    <ImageIcon size={14} className="text-primary/60" />
+                                  </div>
+                                )}
+                                
+                                {/* Overlay to change image while editing */}
+                                <label 
+                                  title="Click to change image"
+                                  className="absolute inset-0 bg-black/50 opacity-80 sm:opacity-0 sm:group-hover:opacity-100 flex flex-col items-center justify-center text-white cursor-pointer transition-opacity duration-200"
+                                >
+                                  <UploadCloud size={16} className="text-white drop-shadow" />
+                                  <span className="text-[9px] font-bold tracking-tight uppercase mt-0.5 drop-shadow">Change</span>
                                   <input
                                     type="file"
                                     accept="image/*"
-                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                    className="hidden"
                                     onChange={(e) => handleEditImageUpload(item.id, e)}
                                   />
-                                </div>
-                              )
+                                </label>
+                              </>
                             ) : (
                               <img 
                                 src={transformCloudinary(item.imageUrl, 80, 80)} 
