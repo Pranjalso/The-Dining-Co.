@@ -25,6 +25,7 @@ export const POST = withCafeAccess(async (
     }
 
     const cleanTable = String(tableNumber).trim();
+    const safeTableChan = cleanTable.replace(/[^a-zA-Z0-9_\-=@,.;]/g, '_');
 
     // Find all pending orders for this table
     const orders = await Order.find({
@@ -71,7 +72,7 @@ export const POST = withCafeAccess(async (
         timestamp: new Date().toISOString(),
       });
 
-      await pusher.trigger(`cafe-${params.slug}-table-${cleanTable}`, 'payment-received', {
+      await pusher.trigger(`cafe-${params.slug}-table-${safeTableChan}`, 'payment-received', {
         tableNumber: cleanTable,
         orderNumbers,
         total: totalAmount,

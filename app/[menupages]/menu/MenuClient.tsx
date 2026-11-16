@@ -26,6 +26,7 @@ import ElegantPaymentModal from "@/components/ElegantPaymentModal";
 import ItemCustomizationModal, { ModifierGroup } from "@/components/ItemCustomizationModal";
 import ActiveTableTabBanner, { ActiveTableTabData } from "@/components/ActiveTableTabBanner";
 import TableTabDrawer from "@/components/TableTabDrawer";
+import OrderPreparedModal from "@/components/OrderPreparedModal";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -111,6 +112,10 @@ export default function MenuClient({
   } | null>(null);
   const [customizingItem, setCustomizingItem] = useState<MenuItem | null>(null);
   const [activeTabDrawerOpen, setActiveTabDrawerOpen] = useState<boolean>(false);
+  const [preparedAlert, setPreparedAlert] = useState<{
+    orderNumber: string | number;
+    tableNumber: string;
+  } | null>(null);
 
   // Active Table Tab State & SWR Polling
   const effectiveTable = tableNumber ? tableNumber.trim() : "";
@@ -375,11 +380,30 @@ export default function MenuClient({
           } catch { }
         }
       }
+
+      // 3. Order Prepared / Ready / Served alert (continuous siren until OK)
+      if (data.orderStatus === 'ready' || data.orderStatus === 'served') {
+        const matchesTable = tableNumber && String(data.tableNumber).trim() === String(tableNumber).trim();
+        const matchesOrder = orderNumber && String(data.orderNumber) === String(orderNumber);
+
+        if (matchesTable || matchesOrder || (!tableNumber && !orderNumber)) {
+          try {
+            const ack = window.sessionStorage.getItem(`sd:ackPrepared:${data.orderNumber || orderNumber}`);
+            if (!ack) {
+              setPreparedAlert({
+                orderNumber: data.orderNumber || orderNumber || '',
+                tableNumber: data.tableNumber || tableNumber || '',
+              });
+            }
+          } catch { }
+        }
+      }
     };
 
     if (tableNumber) {
       const clean = tableNumber.trim();
-      const tableChan = pusher.subscribe(`cafe-${menupages}-table-${clean}`);
+      const safeChan = clean.replace(/[^a-zA-Z0-9_\-=@,.;]/g, '_');
+      const tableChan = pusher.subscribe(`cafe-${menupages}-table-${safeChan}`);
       tableChan.bind('order-status-updated', handleStatusUpdate);
       tableChan.bind('payment-received', handleStatusUpdate);
       tableChan.bind('table-tab-updated', () => {
@@ -1100,6 +1124,21 @@ export default function MenuClient({
           tabData={activeTabData}
           onAddMoreItems={() => {
             setActiveTabDrawerOpen(false);
+          }}
+        />
+
+        {/* Continuous Siren / Alarm Modal when Order is Prepared / Ready / Served */}
+        <OrderPreparedModal
+          isOpen={Boolean(preparedAlert)}
+          orderNumber={preparedAlert?.orderNumber || ""}
+          tableNumber={preparedAlert?.tableNumber || tableNumber || ""}
+          onAcknowledge={() => {
+            if (preparedAlert?.orderNumber) {
+              try {
+                window.sessionStorage.setItem(`sd:ackPrepared:${preparedAlert.orderNumber}`, "true");
+              } catch {}
+            }
+            setPreparedAlert(null);
           }}
         />
       </div>

@@ -18,6 +18,7 @@ import { Suspense, useEffect, useState, useRef } from "react";
 import useSWR from "swr";
 import { getPusherClient } from "@/lib/pusher-client";
 import CustomerRatingCard from "@/components/CustomerRatingCard";
+import OrderPreparedModal from "@/components/OrderPreparedModal";
 
 // Pleasant 2-tone harmonic confirmation chime
 function playPaymentSuccessChime() {
@@ -75,7 +76,9 @@ function OrderConfirmationContent({ menupages }: { menupages: string }) {
   const [isRejected, setIsRejected] = useState<boolean>(false);
   const [rejectionMessage, setRejectionMessage] = useState<string>('');
   const [showPaymentModal, setShowPaymentModal] = useState<boolean>(false);
+  const [showPreparedAlert, setShowPreparedAlert] = useState<boolean>(false);
   const hasNotifiedPayment = useRef<boolean>(false);
+  const hasNotifiedPrepared = useRef<boolean>(false);
 
   // Hydrate orderNumber and tableNumber from storage if missing
   useEffect(() => {
@@ -120,6 +123,15 @@ function OrderConfirmationContent({ menupages }: { menupages: string }) {
       }
       if (data.orderStatus) {
         setOrderStatus(data.orderStatus);
+        if ((data.orderStatus === 'ready' || data.orderStatus === 'served') && !hasNotifiedPrepared.current) {
+          try {
+            const acknowledged = window.sessionStorage.getItem(`sd:ackPrepared:${data.orderNumber || orderNumber}`);
+            if (!acknowledged) {
+              hasNotifiedPrepared.current = true;
+              setShowPreparedAlert(true);
+            }
+          } catch {}
+        }
       }
       if (data.total) {
         setOrderTotal(Number(data.total));
@@ -165,6 +177,15 @@ function OrderConfirmationContent({ menupages }: { menupages: string }) {
       }
       if (data.orderStatus) {
         setOrderStatus(data.orderStatus);
+        if ((data.orderStatus === 'ready' || data.orderStatus === 'served') && !hasNotifiedPrepared.current) {
+          try {
+            const acknowledged = window.sessionStorage.getItem(`sd:ackPrepared:${data.orderNumber || orderNumber}`);
+            if (!acknowledged) {
+              hasNotifiedPrepared.current = true;
+              setShowPreparedAlert(true);
+            }
+          } catch {}
+        }
       }
       if (data.tableNumber && !tableNumber) {
         setTableNumber(String(data.tableNumber));
@@ -217,7 +238,8 @@ function OrderConfirmationContent({ menupages }: { menupages: string }) {
     // 2. Table channel
     if (tableNumber) {
       const cleanTable = String(tableNumber).trim();
-      const tableChannel = pusher.subscribe(`cafe-${menupages}-table-${cleanTable}`);
+      const safeTable = cleanTable.replace(/[^a-zA-Z0-9_\-=@,.;]/g, '_');
+      const tableChannel = pusher.subscribe(`cafe-${menupages}-table-${safeTable}`);
       tableChannel.bind('order-status-updated', handleUpdate);
       tableChannel.bind('payment-received', handleUpdate);
       channels.push(tableChannel);
@@ -564,6 +586,21 @@ function OrderConfirmationContent({ menupages }: { menupages: string }) {
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* Continuous Siren / Alarm Modal when Order is Prepared / Ready / Served */}
+          <OrderPreparedModal
+            isOpen={showPreparedAlert}
+            orderNumber={orderNumber || ""}
+            tableNumber={tableNumber || ""}
+            onAcknowledge={() => {
+              setShowPreparedAlert(false);
+              try {
+                if (orderNumber) {
+                  window.sessionStorage.setItem(`sd:ackPrepared:${orderNumber}`, "true");
+                }
+              } catch {}
+            }}
+          />
 
           {/* Actions */}
           <motion.div 

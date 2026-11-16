@@ -281,6 +281,7 @@ export const POST = async (
 
     // Check if there is an existing open tab for this table
     const cleanTable = String(body.tableNumber).trim();
+    const safeTableChannel = cleanTable.replace(/[^a-zA-Z0-9_\-=@,.;]/g, '_');
     let parentOrderNumber: number | undefined = undefined;
     let isAddonRound = false;
 
@@ -340,7 +341,7 @@ export const POST = async (
       });
 
       // Also trigger table-level event so active customer tabs refresh automatically
-      await pusher.trigger(`cafe-${slug}-table-${cleanTable}`, 'table-tab-updated', {
+      await pusher.trigger(`cafe-${slug}-table-${safeTableChannel}`, 'table-tab-updated', {
         orderNumber: order.orderNumber,
         parentOrderNumber: order.parentOrderNumber,
         tableNumber: cleanTable,
@@ -428,12 +429,13 @@ export const PATCH = withCafeAccess(async (
         await pusher.trigger(`cafe-${params.slug}`, 'payment-received', eventPayload);
       }
 
-      // 2. Specific table channel (e.g. cafe-mycafe-table-09)
+      // 2. Specific table channel (e.g. cafe-mycafe-table-Table_4)
       if (order.tableNumber) {
         const cleanTable = String(order.tableNumber).trim();
-        await pusher.trigger(`cafe-${params.slug}-table-${cleanTable}`, 'order-status-updated', eventPayload);
+        const safeTableChan = cleanTable.replace(/[^a-zA-Z0-9_\-=@,.;]/g, '_');
+        await pusher.trigger(`cafe-${params.slug}-table-${safeTableChan}`, 'order-status-updated', eventPayload);
         if (isPaymentCompleted) {
-          await pusher.trigger(`cafe-${params.slug}-table-${cleanTable}`, 'payment-received', eventPayload);
+          await pusher.trigger(`cafe-${params.slug}-table-${safeTableChan}`, 'payment-received', eventPayload);
         }
       }
 
