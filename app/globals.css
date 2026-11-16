@@ -74,6 +74,71 @@
   --color-card: #FFFFFF;
 }
 
+/* Theme 1: Default / Luxury Warm Beige & Gold (default) */
+[data-theme="warm-beige"] {
+  --color-background: #FBF8F3;
+  --color-section: #F3EFE6;
+  --color-surface: #F3EFE6;
+  --color-surface-hover: #EAE3D5;
+  --color-primary: #B8860B;
+  --color-primary-hover: #9C7006;
+  --color-secondary: #8B3A2B;
+  --color-text: #1C1917;
+  --color-muted: #78716C;
+  --color-border: #E5DFD4;
+  --color-card: #FFFFFF;
+}
+
+/* Theme 2: Red + Black (Bold Gourmet Bistro) */
+[data-theme="red-black"] {
+  --color-background: #0E0E10;
+  --color-section: #1A1A1E;
+  --color-surface: #1E1E24;
+  --color-surface-hover: #292930;
+  --color-primary: #E50914;
+  --color-primary-hover: #C10711;
+  --color-secondary: #FF4D4D;
+  --color-text: #FFFFFF;
+  --color-muted: #A1A1AA;
+  --color-border: #2E2E38;
+  --color-card: #18181D;
+
+  --background: 240 10% 4%;
+  --foreground: 0 0% 100%;
+  --card: 240 8% 10%;
+  --card-foreground: 0 0% 100%;
+  --primary: 357 92% 47%;
+  --primary-foreground: 0 0% 100%;
+  --border: 240 10% 20%;
+  --muted: 240 5% 26%;
+  --muted-foreground: 240 5% 65%;
+}
+
+/* Theme 3: Light Green & Cream (Fresh Organic Botanical) */
+[data-theme="light-green-creme"] {
+  --color-background: #F7FAF6;
+  --color-section: #EEF5ED;
+  --color-surface: #E8F1E6;
+  --color-surface-hover: #DBEAD8;
+  --color-primary: #2D6A4F;
+  --color-primary-hover: #1B4332;
+  --color-secondary: #52B788;
+  --color-text: #1B2E24;
+  --color-muted: #587364;
+  --color-border: #D3E4D1;
+  --color-card: #FFFFFF;
+
+  --background: 110 20% 97%;
+  --foreground: 145 25% 15%;
+  --card: 0 0% 100%;
+  --card-foreground: 145 25% 15%;
+  --primary: 153 40% 30%;
+  --primary-foreground: 0 0% 100%;
+  --border: 115 20% 86%;
+  --muted: 115 15% 91%;
+  --muted-foreground: 145 13% 40%;
+}
+
 .dark {
   --background: 38 35% 97%;
   --foreground: 24 15% 12%;

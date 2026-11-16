@@ -24,6 +24,7 @@ import {
   Store,
   Star,
   TicketPercent,
+  Palette,
 } from "lucide-react";
 
 import useLocalStorage from "@/hooks/use-local-storage";
@@ -189,6 +190,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       if (data.success && data.data) {
         setSubscriptionExpired(!!data.data.isExpired);
         setCafeDeactivated(!!data.data.isManuallyDeactivated);
+        // Sync theme attribute to HTML root
+        if (data.data.theme && typeof document !== 'undefined') {
+          document.documentElement.setAttribute('data-theme', data.data.theme);
+        }
       }
     }
   });
@@ -281,6 +286,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { label: "Payment Completed", href: `${base}/payment-completed`, icon: CheckCircle },
     { label: "Manage Menu", href: `${base}/manage-menu`, icon: UtensilsCrossed },
     { label: "Menu QR Code", href: `${base}/qr-code`, icon: QrCode },
+    { label: "Theme Customization", href: `${base}/theme`, icon: Palette },
     { label: "Customer Ratings", href: `${base}/ratings`, icon: Star },
     { label: "Special Offers", href: `${base}/offers`, icon: TicketPercent },
     { label: "Settings", href: `${base}/settings`, icon: Settings }, 

@@ -21,6 +21,7 @@ export interface ICafeDocument extends Document {
   upiQrCode?: string;
   upiId?: string;
   tables?: string[];
+  theme?: 'warm-beige' | 'red-black' | 'light-green-creme';
 }
 
 const CafeSchema = new Schema<ICafeDocument>(
@@ -119,6 +120,11 @@ const CafeSchema = new Schema<ICafeDocument>(
     tables: {
       type: [String],
       default: [],
+    },
+    theme: {
+      type: String,
+      enum: ['warm-beige', 'red-black', 'light-green-creme'],
+      default: 'warm-beige',
     },
   },
   {

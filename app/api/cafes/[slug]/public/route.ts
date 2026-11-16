@@ -10,7 +10,7 @@ export async function GET(
   try {
     await connectDB();
 
-    const cafe = await Cafe.findOne({ slug: params.slug }).select('slug cafeName isActive endDate subscriptionPlan taxRate showTax upiQrCode upiId tables');
+    const cafe = await Cafe.findOne({ slug: params.slug }).select('slug cafeName isActive endDate subscriptionPlan taxRate showTax upiQrCode upiId tables theme');
 
     if (!cafe) {
       return NextResponse.json(
@@ -36,6 +36,7 @@ export async function GET(
         upiQrCode: cafe.upiQrCode || null,
         upiId: cafe.upiId || null,
         tables: cafe.tables || [],
+        theme: cafe.theme || 'warm-beige',
       },
     });
   } catch (error) {

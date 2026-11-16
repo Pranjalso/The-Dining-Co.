@@ -132,12 +132,27 @@ export default function MenuClient({
     return null;
   }, [tabResponse]);
 
-  // Fetch public cafe info for live cafe name fallback
+  // Fetch public cafe info for live cafe name fallback & theme sync
   const { data: cafePublicData } = useSWR(
     menupages ? `/api/cafes/${menupages}/public` : null,
     fetcher,
-    { revalidateOnFocus: false, dedupingInterval: 60000 }
+    { 
+      revalidateOnFocus: false, 
+      dedupingInterval: 30000,
+      onSuccess: (res) => {
+        if (res?.success && res.data?.theme && typeof document !== 'undefined') {
+          document.documentElement.setAttribute('data-theme', res.data.theme);
+        }
+      }
+    }
   );
+
+  // Sync theme attribute to HTML root for customer menu
+  useEffect(() => {
+    if (cafePublicData?.data?.theme && typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', cafePublicData.data.theme);
+    }
+  }, [cafePublicData]);
 
   const effectiveCafeName = cafeName || cafePublicData?.data?.cafeName || menupages;
 
