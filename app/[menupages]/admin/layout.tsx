@@ -198,6 +198,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   });
 
+  // Dedicated Theme SWR fetcher to keep admin theme in sync with /api/cafes/[slug]/theme
+  const themeUrl = menupages ? `/api/cafes/${menupages}/theme` : null;
+  useSWR(themeUrl, {
+    revalidateOnFocus: true,
+    dedupingInterval: 5000,
+    onSuccess: (res: any) => {
+      if (res?.success && res.data?.theme && typeof document !== 'undefined') {
+        document.documentElement.setAttribute('data-theme', res.data.theme);
+      }
+    }
+  });
+
   useEffect(() => {
     const handleRefresh = (e?: any) => {
       if (e?.detail?.decrement) {
@@ -269,12 +281,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     channel.bind('new-order', handleRealtimeOrder);
     channel.bind('order-status-updated', handleRealtimeOrder);
 
+    const handleThemeUpdate = (data?: any) => {
+      if (data?.theme && typeof document !== 'undefined') {
+        document.documentElement.setAttribute('data-theme', data.theme);
+      }
+      if (themeUrl) mutate(themeUrl);
+      if (statusUrl) mutate(statusUrl);
+    };
+    channel.bind('theme-updated', handleThemeUpdate);
+
     return () => {
       channel.unbind('new-order', handleRealtimeOrder);
       channel.unbind('order-status-updated', handleRealtimeOrder);
+      channel.unbind('theme-updated', handleThemeUpdate);
       pusher.unsubscribe(channelName);
     };
-  }, [menupages, statsUrl]);
+  }, [menupages, statsUrl, themeUrl, statusUrl]);
 
   const base = menupages ? `/${menupages}/admin` : "/admin";
   const isNewOrdersPage = pathname === `${base}/new-orders`;

@@ -18,7 +18,7 @@ import {
   Armchair,
   TicketPercent,
 } from "lucide-react";
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
 import { getPusherClient } from "@/lib/pusher-client";
 import OfferPopupModal, { OfferItem } from "@/components/OfferPopupModal";
 import ServiceBellModal from "@/components/ServiceBellModal";
@@ -437,6 +437,15 @@ export default function MenuClient({
     const cafeChan = pusher.subscribe(`cafe-${menupages}`);
     cafeChan.bind('order-status-updated', handleStatusUpdate);
     cafeChan.bind('payment-received', handleStatusUpdate);
+
+    const handleThemeUpdate = (payload?: any) => {
+      if (payload?.theme && typeof document !== 'undefined') {
+        document.documentElement.setAttribute('data-theme', payload.theme);
+      }
+      mutate(`/api/cafes/${menupages}/public`);
+      mutate(`/api/cafes/${menupages}/theme`);
+    };
+    cafeChan.bind('theme-updated', handleThemeUpdate);
     channels.push(cafeChan);
 
     return () => {
@@ -444,6 +453,7 @@ export default function MenuClient({
         try {
           ch.unbind('order-status-updated', handleStatusUpdate);
           ch.unbind('payment-received', handleStatusUpdate);
+          ch.unbind('theme-updated', handleThemeUpdate);
         } catch { }
       });
     };
@@ -801,27 +811,27 @@ export default function MenuClient({
       </AnimatePresence>
 
       {/* Mobile Container */}
-      <div className="max-w-md mx-auto bg-[#FBF8F3] min-h-screen shadow-xl border-x border-[#E5DFD4] relative flex flex-col">
+      <div className="max-w-md mx-auto menu-container min-h-screen shadow-xl border-x menu-border relative flex flex-col">
         {/* Header */}
-        <header className="sticky top-0 z-10 bg-[#FBF8F3]/95 backdrop-blur-xl border-b border-[#E5DFD4] px-4 py-2.5">
+        <header className="sticky top-0 z-10 menu-header backdrop-blur-xl border-b menu-border px-4 py-2.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 bg-white rounded-xl border border-[#E5DFD4] flex items-center justify-center flex-shrink-0 shadow-2xs">
-                <Scan className="w-4 h-4 text-[#B8860B]" />
+              <div className="w-8 h-8 menu-card rounded-xl border menu-border flex items-center justify-center flex-shrink-0 shadow-2xs">
+                <Scan className="w-4 h-4 menu-primary-text" />
               </div>
               <div className="min-w-0">
-                <h1 className="text-base font-extrabold text-stone-900 tracking-tight font-heading truncate">
+                <h1 className="text-base font-extrabold menu-text tracking-tight font-heading truncate">
                   {effectiveCafeName}
                 </h1>
-                <p className="text-[9px] text-stone-500 uppercase tracking-[0.15em] font-semibold">Digital Menu</p>
+                <p className="text-[9px] menu-muted uppercase tracking-[0.15em] font-semibold">Digital Menu</p>
               </div>
             </div>
             <Link href={`/${menupages}/menu/checkout`} className="relative group" aria-label="Go to checkout">
-              <div className="w-8 h-8 rounded-xl bg-white border border-[#E5DFD4] flex items-center justify-center group-hover:border-[#B8860B]/50 group-hover:bg-[#B8860B]/5 transition-all duration-300 shadow-2xs">
-                <ShoppingCart className="w-4 h-4 text-stone-800 group-hover:text-[#B8860B] transition-colors" />
+              <div className="w-8 h-8 rounded-xl menu-card border menu-border flex items-center justify-center group-hover:opacity-90 transition-all duration-300 shadow-2xs">
+                <ShoppingCart className="w-4 h-4 menu-text group-hover:opacity-80 transition-colors" />
               </div>
               {uniqueItemsCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-[#B8860B] text-white text-[9px] min-w-[18px] h-4 px-0.5 rounded-full flex items-center justify-center border-2 border-white font-extrabold shadow-sm font-price">
+                <span className="absolute -top-1 -right-1 menu-primary-btn text-[9px] min-w-[18px] h-4 px-0.5 rounded-full flex items-center justify-center border-2 border-white font-extrabold shadow-sm font-price">
                   {uniqueItemsCount}
                 </span>
               )}
@@ -933,9 +943,9 @@ export default function MenuClient({
                     onClick={() => setActiveCategory(cat.name)}
                     className="flex flex-col items-center gap-1.5 min-w-[62px] max-w-[76px] py-1 transition-all duration-200 group focus:outline-none shrink-0"
                   >
-                    <div className={`w-14 h-14 rounded-2xl overflow-hidden transition-all duration-200 bg-white p-0.5 border shadow-2xs ${isActive
-                      ? "border-[#B8860B] ring-2 ring-[#B8860B] ring-offset-2 ring-offset-[#FBF8F3] shadow-sm"
-                      : "border-[#E5DFD4] opacity-85 group-hover:opacity-100 group-hover:border-[#B8860B]/40"
+                    <div className={`w-14 h-14 rounded-2xl overflow-hidden transition-all duration-200 menu-card p-0.5 border shadow-2xs ${isActive
+                      ? "border-[var(--theme-primary)] ring-2 ring-[var(--theme-primary)] ring-offset-2 ring-offset-[var(--theme-bg)] shadow-sm"
+                      : "menu-border opacity-85 group-hover:opacity-100 group-hover:border-[var(--theme-primary)]/40"
                       }`}>
                       <img
                         src={cat.image}
@@ -946,7 +956,7 @@ export default function MenuClient({
                         }}
                       />
                     </div>
-                    <span className={`text-[11px] leading-tight text-center line-clamp-2 transition-colors duration-200 ${isActive ? "text-stone-900 font-bold" : "text-stone-500 font-medium group-hover:text-stone-800"
+                    <span className={`text-[11px] leading-tight text-center line-clamp-2 transition-colors duration-200 ${isActive ? "menu-text font-bold" : "menu-muted font-medium group-hover:opacity-100"
                       }`}>
                       {cat.name}
                     </span>
@@ -963,21 +973,21 @@ export default function MenuClient({
           <div className="px-4 pt-1 pb-3">
             <div className="flex items-center justify-between mb-2.5">
               <div className="flex items-center gap-2">
-                <div className="w-1 h-4 bg-[#B8860B] rounded-full" />
-                <h2 className="text-base font-extrabold text-stone-900 tracking-tight font-heading">
+                <div className="w-1 h-4 menu-primary-btn rounded-full" />
+                <h2 className="text-base font-extrabold menu-text tracking-tight font-heading">
                   {activeCategory || 'Menu'}
                 </h2>
               </div>
               {!loadingCategory && (
-                <span className="text-[10px] font-semibold text-stone-500 bg-white px-2 py-0.5 rounded-full border border-[#E5DFD4]">
+                <span className="text-[10px] font-semibold menu-muted menu-card px-2 py-0.5 rounded-full border menu-border">
                   {items.filter(item => item.category === activeCategory).length} items
                 </span>
               )}
             </div>
             <div className="space-y-2.5">
               {loadingCategory && (
-                <div className="text-xs text-stone-500 py-6 text-center bg-white rounded-xl border border-[#E5DFD4]">
-                  <Loader2 className="w-5 h-5 animate-spin mx-auto mb-1.5 text-[#B8860B]" />
+                <div className="text-xs menu-muted py-6 text-center menu-card rounded-xl border menu-border">
+                  <Loader2 className="w-5 h-5 animate-spin mx-auto mb-1.5 menu-primary-text" />
                   Loading {activeCategory}…
                 </div>
               )}
@@ -989,10 +999,10 @@ export default function MenuClient({
                   return (
                     <div
                       key={String(item.id)}
-                      className="group flex items-center justify-between bg-white border border-[#E5DFD4] hover:border-[#B8860B]/60 rounded-2xl p-3 sm:p-3.5 transition-all duration-300 shadow-[0_2px_8px_rgba(28,25,23,0.03)] hover:shadow-[0_6px_20px_rgba(184,134,11,0.08)] hover:-translate-y-0.5"
+                      className="group flex items-center justify-between menu-card border menu-border hover:border-[var(--theme-primary)]/60 rounded-2xl p-3 sm:p-3.5 transition-all duration-300 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-lg hover:-translate-y-0.5"
                     >
                       <div className="flex items-center gap-3.5 flex-1 min-w-0 pr-3">
-                        <div className="relative w-16 h-16 sm:w-18 sm:h-18 rounded-2xl overflow-hidden flex-shrink-0 shadow-xs border border-[#E5DFD4]/80 bg-[#F3EFE6] p-0.5">
+                        <div className="relative w-16 h-16 sm:w-18 sm:h-18 rounded-2xl overflow-hidden flex-shrink-0 shadow-xs border menu-border/80 bg-[var(--theme-surface)] p-0.5">
                           <img
                             src={item.image}
                             alt={item.name}
@@ -1004,19 +1014,19 @@ export default function MenuClient({
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-stone-900 text-sm sm:text-base tracking-tight line-clamp-1 group-hover:text-[#B8860B] transition-colors">
+                          <h3 className="font-bold menu-text text-sm sm:text-base tracking-tight line-clamp-1 group-hover:text-[var(--theme-primary)] transition-colors">
                             {item.name}
                           </h3>
                           {item.description && (
-                            <p className="text-[11px] text-stone-500 line-clamp-2 mt-0.5 leading-snug font-normal">
+                            <p className="text-[11px] menu-muted line-clamp-2 mt-0.5 leading-snug font-normal">
                               {item.description}
                             </p>
                           )}
-                          <p className="text-sm sm:text-base font-black text-stone-900 mt-1 font-price tabular-nums">
+                          <p className="text-sm sm:text-base font-black menu-text mt-1 font-price tabular-nums">
                             ₹{item.price}
                           </p>
                           {item.modifierGroups && item.modifierGroups.length > 0 && (
-                            <span className="inline-block mt-0.5 text-[9px] font-bold uppercase tracking-wider text-[#B8860B] bg-[#B8860B]/10 px-1.5 py-0.5 rounded">
+                            <span className="inline-block mt-0.5 text-[9px] font-bold uppercase tracking-wider menu-primary-text bg-[var(--theme-primary)]/10 px-1.5 py-0.5 rounded">
                               Customizable
                             </span>
                           )}
@@ -1027,12 +1037,12 @@ export default function MenuClient({
                         {qty === 0 ? (
                           <button
                             onClick={() => handleAddClick(item)}
-                            className="px-3.5 py-2 bg-white text-[#B8860B] hover:bg-gradient-to-r hover:from-[#B8860B] hover:to-[#9C7006] hover:text-white border-2 border-[#B8860B] rounded-xl text-xs font-extrabold transition-all duration-200 shadow-2xs min-w-[70px] uppercase tracking-wider active:scale-95 cursor-pointer flex items-center justify-center gap-1"
+                            className="px-3.5 py-2 menu-card menu-primary-text hover:menu-primary-btn border-2 menu-primary-border rounded-xl text-xs font-extrabold transition-all duration-200 shadow-2xs min-w-[70px] uppercase tracking-wider active:scale-95 cursor-pointer flex items-center justify-center gap-1"
                           >
                             <span>+ ADD</span>
                           </button>
                         ) : (
-                          <div className="flex items-center bg-[#F3EFE6] border border-[#E5DFD4] rounded-xl p-1 shadow-inner gap-1">
+                          <div className="flex items-center bg-[var(--theme-surface)] border menu-border rounded-xl p-1 shadow-inner gap-1">
                             <button
                               onClick={() => {
                                 if (item.modifierGroups && item.modifierGroups.length > 0) {
@@ -1053,17 +1063,17 @@ export default function MenuClient({
                                   updateQuantity(item, -1);
                                 }
                               }}
-                              className="w-7 h-7 bg-white text-stone-700 hover:text-[#B8860B] rounded-lg flex items-center justify-center transition-all duration-150 border border-[#E5DFD4] shadow-2xs active:scale-90 cursor-pointer"
+                              className="w-7 h-7 menu-card menu-text hover:menu-primary-text rounded-lg flex items-center justify-center transition-all duration-150 border menu-border shadow-2xs active:scale-90 cursor-pointer"
                               aria-label="Decrease quantity"
                             >
                               <Minus className="w-3.5 h-3.5 stroke-[2.5]" />
                             </button>
-                            <span className="w-6 text-center font-black text-xs text-stone-900 select-none font-price tabular-nums">
+                            <span className="w-6 text-center font-black text-xs menu-text select-none font-price tabular-nums">
                               {qty}
                             </span>
                             <button
                               onClick={() => handleAddClick(item)}
-                              className="w-7 h-7 bg-gradient-to-r from-[#B8860B] to-[#9C7006] text-white hover:from-[#A2760A] hover:to-[#855D05] rounded-lg flex items-center justify-center transition-all duration-150 shadow-2xs active:scale-90 cursor-pointer"
+                              className="w-7 h-7 menu-primary-btn rounded-lg flex items-center justify-center transition-all duration-150 shadow-2xs active:scale-90 cursor-pointer"
                               aria-label="Increase quantity"
                             >
                               <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -1075,8 +1085,8 @@ export default function MenuClient({
                   );
                 })}
               {!loadingCategory && items.filter(item => item.category === activeCategory).length === 0 && (
-                <div className="text-xs text-stone-500 py-8 text-center border border-dashed border-[#E5DFD4] rounded-xl bg-white">
-                  <UtensilsCrossed className="w-7 h-7 mx-auto mb-1.5 text-stone-400" />
+                <div className="text-xs menu-muted py-8 text-center border border-dashed menu-border rounded-xl menu-card">
+                  <UtensilsCrossed className="w-7 h-7 mx-auto mb-1.5 menu-muted" />
                   No items available in this category.
                 </div>
               )}
@@ -1085,23 +1095,23 @@ export default function MenuClient({
         </div>
 
         {/* Cart Bottom Bar */}
-        <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-40 bg-white/95 backdrop-blur-xl border-t border-[#E5DFD4] shadow-[0_-8px_30px_rgba(28,25,23,0.08)]">
+        <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-40 menu-card backdrop-blur-xl border-t menu-border shadow-[0_-8px_30px_rgba(0,0,0,0.08)]">
           <div className="px-4 py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#B8860B]/15 to-[#B8860B]/5 border border-[#B8860B]/25 flex items-center justify-center shadow-xs">
-                  <ShoppingCart className="w-5 h-5 text-[#B8860B]" />
+                <div className="relative w-10 h-10 rounded-2xl bg-[var(--theme-primary)]/15 border border-[var(--theme-primary)]/25 flex items-center justify-center shadow-xs">
+                  <ShoppingCart className="w-5 h-5 menu-primary-text" />
                   {uniqueItemsCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-[#B8860B] text-white text-[9px] min-w-[17px] h-4 px-1 rounded-full flex items-center justify-center font-black border-2 border-white">
+                    <span className="absolute -top-1 -right-1 menu-primary-btn text-[9px] min-w-[17px] h-4 px-1 rounded-full flex items-center justify-center font-black border-2 border-white">
                       {uniqueItemsCount}
                     </span>
                   )}
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">
+                  <p className="text-[10px] font-bold menu-muted uppercase tracking-widest">
                     Your Selection
                   </p>
-                  <p className="text-base sm:text-lg font-black text-stone-900 tracking-tight font-price tabular-nums leading-tight">
+                  <p className="text-base sm:text-lg font-black menu-text tracking-tight font-price tabular-nums leading-tight">
                     ₹{totalPrice}
                   </p>
                 </div>
@@ -1110,8 +1120,8 @@ export default function MenuClient({
                 href={`/${menupages}/menu/checkout`}
                 aria-disabled={uniqueItemsCount === 0}
                 className={`px-5 py-2.5 rounded-xl font-bold transition-all duration-300 text-xs flex items-center gap-2 ${uniqueItemsCount === 0
-                  ? 'bg-[#F3EFE6] text-stone-400 cursor-not-allowed pointer-events-none border border-[#E5DFD4]'
-                  : 'bg-gradient-to-r from-[#B8860B] via-[#A2760A] to-[#855D05] hover:brightness-105 text-white shadow-lg shadow-[#B8860B]/25 hover:scale-[1.02] active:scale-[0.98]'
+                  ? 'bg-[var(--theme-surface)] menu-muted cursor-not-allowed pointer-events-none border menu-border'
+                  : 'menu-primary-btn hover:brightness-105 shadow-lg shadow-[var(--theme-primary)]/25 hover:scale-[1.02] active:scale-[0.98]'
                   }`}
               >
                 <span>View Cart & Checkout</span>

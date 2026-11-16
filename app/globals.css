@@ -87,6 +87,15 @@
   --color-muted: #78716C;
   --color-border: #E5DFD4;
   --color-card: #FFFFFF;
+
+  --theme-bg: #FBF8F3;
+  --theme-surface: #F3EFE6;
+  --theme-card: #FFFFFF;
+  --theme-border: #E5DFD4;
+  --theme-primary: #B8860B;
+  --theme-primary-hover: #9C7006;
+  --theme-text: #1C1917;
+  --theme-muted: #78716C;
 }
 
 /* Theme 2: Red + Black (Bold Gourmet Bistro) */
@@ -102,6 +111,15 @@
   --color-muted: #A1A1AA;
   --color-border: #2E2E38;
   --color-card: #18181D;
+
+  --theme-bg: #0E0E10;
+  --theme-surface: #1E1E24;
+  --theme-card: #18181D;
+  --theme-border: #2E2E38;
+  --theme-primary: #E50914;
+  --theme-primary-hover: #C10711;
+  --theme-text: #FFFFFF;
+  --theme-muted: #A1A1AA;
 
   --background: 240 10% 4%;
   --foreground: 0 0% 100%;
@@ -128,6 +146,15 @@
   --color-border: #D3E4D1;
   --color-card: #FFFFFF;
 
+  --theme-bg: #F7FAF6;
+  --theme-surface: #EEF5ED;
+  --theme-card: #FFFFFF;
+  --theme-border: #D3E4D1;
+  --theme-primary: #2D6A4F;
+  --theme-primary-hover: #1B4332;
+  --theme-text: #1B2E24;
+  --theme-muted: #587364;
+
   --background: 110 20% 97%;
   --foreground: 145 25% 15%;
   --card: 0 0% 100%;
@@ -137,6 +164,50 @@
   --border: 115 20% 86%;
   --muted: 115 15% 91%;
   --muted-foreground: 145 13% 40%;
+}
+
+/* Dynamic theme classes for custom menu & admin elements */
+[data-theme] .menu-container {
+  background-color: var(--theme-bg, #FBF8F3) !important;
+  border-color: var(--theme-border, #E5DFD4) !important;
+  color: var(--theme-text, #1C1917) !important;
+}
+
+[data-theme] .menu-header {
+  background-color: var(--theme-bg, #FBF8F3) !important;
+  border-color: var(--theme-border, #E5DFD4) !important;
+  color: var(--theme-text, #1C1917) !important;
+}
+
+[data-theme] .menu-card {
+  background-color: var(--theme-card, #FFFFFF) !important;
+  border-color: var(--theme-border, #E5DFD4) !important;
+  color: var(--theme-text, #1C1917) !important;
+}
+
+[data-theme] .menu-text {
+  color: var(--theme-text, #1C1917) !important;
+}
+
+[data-theme] .menu-muted {
+  color: var(--theme-muted, #78716C) !important;
+}
+
+[data-theme] .menu-border {
+  border-color: var(--theme-border, #E5DFD4) !important;
+}
+
+[data-theme] .menu-primary-btn {
+  background-color: var(--theme-primary, #B8860B) !important;
+  color: #FFFFFF !important;
+}
+
+[data-theme] .menu-primary-text {
+  color: var(--theme-primary, #B8860B) !important;
+}
+
+[data-theme] .menu-primary-border {
+  border-color: var(--theme-primary, #B8860B) !important;
 }
 
 .dark {

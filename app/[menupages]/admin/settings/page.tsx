@@ -20,7 +20,9 @@ import {
   QrCode,
   Upload,
   Trash2,
-  Smartphone
+  Smartphone,
+  Palette,
+  Check
 } from "lucide-react";
 import { useToast, ToastProvider, ToastViewport, Toast, ToastTitle, ToastDescription, ToastClose } from "@/hooks/use-toast";
 import useSWR, { mutate } from "swr";
@@ -36,6 +38,7 @@ type Cafe = {
   showTax: boolean;
   upiQrCode?: string;
   upiId?: string;
+  theme?: "warm-beige" | "red-black" | "light-green-creme";
 };
 
 export default function SettingsPage() {
@@ -44,6 +47,8 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [uploadingQr, setUploadingQr] = useState(false);
+  const [selectedTheme, setSelectedTheme] = useState<"warm-beige" | "red-black" | "light-green-creme">("warm-beige");
+  const [savingTheme, setSavingTheme] = useState(false);
   const [originalForm, setOriginalForm] = useState<Omit<Cafe, "slug"> | null>(null);
   
   const cafeUrl = slug ? `/api/cafes/${slug}/self` : null;
@@ -76,11 +81,54 @@ export default function SettingsPage() {
         showTax: cafeData.showTax !== undefined ? cafeData.showTax : true,
         upiQrCode: cafeData.upiQrCode || "",
         upiId: cafeData.upiId || "",
+        theme: cafeData.theme || "warm-beige",
       };
       setForm(initialForm);
       setOriginalForm(initialForm);
+      if (cafeData.theme) {
+        setSelectedTheme(cafeData.theme);
+      }
     }
   }, [data]);
+
+  const handleUpdateTheme = async (newTheme: "warm-beige" | "red-black" | "light-green-creme") => {
+    setSelectedTheme(newTheme);
+    setSavingTheme(true);
+    try {
+      if (typeof document !== 'undefined') {
+        document.documentElement.setAttribute('data-theme', newTheme);
+      }
+      const res = await fetch(`/api/cafes/${slug}/theme`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ theme: newTheme }),
+      });
+      const resJson = await res.json();
+      if (!res.ok || !resJson.success) {
+        throw new Error(resJson.message || "Failed to update theme");
+      }
+
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(`sd:theme:${slug}`, newTheme);
+      }
+      if (cafeUrl) mutate(cafeUrl);
+      mutate(`/api/cafes/${slug}/theme`);
+      mutate(`/api/cafes/${slug}/public`);
+
+      toast({
+        title: "Theme Updated Successfully!",
+        description: "Your cafe menu theme is now updated across both customer menu and admin portal.",
+      });
+    } catch (err: any) {
+      toast({
+        title: "Error updating theme",
+        description: err.message || "Could not save theme",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingTheme(false);
+    }
+  };
 
   const loading = swrLoading && !data;
 
@@ -582,6 +630,147 @@ export default function SettingsPage() {
                   </p>
                 </label>
               )}
+            </div>
+          </div>
+        </div>
+
+        {/* ─── Visual Branding & Theme Customization Section ─── */}
+        <div className="bg-card border border-border rounded-3xl p-6 sm:p-8 shadow-xs">
+          <div className="flex items-center justify-between pb-6 border-b border-border">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                <Palette className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-text">Cafe Menu Theme Customization</h3>
+                <p className="text-xs text-muted mt-0.5">
+                  Select a theme palette to reflect on both customer digital menu and cafe owner admin.
+                </p>
+              </div>
+            </div>
+            {savingTheme && (
+              <div className="flex items-center gap-2 text-xs font-semibold text-primary">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Applying Theme...</span>
+              </div>
+            )}
+          </div>
+
+          <div className="pt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Theme 1: Warm Beige & Gold */}
+            <div
+              onClick={() => handleUpdateTheme("warm-beige")}
+              className={`p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 relative group flex flex-col justify-between ${
+                selectedTheme === "warm-beige"
+                  ? "border-[#B8860B] bg-[#FBF8F3] shadow-md ring-2 ring-[#B8860B]/20"
+                  : "border-border bg-surface/40 hover:border-primary/50"
+              }`}
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[#B8860B]/15 text-[#B8860B] border border-[#B8860B]/30">
+                    Current Classic
+                  </span>
+                  {selectedTheme === "warm-beige" && (
+                    <div className="w-6 h-6 rounded-full bg-[#B8860B] text-white flex items-center justify-center">
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    </div>
+                  )}
+                </div>
+                <h4 className="font-extrabold text-sm text-[#1C1917]">1) Warm Beige & Gold</h4>
+                <p className="text-xs text-stone-600 mt-1">
+                  Classic luxury dining palette with warm cream tones, Tuscan gold accents, and rich typography.
+                </p>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-[#E5DFD4] flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-4 h-4 rounded-full border border-black/10 bg-[#B8860B]" title="Primary Gold" />
+                  <span className="w-4 h-4 rounded-full border border-black/10 bg-[#FBF8F3]" title="Warm Beige Canvas" />
+                  <span className="w-4 h-4 rounded-full border border-black/10 bg-[#1C1917]" title="Charcoal Text" />
+                </div>
+                <span className="text-[11px] font-semibold text-stone-500 ml-auto">
+                  {selectedTheme === "warm-beige" ? "Active" : "Click to Apply"}
+                </span>
+              </div>
+            </div>
+
+            {/* Theme 2: Red + Black */}
+            <div
+              onClick={() => handleUpdateTheme("red-black")}
+              className={`p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 relative group flex flex-col justify-between ${
+                selectedTheme === "red-black"
+                  ? "border-[#E50914] bg-[#18181D] text-white shadow-md ring-2 ring-[#E50914]/30"
+                  : "border-border bg-surface/40 hover:border-[#E50914]/50"
+              }`}
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[#E50914]/20 text-[#E50914] border border-[#E50914]/40">
+                    High Energy
+                  </span>
+                  {selectedTheme === "red-black" && (
+                    <div className="w-6 h-6 rounded-full bg-[#E50914] text-white flex items-center justify-center">
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    </div>
+                  )}
+                </div>
+                <h4 className={`font-extrabold text-sm ${selectedTheme === "red-black" ? "text-white" : "text-text"}`}>
+                  2) Red + Black
+                </h4>
+                <p className={`text-xs mt-1 ${selectedTheme === "red-black" ? "text-zinc-300" : "text-muted"}`}>
+                  Obsidian black background with bold crimson red accents and modern high-energy contrast.
+                </p>
+              </div>
+
+              <div className={`mt-4 pt-3 border-t flex items-center gap-2 ${selectedTheme === "red-black" ? "border-zinc-800" : "border-border"}`}>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-4 h-4 rounded-full border border-white/20 bg-[#E50914]" title="Crimson Red" />
+                  <span className="w-4 h-4 rounded-full border border-white/20 bg-[#0E0E10]" title="Obsidian Black" />
+                  <span className="w-4 h-4 rounded-full border border-white/20 bg-[#FFFFFF]" title="White Text" />
+                </div>
+                <span className={`text-[11px] font-semibold ml-auto ${selectedTheme === "red-black" ? "text-red-400" : "text-muted"}`}>
+                  {selectedTheme === "red-black" ? "Active" : "Click to Apply"}
+                </span>
+              </div>
+            </div>
+
+            {/* Theme 3: Light Green & Creme */}
+            <div
+              onClick={() => handleUpdateTheme("light-green-creme")}
+              className={`p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 relative group flex flex-col justify-between ${
+                selectedTheme === "light-green-creme"
+                  ? "border-[#2D6A4F] bg-[#EEF5ED] shadow-md ring-2 ring-[#2D6A4F]/20"
+                  : "border-border bg-surface/40 hover:border-[#2D6A4F]/50"
+              }`}
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[#2D6A4F]/15 text-[#2D6A4F] border border-[#2D6A4F]/30">
+                    Organic Botanical
+                  </span>
+                  {selectedTheme === "light-green-creme" && (
+                    <div className="w-6 h-6 rounded-full bg-[#2D6A4F] text-white flex items-center justify-center">
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    </div>
+                  )}
+                </div>
+                <h4 className="font-extrabold text-sm text-[#1B2E24]">3) Light Green & Creme</h4>
+                <p className="text-xs text-stone-600 mt-1">
+                  Fresh botanical sage green paired with soothing creme and soft pistachio hues.
+                </p>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-[#D3E4D1] flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-4 h-4 rounded-full border border-black/10 bg-[#2D6A4F]" title="Sage Green" />
+                  <span className="w-4 h-4 rounded-full border border-black/10 bg-[#F7FAF6]" title="Fresh Creme" />
+                  <span className="w-4 h-4 rounded-full border border-black/10 bg-[#1B2E24]" title="Deep Forest Text" />
+                </div>
+                <span className="text-[11px] font-semibold text-emerald-800 ml-auto">
+                  {selectedTheme === "light-green-creme" ? "Active" : "Click to Apply"}
+                </span>
+              </div>
             </div>
           </div>
         </div>

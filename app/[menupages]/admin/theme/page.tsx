@@ -153,7 +153,7 @@ export default function ThemeCustomizationPage() {
   const handleSaveTheme = async () => {
     setSaving(true);
     try {
-      const res = await fetch(`/api/cafes/${slug}/self`, {
+      const res = await fetch(`/api/cafes/${slug}/theme`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ theme: selectedTheme }),
@@ -169,8 +169,9 @@ export default function ThemeCustomizationPage() {
         window.localStorage.setItem(`sd:theme:${slug}`, selectedTheme);
       }
 
-      // Revalidate SWR caches for both admin and customer public endpoint
+      // Revalidate SWR caches for admin and customer public endpoint
       if (cafeUrl) mutate(cafeUrl);
+      mutate(`/api/cafes/${slug}/theme`);
       mutate(`/api/cafes/${slug}/public`);
 
       toast({
