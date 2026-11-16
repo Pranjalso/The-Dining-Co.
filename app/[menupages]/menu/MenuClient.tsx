@@ -624,7 +624,20 @@ export default function MenuClient({
     });
   };
 
-  const getQuantity = (id: string | number) => quantities[id] || 0;
+  const getQuantity = (id: string | number) => {
+    const direct = quantities[id] || 0;
+    if (direct > 0) return direct;
+    
+    // Also check composite keys for customized items (e.g. "baseId::modifier...")
+    const idStr = String(id);
+    let totalCustomized = 0;
+    for (const [key, q] of Object.entries(quantities)) {
+      if (q > 0 && typeof key === 'string' && key.startsWith(`${idStr}::`)) {
+        totalCustomized += q;
+      }
+    }
+    return totalCustomized;
+  };
 
   // Calculate cart items from ALL categories
   const cartItems = useMemo(() => {
@@ -996,24 +1009,35 @@ export default function MenuClient({
                       </div>
 
                       <div className="flex-shrink-0">
-                        {item.modifierGroups && item.modifierGroups.length > 0 ? (
+                        {qty === 0 ? (
                           <button
                             onClick={() => handleAddClick(item)}
                             className="px-3.5 py-2 bg-white text-[#B8860B] hover:bg-gradient-to-r hover:from-[#B8860B] hover:to-[#9C7006] hover:text-white border-2 border-[#B8860B] rounded-xl text-xs font-extrabold transition-all duration-200 shadow-2xs min-w-[70px] uppercase tracking-wider active:scale-95 cursor-pointer flex items-center justify-center gap-1"
                           >
                             <span>+ ADD</span>
                           </button>
-                        ) : qty === 0 ? (
-                          <button
-                            onClick={() => handleAddClick(item)}
-                            className="px-3.5 py-2 bg-white text-[#B8860B] hover:bg-gradient-to-r hover:from-[#B8860B] hover:to-[#9C7006] hover:text-white border-2 border-[#B8860B] rounded-xl text-xs font-extrabold transition-all duration-200 shadow-2xs min-w-[70px] uppercase tracking-wider active:scale-95 cursor-pointer"
-                          >
-                            + ADD
-                          </button>
                         ) : (
                           <div className="flex items-center bg-[#F3EFE6] border border-[#E5DFD4] rounded-xl p-1 shadow-inner gap-1">
                             <button
-                              onClick={() => updateQuantity(item, -1)}
+                              onClick={() => {
+                                if (item.modifierGroups && item.modifierGroups.length > 0) {
+                                  // For customizable items, reduce the last added variant or direct id
+                                  const idStr = String(item.id);
+                                  const matchingKey = Object.keys(quantities).reverse().find(k => k === idStr || k.startsWith(`${idStr}::`));
+                                  if (matchingKey) {
+                                    setQuantities(prev => {
+                                      const cur = prev[matchingKey] || 0;
+                                      if (cur <= 1) {
+                                        const { [matchingKey]: _, ...rest } = prev;
+                                        return rest;
+                                      }
+                                      return { ...prev, [matchingKey]: cur - 1 };
+                                    });
+                                  }
+                                } else {
+                                  updateQuantity(item, -1);
+                                }
+                              }}
                               className="w-7 h-7 bg-white text-stone-700 hover:text-[#B8860B] rounded-lg flex items-center justify-center transition-all duration-150 border border-[#E5DFD4] shadow-2xs active:scale-90 cursor-pointer"
                               aria-label="Decrease quantity"
                             >
@@ -1023,7 +1047,7 @@ export default function MenuClient({
                               {qty}
                             </span>
                             <button
-                              onClick={() => updateQuantity(item, 1)}
+                              onClick={() => handleAddClick(item)}
                               className="w-7 h-7 bg-gradient-to-r from-[#B8860B] to-[#9C7006] text-white hover:from-[#A2760A] hover:to-[#855D05] rounded-lg flex items-center justify-center transition-all duration-150 shadow-2xs active:scale-90 cursor-pointer"
                               aria-label="Increase quantity"
                             >
