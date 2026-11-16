@@ -83,6 +83,8 @@ export default function NewOrdersPage() {
 
   const [updating, setUpdating] = useState<string | null>(null);
   const [expandedOrders, setExpandedOrders] = useState<Record<string, boolean>>({});
+  // Track accepted/handled order IDs locally to permanently exclude them from rendering
+  const [handledOrderIds, setHandledOrderIds] = useState<Set<string>>(new Set());
 
   const ordersUrl = slug ? `/api/orders/${slug}?status=pending` : null;
   const { data, isLoading: swrLoading, mutate: boundMutate } = useSWR(ordersUrl, {
@@ -90,7 +92,9 @@ export default function NewOrdersPage() {
     revalidateOnFocus: true,
   });
 
-  const orders = data?.success ? (data.data as Order[]) : [];
+  const rawOrders = data?.success && Array.isArray(data.data) ? (data.data as Order[]) : [];
+  // Genuinely filter out any order that has been handled locally
+  const orders = rawOrders.filter(o => !handledOrderIds.has(o._id) && o.orderStatus === 'pending');
   const loading = swrLoading;
 
   // Real-time listener via Pusher for immediate instant order arrivals & updates
@@ -102,7 +106,11 @@ export default function NewOrdersPage() {
     const channelName = `cafe-${slug.toLowerCase()}`;
     const channel = pusher.subscribe(channelName);
 
-    const handleOrderEvent = () => {
+    const handleOrderEvent = (payload?: any) => {
+      // If an order status was updated away from pending, ensure it is added to handledOrderIds
+      if (payload?.orderId && payload?.orderStatus && payload.orderStatus !== 'pending') {
+        setHandledOrderIds(prev => new Set(prev).add(payload.orderId));
+      }
       boundMutate();
       window.dispatchEvent(new Event('refresh-admin-stats'));
     };
@@ -119,12 +127,15 @@ export default function NewOrdersPage() {
 
   const handleUpdateStatus = async (orderId: string, newStatus: OrderStatus) => {
     setUpdating(orderId);
+    // 🛡️ Permanently mark this order as handled immediately so it can NEVER flash or come back
+    setHandledOrderIds(prev => new Set(prev).add(orderId));
+
     const targetOrder = orders.find(o => o._id === orderId);
 
     // ⚡ Optimistic UI update: Remove the order from view instantly (0ms latency feel)
     const previousData = data;
     if (data?.success && Array.isArray(data.data)) {
-      const remainingOrders = data.data.filter((o: Order) => o._id !== orderId);
+      const remainingOrders = data.data.filter((o: Order) => o._id !== orderId && !handledOrderIds.has(o._id));
       const remainingCount = remainingOrders.length;
       boundMutate(
         {
