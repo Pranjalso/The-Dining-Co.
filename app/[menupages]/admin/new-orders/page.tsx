@@ -124,16 +124,17 @@ export default function NewOrdersPage() {
     // ⚡ Optimistic UI update: Remove the order from view instantly (0ms latency feel)
     const previousData = data;
     if (data?.success && Array.isArray(data.data)) {
-      const remainingCount = Math.max(0, data.data.length - 1);
+      const remainingOrders = data.data.filter((o: Order) => o._id !== orderId);
+      const remainingCount = remainingOrders.length;
       boundMutate(
         {
           ...data,
-          data: data.data.filter((o: Order) => o._id !== orderId),
+          data: remainingOrders,
         },
-        false // Do not revalidate immediately, keep instant feel
+        false // Do not revalidate immediately
       );
-      // Immediately notify layout to decrement sidebar badge to 0 without waiting for server response
-      window.dispatchEvent(new CustomEvent('refresh-admin-stats', { detail: { decrement: true, pendingCount: remainingCount } }));
+      // Immediately notify layout to decrement sidebar badge to match remaining count
+      window.dispatchEvent(new CustomEvent('refresh-admin-stats', { detail: { pendingCount: remainingCount } }));
     }
 
     try {
@@ -154,9 +155,18 @@ export default function NewOrdersPage() {
           variant: newStatus === 'cancelled' ? 'destructive' : 'default',
         });
         
-        // Revalidate cache in background
-        boundMutate();
-        window.dispatchEvent(new CustomEvent('refresh-admin-stats', { detail: { decrement: true } }));
+        // Ensure the accepted order is permanently excluded from SWR cache
+        boundMutate(
+          (current: any) => {
+            if (!current?.data || !Array.isArray(current.data)) return current;
+            return {
+              ...current,
+              data: current.data.filter((o: Order) => o._id !== orderId && o.orderStatus === 'pending'),
+            };
+          },
+          true // Revalidate in background to get clean fresh list
+        );
+        window.dispatchEvent(new Event('refresh-admin-stats'));
       } else {
         // Rollback optimistic update on failure
         if (previousData) {
