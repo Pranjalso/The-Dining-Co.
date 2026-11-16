@@ -28,6 +28,7 @@ import {
 
 import useLocalStorage from "@/hooks/use-local-storage";
 import AdminServiceAlerts, { unlockDeskBellAudio } from "@/components/AdminServiceAlerts";
+import { getPusherClient } from "@/lib/pusher-client";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -179,7 +180,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   });
 
   // Sidebar badge count
-  const currentBadgeCount = statsData?.stats?.pending ?? newOrdersCount;
+  const currentBadgeCount = Math.max(0, statsData?.stats?.pending ?? newOrdersCount);
 
   const statusUrl = menupages ? `/api/cafes/${menupages}/public` : null;
   const { data: statusData } = useSWR(statusUrl, {
@@ -193,14 +194,82 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   });
 
   useEffect(() => {
-    const handleRefresh = () => {
-      if (statsUrl) mutate(statsUrl);
+    const handleRefresh = (e?: any) => {
+      if (e?.detail?.decrement) {
+        setNewOrdersCount(prev => Math.max(0, prev - 1));
+      } else if (typeof e?.detail?.pendingCount === 'number') {
+        setNewOrdersCount(e.detail.pendingCount);
+      }
+      if (statsUrl) {
+        mutate(
+          statsUrl,
+          (current: any) => {
+            if (!current?.stats) return current;
+            const newPending = e?.detail?.decrement
+              ? Math.max(0, (current.stats.pending || 1) - 1)
+              : typeof e?.detail?.pendingCount === 'number'
+              ? e.detail.pendingCount
+              : current.stats.pending;
+            return {
+              ...current,
+              stats: {
+                ...current.stats,
+                pending: newPending,
+              },
+            };
+          },
+          true // revalidate with server in background
+        );
+      }
       if (statusUrl) mutate(statusUrl);
     };
 
     window.addEventListener('refresh-admin-stats', handleRefresh);
     return () => window.removeEventListener('refresh-admin-stats', handleRefresh);
   }, [statsUrl, statusUrl]);
+
+  // Real-time Pusher listener to revalidate badge counts instantly across all admin tabs/pages
+  useEffect(() => {
+    if (!menupages) return;
+    const pusher = getPusherClient();
+    if (!pusher) return;
+
+    const channelName = `cafe-${String(menupages).toLowerCase()}`;
+    const channel = pusher.subscribe(channelName);
+
+    const handleRealtimeOrder = (payload?: any) => {
+      if (payload?.orderStatus && payload.orderStatus !== 'pending') {
+        setNewOrdersCount(prev => Math.max(0, prev - 1));
+        if (statsUrl) {
+          mutate(
+            statsUrl,
+            (current: any) => {
+              if (!current?.stats) return current;
+              return {
+                ...current,
+                stats: {
+                  ...current.stats,
+                  pending: Math.max(0, (current.stats.pending || 1) - 1),
+                },
+              };
+            },
+            true
+          );
+        }
+      } else {
+        if (statsUrl) mutate(statsUrl);
+      }
+    };
+
+    channel.bind('new-order', handleRealtimeOrder);
+    channel.bind('order-status-updated', handleRealtimeOrder);
+
+    return () => {
+      channel.unbind('new-order', handleRealtimeOrder);
+      channel.unbind('order-status-updated', handleRealtimeOrder);
+      pusher.unsubscribe(channelName);
+    };
+  }, [menupages, statsUrl]);
 
   const base = menupages ? `/${menupages}/admin` : "/admin";
   const isNewOrdersPage = pathname === `${base}/new-orders`;

@@ -124,6 +124,7 @@ export default function NewOrdersPage() {
     // ⚡ Optimistic UI update: Remove the order from view instantly (0ms latency feel)
     const previousData = data;
     if (data?.success && Array.isArray(data.data)) {
+      const remainingCount = Math.max(0, data.data.length - 1);
       boundMutate(
         {
           ...data,
@@ -131,6 +132,8 @@ export default function NewOrdersPage() {
         },
         false // Do not revalidate immediately, keep instant feel
       );
+      // Immediately notify layout to decrement sidebar badge to 0 without waiting for server response
+      window.dispatchEvent(new CustomEvent('refresh-admin-stats', { detail: { decrement: true, pendingCount: remainingCount } }));
     }
 
     try {
@@ -153,10 +156,13 @@ export default function NewOrdersPage() {
         
         // Revalidate cache in background
         boundMutate();
-        window.dispatchEvent(new Event('refresh-admin-stats'));
+        window.dispatchEvent(new CustomEvent('refresh-admin-stats', { detail: { decrement: true } }));
       } else {
         // Rollback optimistic update on failure
-        if (previousData) boundMutate(previousData, false);
+        if (previousData) {
+          boundMutate(previousData, false);
+          window.dispatchEvent(new CustomEvent('refresh-admin-stats', { detail: { pendingCount: previousData.data?.length || 1 } }));
+        }
         throw new Error(resData.message || "Failed to update order");
       }
     } catch (err: any) {
