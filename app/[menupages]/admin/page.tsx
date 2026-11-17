@@ -239,7 +239,7 @@ export default function DashboardPage() {
   if (loading) return <DashboardSkeleton />;
 
   return (
-    <div className="bg-white rounded-2xl border border-border p-4 sm:p-6 w-full min-h-[600px] shadow-sm">
+    <div className="menu-container rounded-2xl border menu-border p-4 sm:p-6 w-full min-h-[600px] shadow-sm">
       
       {/* ─── Dashboard Header ─── */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-4">
@@ -309,26 +309,26 @@ export default function DashboardPage() {
       </div>
 
       {/* ─── Menu QR Code Quick Banner ─── */}
-      <div className="bg-[#F3EFE6] border border-[#E5DFD4] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm mb-6">
+      <div className="bg-[var(--theme-surface)] border menu-border rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm mb-6">
         <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-xl bg-white border border-[#E5DFD4] flex items-center justify-center text-primary flex-shrink-0 shadow-sm">
+          <div className="w-11 h-11 rounded-xl menu-card border menu-border flex items-center justify-center menu-primary-text flex-shrink-0 shadow-sm">
             <QrCode className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h4 className="text-sm sm:text-base font-bold text-text">Live Menu QR Code</h4>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold uppercase tracking-wider">
+              <h4 className="text-sm sm:text-base font-bold menu-text">Live Menu QR Code</h4>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold uppercase tracking-wider">
                 Active
               </span>
             </div>
-            <p className="text-xs text-muted mt-0.5">
+            <p className="text-xs menu-muted mt-0.5">
               Customers scan this to view your live menu & order. Changes made to menu items reflect instantly.
             </p>
           </div>
         </div>
         <Link
           href={`/${slug}/admin/qr-code`}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold text-xs shadow-md shadow-primary/20 transition-all flex-shrink-0"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl menu-primary-btn hover:brightness-110 text-white font-bold text-xs shadow-md transition-all flex-shrink-0"
         >
           <QrCode className="w-3.5 h-3.5" />
           View & Print QR
@@ -339,38 +339,31 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-6 sm:mb-8">
         {metricsConfig.map((item, index) => {
           const Icon = item.icon;
-          const colors = {
-            total: { bg: 'bg-primary/10', text: 'text-primary', border: 'border-primary/20' },
-            pending: { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-200' },
-            completed: { bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-200' },
-          };
-          const color = colors[item.key as keyof typeof colors] || colors.total;
-          
           return (
             <motion.div
               key={item.label}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.1 }}
-              className="bg-white border border-[#E5DFD4] rounded-2xl p-5 flex items-center justify-between min-h-[110px] hover:border-primary/40 transition-all duration-300 group shadow-sm hover:shadow-md"
+              className="menu-card border menu-border rounded-2xl p-5 flex items-center justify-between min-h-[110px] hover:border-[var(--theme-primary)]/40 transition-all duration-300 group shadow-sm hover:shadow-md"
             >
               <div className="flex flex-col gap-0.5 sm:gap-1 min-w-0 flex-1">
-                <span className="text-xs sm:text-sm font-medium text-muted truncate pr-2 flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                <span className="text-xs sm:text-sm font-medium menu-muted truncate pr-2 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--theme-primary)]"></span>
                   {item.label}
                 </span>
                 {loading ? (
-                  <div className="h-8 w-12 bg-[#F3EFE6] animate-pulse rounded mt-1"></div>
+                  <div className="h-8 w-12 bg-[var(--theme-surface)] animate-pulse rounded mt-1"></div>
                 ) : (
-                  <span className="text-2xl sm:text-3xl font-extrabold text-text tracking-tight">
+                  <span className="text-2xl sm:text-3xl font-extrabold menu-text tracking-tight font-price tabular-nums">
                     {stats[item.key as keyof DashboardStats] || 0}
                   </span>
                 )}
               </div>
               
               {/* Icon in Circle */}
-              <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl ${color.bg} flex items-center justify-center flex-shrink-0 border ${color.border} group-hover:scale-105 transition-transform duration-300 shadow-sm`}>
-                <Icon className={color.text} size={22} strokeWidth={2.5} />
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[var(--theme-primary)]/10 flex items-center justify-center flex-shrink-0 border border-[var(--theme-primary)]/20 group-hover:scale-105 transition-transform duration-300 shadow-sm">
+                <Icon className="menu-primary-text" size={22} strokeWidth={2.5} />
               </div>
             </motion.div>
           );
@@ -378,16 +371,16 @@ export default function DashboardPage() {
       </div>
 
       {/* ─── Orders Chart ─── */}
-      <div className="bg-white border border-[#E5DFD4] rounded-2xl p-5 sm:p-6 min-h-[350px] shadow-sm">
+      <div className="menu-card border menu-border rounded-2xl p-5 sm:p-6 min-h-[350px] shadow-sm">
         <div className="flex flex-row items-center justify-between gap-2 mb-4 sm:mb-6">
           <div className="flex items-center gap-2">
-            <div className="w-1.5 h-6 bg-primary rounded-full"></div>
-            <h3 className="text-base sm:text-lg font-bold text-text tracking-tight">
+            <div className="w-1.5 h-6 bg-[var(--theme-primary)] rounded-full"></div>
+            <h3 className="text-base sm:text-lg font-bold menu-text tracking-tight">
               Orders Overview
             </h3>
           </div>
-          <span className="text-xs sm:text-sm text-muted bg-[#F3EFE6] px-3 py-1.5 rounded-xl border border-[#E5DFD4] whitespace-nowrap flex items-center gap-1.5 font-medium">
-            <Calendar className="w-3.5 h-3.5 text-primary" />
+          <span className="text-xs sm:text-sm menu-muted bg-[var(--theme-surface)] px-3 py-1.5 rounded-xl border menu-border whitespace-nowrap flex items-center gap-1.5 font-medium">
+            <Calendar className="w-3.5 h-3.5 menu-primary-text" />
             {getPeriodDisplay()}
           </span>
         </div>
@@ -470,20 +463,20 @@ export default function DashboardPage() {
       </div>
 
       {/* ─── Customer Ratings & Feedback Spotlight ─── */}
-      <div className="bg-white border border-[#E5DFD4] rounded-2xl p-5 sm:p-6 shadow-sm mt-6 sm:mt-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-[#E5DFD4]">
+      <div className="menu-card border menu-border rounded-2xl p-5 sm:p-6 shadow-sm mt-6 sm:mt-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b menu-border">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary flex-shrink-0 shadow-sm">
-              <Star className="w-5 h-5 fill-primary text-primary" />
+            <div className="w-10 h-10 rounded-xl bg-[var(--theme-primary)]/10 border border-[var(--theme-primary)]/20 flex items-center justify-center menu-primary-text flex-shrink-0 shadow-sm">
+              <Star className="w-5 h-5 fill-[var(--theme-primary)] menu-primary-text" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-bold text-text">Customer Ratings & Reviews</h3>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 font-bold">
+                <h3 className="text-base sm:text-lg font-bold menu-text">Customer Ratings & Reviews</h3>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[var(--theme-primary)]/10 menu-primary-text border border-[var(--theme-primary)]/20 font-bold">
                   {ratingStats.average.toFixed(1)} ★ ({ratingStats.total} reviews)
                 </span>
               </div>
-              <p className="text-xs text-muted mt-0.5">
+              <p className="text-xs menu-muted mt-0.5">
                 Real-time feedback submitted by customers after payment
               </p>
             </div>
@@ -491,7 +484,7 @@ export default function DashboardPage() {
 
           <Link
             href={`/${slug}/admin/ratings`}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#F3EFE6] hover:bg-primary hover:text-white text-text border border-[#E5DFD4] text-xs font-bold transition-all self-start sm:self-auto shadow-sm"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--theme-surface)] hover:menu-primary-btn menu-text border menu-border text-xs font-bold transition-all self-start sm:self-auto shadow-sm"
           >
             <span>View All Reviews</span>
             <ArrowRight className="w-3.5 h-3.5" />

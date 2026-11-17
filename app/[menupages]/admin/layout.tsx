@@ -477,16 +477,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 
                 {/* Audio Blocked Tooltip */}
                 {soundEnabled && !audioUnlocked && (
-                  <div className="fixed top-16 left-auto right-4 sm:right-auto sm:left-[calc(50%+120px)] -translate-x-1/2 w-64 bg-card/95 backdrop-blur-xl border border-border/50 text-text text-xs p-4 rounded-2xl shadow-2xl shadow-primary/10 z-[99999] pointer-events-none text-center">
-                    <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-card rotate-45 border-l border-t border-border/50"></div>
+                  <div className="fixed top-16 left-auto right-4 sm:right-auto sm:left-[calc(50%+120px)] -translate-x-1/2 w-64 menu-card backdrop-blur-xl border menu-border menu-text text-xs p-4 rounded-2xl shadow-2xl z-[99999] pointer-events-none text-center">
+                    <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 menu-card rotate-45 border-l border-t menu-border"></div>
                     
                     <div className="flex items-center justify-center gap-2 mb-2">
-                      <div className="w-2.5 h-2.5 bg-primary rounded-full animate-ping"></div>
-                      <span className="font-bold text-primary text-sm">Sound is Blocked</span>
+                      <div className="w-2.5 h-2.5 bg-[var(--theme-primary)] rounded-full animate-ping"></div>
+                      <span className="font-bold menu-primary-text text-sm">Sound is Blocked</span>
                     </div>
-                    <p className="text-muted/70 leading-tight">
+                    <p className="menu-muted leading-tight">
                       Browser prevents auto-play. 
-                      <span className="block font-bold text-primary/80 mt-2 text-xs uppercase tracking-widest">Click anywhere to enable</span>
+                      <span className="block font-bold menu-primary-text mt-2 text-xs uppercase tracking-widest">Click anywhere to enable</span>
                     </p>
                   </div>
                 )}

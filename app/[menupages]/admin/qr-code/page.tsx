@@ -301,19 +301,19 @@ export default function CafeMenuQrPage() {
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-4 sm:p-5 rounded-2xl bg-amber-50/80 border border-amber-200/80 flex flex-col sm:flex-row items-start sm:items-center gap-4 shadow-sm"
+          className="p-4 sm:p-5 rounded-2xl menu-card border menu-border flex flex-col sm:flex-row items-start sm:items-center gap-4 shadow-sm"
         >
-          <div className="w-10 h-10 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center text-primary flex-shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-[var(--theme-primary)]/15 border border-[var(--theme-primary)]/30 flex items-center justify-center menu-primary-text flex-shrink-0">
             <RefreshCw className="w-5 h-5" />
           </div>
           <div className="flex-1 space-y-1">
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold text-text">Live Menu Sync</h3>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold uppercase tracking-wider">
+              <h3 className="text-sm font-bold menu-text">Live Menu Sync</h3>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold uppercase tracking-wider">
                 Permanent QR Codes
               </span>
             </div>
-            <p className="text-xs text-muted leading-relaxed">
+            <p className="text-xs menu-muted leading-relaxed">
               When a customer scans any table QR code, their table number is automatically pre-filled at checkout,
               and any menu, price, or tax update you make in Manage Menu reflects in real-time. You never have to re-print your QR codes!
             </p>
@@ -321,31 +321,31 @@ export default function CafeMenuQrPage() {
         </motion.div>
 
         {/* ─── Table Configuration & Management Card ─── */}
-        <div className="bg-white border border-border rounded-2xl p-5 sm:p-6 shadow-sm space-y-5">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-border">
+        <div className="menu-card border menu-border rounded-2xl p-5 sm:p-6 shadow-sm space-y-5">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b menu-border">
             <div>
-              <h2 className="text-base font-bold text-text flex items-center gap-2">
-                <Layers className="w-4 h-4 text-primary" />
+              <h2 className="text-base font-bold menu-text flex items-center gap-2">
+                <Layers className="w-4 h-4 menu-primary-text" />
                 Restaurant Tables Configuration
-                <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 font-semibold ml-2">
+                <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-[var(--theme-primary)]/15 menu-primary-text border border-[var(--theme-primary)]/30 font-semibold ml-2">
                   {tables.length} Tables
                 </span>
               </h2>
-              <p className="text-xs text-muted mt-0.5">
+              <p className="text-xs menu-muted mt-0.5">
                 Add, remove, or bulk-generate tables for your restaurant.
               </p>
             </div>
 
             {/* Quick Presets */}
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-xs text-muted font-semibold mr-1">Quick Add:</span>
+              <span className="text-xs menu-muted font-semibold mr-1">Quick Add:</span>
               {[10, 20, 30, 50].map((num) => (
                 <button
                   key={num}
                   type="button"
                   onClick={() => handleQuickAddPreset(num)}
                   disabled={isSavingTables}
-                  className="px-2.5 py-1 rounded-lg bg-surface hover:bg-surface-hover border border-border text-xs text-text hover:text-primary transition-all font-medium"
+                  className="px-2.5 py-1 rounded-lg bg-[var(--theme-surface)] hover:brightness-110 border menu-border text-xs menu-text transition-all font-medium"
                 >
                   1 to {num}
                 </button>
@@ -367,14 +367,14 @@ export default function CafeMenuQrPage() {
                     handleAddTable();
                   }
                 }}
-                className="w-full px-4 py-2.5 bg-[#FBF8F3] border border-border focus:border-primary rounded-xl text-text text-sm outline-none transition-all placeholder:text-muted/60"
+                className="w-full px-4 py-2.5 bg-[var(--theme-surface)] border menu-border focus:border-[var(--theme-primary)] rounded-xl menu-text text-sm outline-none transition-all placeholder:menu-muted"
               />
             </div>
 
             <Button
               onClick={handleAddTable}
               disabled={!newTableInput.trim() || isSavingTables}
-              className="py-2.5 px-5 rounded-xl font-bold bg-primary hover:bg-primary-hover text-white flex items-center justify-center gap-2 shadow-sm"
+              className="py-2.5 px-5 rounded-xl font-bold menu-primary-btn hover:brightness-110 text-white flex items-center justify-center gap-2 shadow-sm"
             >
               <Plus className="w-4 h-4" />
               Add Table
@@ -505,43 +505,43 @@ export default function CafeMenuQrPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Left Controls */}
             <div className="lg:col-span-5 space-y-6">
-              <div className="bg-white border border-border rounded-2xl p-5 sm:p-6 shadow-sm space-y-5">
+              <div className="menu-card border menu-border rounded-2xl p-5 sm:p-6 shadow-sm space-y-5">
                 <div>
-                  <h3 className="text-base font-bold text-text flex items-center gap-2 tracking-tight">
-                    <Sliders className="w-4 h-4 text-primary" />
+                  <h3 className="text-base font-bold menu-text flex items-center gap-2 tracking-tight">
+                    <Sliders className="w-4 h-4 menu-primary-text" />
                     Selected Table QR Details
                   </h3>
-                  <p className="text-xs text-muted mt-1">
-                    Custom table selected: <strong className="text-primary">{effectiveTable ? `Table ${effectiveTable}` : "General (No Table)"}</strong>
+                  <p className="text-xs menu-muted mt-1">
+                    Custom table selected: <strong className="menu-primary-text">{effectiveTable ? `Table ${effectiveTable}` : "General (No Table)"}</strong>
                   </p>
                 </div>
 
                 {/* Target URL */}
-                <div className="space-y-1.5 pt-2 border-t border-border">
-                  <label className="text-xs font-semibold text-muted flex items-center justify-between">
+                <div className="space-y-1.5 pt-2 border-t menu-border">
+                  <label className="text-xs font-semibold menu-muted flex items-center justify-between">
                     <span>QR Destination Link</span>
-                    <span className="text-[11px] text-primary font-mono">
+                    <span className="text-[11px] menu-primary-text font-mono">
                       {effectiveTable ? `Auto-fills Table ${effectiveTable}` : "Opens General Menu"}
                     </span>
                   </label>
 
-                  <div className="flex items-center gap-2 bg-[#FBF8F3] border border-border rounded-xl p-2.5">
+                  <div className="flex items-center gap-2 bg-[var(--theme-surface)] border menu-border rounded-xl p-2.5">
                     <input
                       type="text"
                       readOnly
                       value={currentMenuUrl}
-                      className="bg-transparent text-xs text-text font-mono flex-1 outline-none truncate selection:bg-primary/20"
+                      className="bg-transparent text-xs menu-text font-mono flex-1 outline-none truncate selection:bg-primary/20"
                     />
                     <button
                       type="button"
                       onClick={handleCopy}
-                      className="px-2.5 py-1 rounded-lg bg-white hover:bg-surface text-text hover:text-primary border border-border transition-all text-xs flex items-center gap-1.5 flex-shrink-0"
+                      className="px-2.5 py-1 rounded-lg menu-card hover:bg-[var(--theme-surface)] menu-text hover:menu-primary-text border menu-border transition-all text-xs flex items-center gap-1.5 flex-shrink-0 cursor-pointer"
                       title="Copy Link"
                     >
                       {copied ? (
                         <>
-                          <Check className="w-3.5 h-3.5 text-emerald-600" />
-                          <span className="text-emerald-600 font-semibold">Copied!</span>
+                          <Check className="w-3.5 h-3.5 text-emerald-400" />
+                          <span className="text-emerald-400 font-semibold">Copied!</span>
                         </>
                       ) : (
                         <>
@@ -554,10 +554,10 @@ export default function CafeMenuQrPage() {
                 </div>
 
                 {/* Actions */}
-                <div className="space-y-3 pt-2 border-t border-border">
+                <div className="space-y-3 pt-2 border-t menu-border">
                   <Button
                     onClick={() => handleDownloadSinglePng()}
-                    className="w-full py-4 rounded-xl font-bold bg-primary hover:bg-primary-hover text-white shadow-sm flex items-center justify-center gap-2"
+                    className="w-full py-4 rounded-xl font-bold menu-primary-btn hover:brightness-110 text-white shadow-sm flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <Download className="w-4 h-4" />
                     Download Standee QR (PNG)

@@ -446,26 +446,26 @@ export default function CheckoutPage() {
   if (!menupages) return null;
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-md mx-auto bg-[#FBF8F3] min-h-screen shadow-xl border-x border-[#E5DFD4] flex flex-col">
+    <div className="min-h-screen menu-container">
+      <div className="max-w-md mx-auto menu-container min-h-screen shadow-xl border-x menu-border flex flex-col">
         {/* Header */}
-        <header className="sticky top-0 z-10 bg-[#FBF8F3]/90 backdrop-blur-xl border-b border-[#E5DFD4] px-4 py-3">
+        <header className="sticky top-0 z-10 menu-header/90 backdrop-blur-xl border-b menu-border px-4 py-3">
           <div className="flex items-center gap-4">
             <Link 
               href={`/${menupages}/menu`} 
-              className="w-10 h-10 rounded-xl bg-white border border-[#E5DFD4] flex items-center justify-center hover:border-primary/40 hover:bg-primary/5 transition-all duration-300 shadow-sm group"
+              className="w-10 h-10 rounded-xl menu-card border menu-border flex items-center justify-center hover:border-[var(--theme-primary)]/40 hover:bg-[var(--theme-primary)]/5 transition-all duration-300 shadow-sm group"
               aria-label="Back to menu"
             >
-              <ArrowLeft className="w-5 h-5 text-muted group-hover:text-primary transition-colors" />
+              <ArrowLeft className="w-5 h-5 menu-muted group-hover:menu-primary-text transition-colors" />
             </Link>
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-primary/10 rounded-lg flex items-center justify-center border border-primary/20">
-                <ShoppingCart className="w-3.5 h-3.5 text-primary" />
+              <div className="w-6 h-6 bg-[var(--theme-primary)]/10 rounded-lg flex items-center justify-center border border-[var(--theme-primary)]/20">
+                <ShoppingCart className="w-3.5 h-3.5 menu-primary-text" />
               </div>
-              <h1 className="text-lg font-bold text-text tracking-tight">Checkout</h1>
+              <h1 className="text-lg font-bold menu-text tracking-tight">Checkout</h1>
             </div>
             <div className="ml-auto flex items-center gap-1.5">
-              <span className="text-[10px] text-muted uppercase tracking-wider font-semibold">{uniqueItemsCount} items</span>
+              <span className="text-[10px] menu-muted uppercase tracking-wider font-semibold">{uniqueItemsCount} items</span>
             </div>
           </div>
         </header>
@@ -500,21 +500,21 @@ export default function CheckoutPage() {
                 <motion.div
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-gradient-to-r from-amber-900/90 to-amber-800 text-white rounded-2xl p-4 shadow-md border border-amber-600/30 flex items-start gap-3"
+                  className="menu-card rounded-2xl p-4 shadow-md border menu-border flex items-start gap-3"
                 >
-                  <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Table className="w-5 h-5 text-amber-300" />
+                  <div className="w-9 h-9 rounded-xl bg-[var(--theme-primary)]/15 border border-[var(--theme-primary)]/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Table className="w-5 h-5 menu-primary-text" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-500/30 text-amber-200 px-2 py-0.5 rounded-full border border-amber-400/30">
+                      <span className="text-[10px] font-bold uppercase tracking-wider bg-[var(--theme-primary)]/15 menu-primary-text px-2 py-0.5 rounded-full border border-[var(--theme-primary)]/30">
                         Adding Round #{activeTabRounds + 1}
                       </span>
-                      <span className="text-xs font-semibold text-amber-200">
+                      <span className="text-xs font-semibold menu-text">
                         Table {cleanTableNumber}
                       </span>
                     </div>
-                    <p className="text-xs text-amber-100/90 mt-1 leading-relaxed">
+                    <p className="text-xs menu-muted mt-1 leading-relaxed">
                       These items will be appended to your active tab (Order #{primaryOrderNum}). You can settle the full table tab at the end of your meal.
                     </p>
                   </div>
@@ -525,17 +525,17 @@ export default function CheckoutPage() {
               <motion.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-primary/10 border border-primary/20 rounded-xl p-3"
+                className="bg-[var(--theme-surface)] border menu-border rounded-xl p-3"
               >
-                <p className="text-sm text-muted">
-                  <span className="font-semibold text-primary">{uniqueItemsCount}</span> different items ·{" "}
-                  <span className="font-semibold text-primary">{totalQuantity}</span> total quantity
+                <p className="text-sm menu-muted">
+                  <span className="font-semibold menu-primary-text">{uniqueItemsCount}</span> different items ·{" "}
+                  <span className="font-semibold menu-primary-text">{totalQuantity}</span> total quantity
                 </p>
               </motion.div>
 
               {/* Order Summary */}
-              <div className="bg-white border border-[#E5DFD4] rounded-2xl p-4 shadow-sm">
-                <h2 className="font-semibold text-text mb-3 tracking-tight">Order Summary</h2>
+              <div className="menu-card border menu-border rounded-2xl p-4 shadow-sm">
+                <h2 className="font-semibold menu-text mb-3 tracking-tight">Order Summary</h2>
                 <div className="space-y-2.5">
                   {lines.map((item, index) => (
                     <motion.div 
@@ -543,9 +543,9 @@ export default function CheckoutPage() {
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.3, delay: index * 0.05 }}
-                      className="flex items-center gap-3 bg-[#FBF8F3] border border-[#E5DFD4] rounded-xl p-2.5 hover:border-primary/40 transition-all duration-300"
+                      className="flex items-center gap-3 bg-[var(--theme-surface)] border menu-border rounded-xl p-2.5 hover:border-[var(--theme-primary)]/40 transition-all duration-300"
                     >
-                      <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 border border-[#E5DFD4] bg-white">
+                      <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 border menu-border menu-card">
                         <img
                           src={item.image || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&h=100&fit=crop"}
                           alt={item.name}
@@ -557,42 +557,42 @@ export default function CheckoutPage() {
                       </div>
                       <div className="flex-1 min-w-0 flex items-center justify-between gap-2">
                         <div className="min-w-0">
-                          <h3 className="font-bold text-sm text-stone-900 truncate">{item.name}</h3>
+                          <h3 className="font-bold text-sm menu-text truncate">{item.name}</h3>
                           {item.selectedModifiers && item.selectedModifiers.length > 0 && (
                             <div className="flex flex-wrap gap-1 mt-0.5 mb-1">
                               {item.selectedModifiers.map((mod, modIdx) => (
                                 <span
                                   key={modIdx}
-                                  className="inline-flex items-center px-1.5 py-0.2 text-[10px] font-semibold bg-[#B8860B]/10 text-[#9C7006] rounded border border-[#B8860B]/20"
+                                  className="inline-flex items-center px-1.5 py-0.2 text-[10px] font-semibold bg-[var(--theme-primary)]/10 menu-primary-text rounded border border-[var(--theme-primary)]/20"
                                 >
                                   +{mod.name} {mod.price > 0 ? `(₹${mod.price})` : ''}
                                 </span>
                               ))}
                             </div>
                           )}
-                          <p className="text-xs text-stone-500 font-medium">₹{item.price} × {item.qty}</p>
+                          <p className="text-xs menu-muted font-medium">₹{item.price} × {item.qty}</p>
                         </div>
                         <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                          <p className="font-black text-sm text-stone-900">₹{item.price * item.qty}</p>
+                          <p className="font-black text-sm menu-text">₹{item.price * item.qty}</p>
                           <div className="flex items-center gap-1.5">
                             <button
                               onClick={() => updateQuantity(item.id, -1)}
-                              className="w-7 h-7 rounded-lg bg-white border border-[#E5DFD4] flex items-center justify-center hover:border-[#B8860B]/40 hover:bg-[#F3EFE6] transition-all duration-200 active:scale-90"
+                              className="w-7 h-7 rounded-lg menu-card border menu-border flex items-center justify-center hover:border-[var(--theme-primary)]/40 hover:bg-[var(--theme-surface)] transition-all duration-200 active:scale-90"
                               aria-label="Decrease quantity"
                             >
-                              <Minus className="w-3 h-3 text-stone-600" />
+                              <Minus className="w-3 h-3 menu-muted" />
                             </button>
-                            <span className="text-sm font-extrabold w-5 text-center text-stone-900 select-none">{item.qty}</span>
+                            <span className="text-sm font-extrabold w-5 text-center menu-text select-none">{item.qty}</span>
                             <button
                               onClick={() => updateQuantity(item.id, 1)}
-                              className="w-7 h-7 rounded-lg bg-[#B8860B] text-white flex items-center justify-center hover:bg-[#9C7006] transition-all duration-200 shadow-xs active:scale-90"
+                              className="w-7 h-7 rounded-lg menu-primary-btn text-white flex items-center justify-center hover:brightness-110 transition-all duration-200 shadow-xs active:scale-90"
                               aria-label="Increase quantity"
                             >
                               <Plus className="w-3 h-3 text-white" />
                             </button>
                             <button
                               onClick={() => removeItem(item.id)}
-                              className="ml-0.5 w-7 h-7 rounded-lg text-rose-500 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-all duration-200 flex items-center justify-center active:scale-90"
+                              className="ml-0.5 w-7 h-7 rounded-lg text-rose-500 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/30 transition-all duration-200 flex items-center justify-center active:scale-90"
                               aria-label="Remove item"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -606,16 +606,16 @@ export default function CheckoutPage() {
               </div>
 
               {/* Offers & Promo Code Section */}
-              <div className="bg-white border border-[#E5DFD4] rounded-2xl p-4 shadow-sm space-y-3">
+              <div className="menu-card border menu-border rounded-2xl p-4 shadow-sm space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                    <div className="w-7 h-7 rounded-lg bg-[var(--theme-primary)]/10 border border-[var(--theme-primary)]/20 flex items-center justify-center menu-primary-text">
                       <TicketPercent className="w-4 h-4" />
                     </div>
-                    <h2 className="font-bold text-stone-900 text-sm tracking-tight">Offers & Promo Code</h2>
+                    <h2 className="font-bold menu-text text-sm tracking-tight">Offers & Promo Code</h2>
                   </div>
                   {appliedPromo && (
-                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1 font-display">
+                    <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1 font-display">
                       <Check className="w-3 h-3" /> Applied
                     </span>
                   )}
@@ -667,20 +667,20 @@ export default function CheckoutPage() {
                             }
                           }}
                           placeholder="Enter coupon code (e.g. TASTY20)"
-                          className="w-full px-3.5 py-2.5 bg-[#FBF8F3] border border-[#E5DFD4] rounded-xl text-stone-900 text-xs font-mono font-bold tracking-wider placeholder:font-sans placeholder:font-normal placeholder:text-stone-400 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none uppercase"
+                          className="w-full px-3.5 py-2.5 bg-[var(--theme-surface)] border menu-border rounded-xl menu-text text-xs font-mono font-bold tracking-wider placeholder:font-sans placeholder:font-normal placeholder:menu-muted focus:border-[var(--theme-primary)] outline-none uppercase"
                         />
                       </div>
                       <button
                         type="button"
                         onClick={() => handleApplyPromo()}
-                        className="px-4 py-2.5 bg-gradient-to-r from-[#B8860B] to-[#9C7006] text-white rounded-xl text-xs font-bold tracking-wide shadow-xs hover:from-[#A2760A] hover:to-[#855D05] transition-all cursor-pointer shrink-0 font-display"
+                        className="px-4 py-2.5 menu-primary-btn hover:brightness-110 text-white rounded-xl text-xs font-bold tracking-wide shadow-xs transition-all cursor-pointer shrink-0 font-display"
                       >
                         Apply
                       </button>
                     </div>
 
                     {promoError && (
-                      <p className="text-xs text-rose-600 font-medium bg-rose-50 border border-rose-200 rounded-lg p-2">
+                      <p className="text-xs text-rose-500 font-medium bg-rose-500/10 border border-rose-500/20 rounded-lg p-2">
                         ⚠️ {promoError}
                       </p>
                     )}
@@ -688,7 +688,7 @@ export default function CheckoutPage() {
                     {/* Quick Tap Available Deals */}
                     {activeOffers.length > 0 && (
                       <div className="space-y-1.5 pt-1">
-                        <div className="text-[10px] font-bold text-stone-500 uppercase tracking-wider font-display">
+                        <div className="text-[10px] font-bold menu-muted uppercase tracking-wider font-display">
                           Tap to apply coupon:
                         </div>
                         <div className="flex flex-wrap gap-1.5">
@@ -697,11 +697,11 @@ export default function CheckoutPage() {
                               key={deal._id || deal.code}
                               type="button"
                               onClick={() => handleApplyPromo(deal.code)}
-                              className="px-2.5 py-1.5 rounded-lg bg-[#FBF8F3] hover:bg-[#F3EFE6] border border-[#E5DFD4] hover:border-primary/50 text-left transition-all cursor-pointer flex items-center gap-1.5 group"
+                              className="px-2.5 py-1.5 rounded-lg bg-[var(--theme-surface)] hover:bg-[var(--theme-card)] border menu-border hover:border-[var(--theme-primary)]/50 text-left transition-all cursor-pointer flex items-center gap-1.5 group"
                             >
-                              <BadgePercent className="w-3.5 h-3.5 text-primary group-hover:scale-110 transition-transform" />
-                              <span className="font-mono font-bold text-xs text-stone-900">{deal.code}</span>
-                              <span className="text-[10px] text-[#B8860B] font-bold font-price">({deal.discountValue})</span>
+                              <BadgePercent className="w-3.5 h-3.5 menu-primary-text group-hover:scale-110 transition-transform" />
+                              <span className="font-mono font-bold text-xs menu-text">{deal.code}</span>
+                              <span className="text-[10px] menu-primary-text font-bold font-price">({deal.discountValue})</span>
                             </button>
                           ))}
                         </div>
@@ -712,19 +712,19 @@ export default function CheckoutPage() {
               </div>
 
               {/* Price Details */}
-              <div className="bg-white border border-[#E5DFD4] rounded-2xl p-4 shadow-sm">
-                <h2 className="font-bold text-stone-900 mb-3 tracking-tight">Price Details</h2>
+              <div className="menu-card border menu-border rounded-2xl p-4 shadow-sm">
+                <h2 className="font-bold menu-text mb-3 tracking-tight">Price Details</h2>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-stone-500">
+                    <span className="menu-muted">
                       Subtotal ({uniqueItemsCount} {uniqueItemsCount === 1 ? 'item' : 'items'} · {totalQuantity} {totalQuantity === 1 ? 'quantity' : 'quantities'})
                     </span>
-                    <span className="font-semibold text-stone-900 font-price tabular-nums">₹{subtotal}</span>
+                    <span className="font-semibold menu-text font-price tabular-nums">₹{subtotal}</span>
                   </div>
                   {discount > 0 && (
-                    <div className="flex justify-between text-emerald-700 font-bold">
+                    <div className="flex justify-between text-emerald-400 font-bold">
                       <span className="flex items-center gap-1">
-                        <Tag className="w-3.5 h-3.5 text-emerald-600" />
+                        <Tag className="w-3.5 h-3.5 text-emerald-400" />
                         Coupon Discount ({appliedPromo?.code})
                       </span>
                       <span className="font-price tabular-nums">-₹{discount}</span>
@@ -732,20 +732,20 @@ export default function CheckoutPage() {
                   )}
                   {showTax === true && (
                     <div className="flex justify-between">
-                      <span className="text-stone-500">Tax ({taxRate}%)</span>
-                      <span className="font-semibold text-stone-900 font-price tabular-nums">₹{tax}</span>
+                      <span className="menu-muted">Tax ({taxRate}%)</span>
+                      <span className="font-semibold menu-text font-price tabular-nums">₹{tax}</span>
                     </div>
                   )}
-                  <div className="border-t border-[#E5DFD4] pt-2.5 mt-2">
+                  <div className="border-t menu-border pt-2.5 mt-2">
                     <div className="flex justify-between items-baseline font-bold">
-                      <span className="text-stone-900 font-extrabold text-base">Total</span>
+                      <span className="menu-text font-extrabold text-base">Total</span>
                       <div className="text-right">
                         {discount > 0 && (
-                          <span className="text-xs text-stone-400 line-through mr-2 font-medium font-price tabular-nums">
+                          <span className="text-xs menu-muted line-through mr-2 font-medium font-price tabular-nums">
                             ₹{subtotal + (showTax === true ? Math.round(subtotal * (taxRate / 100)) : 0)}
                           </span>
                         )}
-                        <span className="text-stone-900 font-black text-xl tracking-tight font-price tabular-nums">₹{total}</span>
+                        <span className="menu-primary-text font-black text-xl tracking-tight font-price tabular-nums">₹{total}</span>
                       </div>
                     </div>
                   </div>
@@ -753,10 +753,10 @@ export default function CheckoutPage() {
               </div>
 
               {/* Table Number */}
-              <div className="bg-white border border-[#E5DFD4] rounded-2xl p-4 shadow-sm" id="table-number-section">
-                <h2 className="font-semibold text-text mb-3 flex items-center gap-2 tracking-tight">
-                  <Table className="w-4 h-4 text-primary" />
-                  Table Number <span className="text-primary">*</span>
+              <div className="menu-card border menu-border rounded-2xl p-4 shadow-sm" id="table-number-section">
+                <h2 className="font-semibold menu-text mb-3 flex items-center gap-2 tracking-tight">
+                  <Table className="w-4 h-4 menu-primary-text" />
+                  Table Number <span className="menu-primary-text">*</span>
                 </h2>
                 <div className="space-y-2">
                   <input
@@ -768,26 +768,26 @@ export default function CheckoutPage() {
                       setTableNumber(e.target.value);
                       if (error) setError("");
                     }}
-                    className={`w-full px-4 py-3 bg-[#FBF8F3] border rounded-xl text-text placeholder:text-muted/60 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-300 ${
-                      error ? "border-rose-400" : "border-[#E5DFD4]"
+                    className={`w-full px-4 py-3 bg-[var(--theme-surface)] border rounded-xl menu-text placeholder:menu-muted focus:border-[var(--theme-primary)] outline-none transition-all duration-300 ${
+                      error ? "border-rose-400" : "menu-border"
                     }`}
                     required
                   />
                   {error && (
                     <p className="text-xs text-rose-500 font-medium">⚠️ {error}</p>
                   )}
-                  <p className="text-xs text-muted">e.g. 01, 02, 03...</p>
+                  <p className="text-xs menu-muted">e.g. 01, 02, 03...</p>
                 </div>
               </div>
 
               {/* Special Instructions / Requests */}
-              <div className="bg-white border border-[#E5DFD4] rounded-2xl p-4 shadow-sm">
-                <h2 className="font-semibold text-text mb-2 flex items-center gap-2 tracking-tight">
-                  <MessageSquare className="w-4 h-4 text-primary" />
+              <div className="menu-card border menu-border rounded-2xl p-4 shadow-sm">
+                <h2 className="font-semibold menu-text mb-2 flex items-center gap-2 tracking-tight">
+                  <MessageSquare className="w-4 h-4 menu-primary-text" />
                   Special Instructions / Requests
-                  <span className="text-[10px] font-normal text-muted ml-auto uppercase tracking-wider">Optional</span>
+                  <span className="text-[10px] font-normal menu-muted ml-auto uppercase tracking-wider">Optional</span>
                 </h2>
-                <p className="text-xs text-muted mb-3">
+                <p className="text-xs menu-muted mb-3">
                   Want to add or remove something? Tell the kitchen your preference.
                 </p>
                 <textarea
@@ -795,7 +795,7 @@ export default function CheckoutPage() {
                   placeholder="e.g. Less spicy, remove onions, extra sauce, no sugar..."
                   value={specialInstructions}
                   onChange={(e) => setSpecialInstructions(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-[#FBF8F3] border border-[#E5DFD4] rounded-xl text-text text-sm placeholder:text-muted/60 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-300 resize-none"
+                  className="w-full px-4 py-2.5 bg-[var(--theme-surface)] border menu-border rounded-xl menu-text text-sm placeholder:menu-muted focus:border-[var(--theme-primary)] outline-none transition-all duration-300 resize-none"
                 />
               </div>
 
@@ -838,7 +838,7 @@ export default function CheckoutPage() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/95 backdrop-blur-xl border-t border-[#E5DFD4] shadow-2xl z-40 p-4">
+        <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto menu-card/95 backdrop-blur-xl border-t menu-border shadow-2xl z-40 p-4">
           {!successOrder ? (
             <button
               onClick={() => {
@@ -879,8 +879,8 @@ export default function CheckoutPage() {
               disabled={lines.length === 0 || submitting || !tableNumber.trim() || isLoading}
               className={`block w-full py-3.5 rounded-xl font-bold transition-all duration-300 text-center ${
                 !tableNumber.trim() || lines.length === 0 || isLoading
-                  ? "bg-[#F3EFE6] text-stone-400 cursor-not-allowed border border-[#E5DFD4]" 
-                  : "bg-gradient-to-r from-[#B8860B] to-[#9C7006] hover:from-[#A2760A] hover:to-[#855D05] text-white shadow-lg shadow-[#B8860B]/25 hover:scale-[1.01] active:scale-[0.98]"
+                  ? "bg-[var(--theme-surface)] menu-muted cursor-not-allowed border menu-border" 
+                  : "menu-primary-btn hover:brightness-110 shadow-lg hover:scale-[1.01] active:scale-[0.98]"
               }`}
             >
               {isLoading ? (
@@ -895,7 +895,7 @@ export default function CheckoutPage() {
           ) : (
             <Link
               href={`/${menupages}/menu`}
-              className="block w-full text-center bg-gradient-to-r from-[#B8860B] to-[#9C7006] hover:from-[#A2760A] hover:to-[#855D05] text-white py-3.5 rounded-xl font-bold transition-all duration-300 shadow-lg shadow-[#B8860B]/25"
+              className="block w-full text-center menu-primary-btn hover:brightness-110 text-white py-3.5 rounded-xl font-bold transition-all duration-300 shadow-lg"
             >
               Back to Menu
             </Link>

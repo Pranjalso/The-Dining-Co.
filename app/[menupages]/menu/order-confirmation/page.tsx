@@ -321,8 +321,8 @@ function OrderConfirmationContent({ menupages }: { menupages: string }) {
 
   if (isRejected) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="max-w-md mx-auto bg-[#FBF8F3] min-h-screen shadow-xl border-x border-[#E5DFD4]">
+      <div className="min-h-screen menu-container">
+        <div className="max-w-md mx-auto menu-container min-h-screen shadow-xl border-x menu-border">
           <div className="p-8 flex flex-col items-center justify-center min-h-screen">
             {/* Rejected Icon */}
             <motion.div 
@@ -428,8 +428,8 @@ function OrderConfirmationContent({ menupages }: { menupages: string }) {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-md mx-auto bg-[#FBF8F3] min-h-screen shadow-xl border-x border-[#E5DFD4]">
+    <div className="min-h-screen menu-container">
+      <div className="max-w-md mx-auto menu-container min-h-screen shadow-xl border-x menu-border">
         <div className="p-8 flex flex-col items-center justify-center min-h-screen">
           {/* Success Icon */}
           <motion.div 
@@ -537,15 +537,15 @@ function OrderConfirmationContent({ menupages }: { menupages: string }) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
-            className="w-full bg-white border border-[#E5DFD4] rounded-2xl p-4 mt-6 shadow-sm"
+            className="w-full menu-card border menu-border rounded-2xl p-4 mt-6 shadow-sm"
           >
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 flex-shrink-0 text-primary">
+              <div className="w-8 h-8 rounded-xl bg-[var(--theme-primary)]/10 flex items-center justify-center border border-[var(--theme-primary)]/20 flex-shrink-0 menu-primary-text">
                 <Clock className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="font-semibold text-text mb-1">Estimated Time</h3>
-                <p className="text-xs text-muted">
+                <h3 className="font-semibold menu-text mb-1">Estimated Time</h3>
+                <p className="text-xs menu-muted">
                   Your order will be ready in approximately 15-20 minutes.
                 </p>
               </div>
@@ -597,47 +597,47 @@ function OrderConfirmationContent({ menupages }: { menupages: string }) {
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="w-full max-w-sm bg-white border border-[#E5DFD4] rounded-3xl p-6 text-center space-y-4 shadow-2xl relative overflow-hidden"
+                  className="w-full max-w-sm menu-card border menu-border rounded-3xl p-6 text-center space-y-4 shadow-2xl relative overflow-hidden"
                 >
                   <button
                     onClick={() => setShowPaymentModal(false)}
-                    className="absolute top-4 right-4 text-muted hover:text-text p-1 rounded-lg"
+                    className="absolute top-4 right-4 menu-muted hover:menu-text p-1 rounded-lg"
                     aria-label="Close"
                   >
                     <X className="w-4 h-4" />
                   </button>
 
                   {/* Animated Shield/Check Icon */}
-                  <div className="w-16 h-16 bg-emerald-100 border border-emerald-200 rounded-2xl mx-auto flex items-center justify-center text-emerald-600 shadow-sm">
+                  <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl mx-auto flex items-center justify-center text-emerald-400 shadow-sm">
                     <CheckCircle2 className="w-9 h-9" />
                   </div>
 
                   <div className="space-y-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100 border border-emerald-200 px-3 py-1 rounded-full inline-block">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full inline-block">
                       Payment Confirmed
                     </span>
-                    <h3 className="text-2xl font-black text-text tracking-tight">Payment Received! 🎉</h3>
-                    <p className="text-xs text-muted max-w-xs mx-auto pt-1 leading-relaxed">
+                    <h3 className="text-2xl font-black menu-text tracking-tight">Payment Received! 🎉</h3>
+                    <p className="text-xs menu-muted max-w-xs mx-auto pt-1 leading-relaxed">
                       The restaurant has confirmed receipt of your payment. Thank you for dining with us!
                     </p>
                   </div>
 
-                  <div className="bg-[#FBF8F3] border border-[#E5DFD4] rounded-2xl p-3 flex items-center justify-around text-xs">
+                  <div className="bg-[var(--theme-surface)] border menu-border rounded-2xl p-3 flex items-center justify-around text-xs">
                     <div>
-                      <span className="text-[10px] text-muted uppercase block font-medium">Order</span>
-                      <strong className="font-mono text-text text-sm">#{orderNumber}</strong>
+                      <span className="text-[10px] menu-muted uppercase block font-medium">Order</span>
+                      <strong className="font-mono menu-text text-sm">#{orderNumber}</strong>
                     </div>
-                    <div className="w-px h-7 bg-[#E5DFD4]" />
+                    <div className="w-px h-7 bg-border" />
                     <div>
-                      <span className="text-[10px] text-muted uppercase block font-medium">Table</span>
-                      <strong className="text-amber-800 text-sm">Table {tableNumber}</strong>
+                      <span className="text-[10px] menu-muted uppercase block font-medium">Table</span>
+                      <strong className="menu-text text-sm">Table {tableNumber}</strong>
                     </div>
                     {orderTotal > 0 && (
                       <>
-                        <div className="w-px h-7 bg-[#E5DFD4]" />
+                        <div className="w-px h-7 bg-border" />
                         <div>
-                          <span className="text-[10px] text-muted uppercase block font-medium">Amount</span>
-                          <strong className="text-emerald-700 text-sm font-mono">₹{orderTotal}</strong>
+                          <span className="text-[10px] menu-muted uppercase block font-medium">Amount</span>
+                          <strong className="text-emerald-400 text-sm font-mono font-price">₹{orderTotal}</strong>
                         </div>
                       </>
                     )}

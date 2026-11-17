@@ -369,25 +369,25 @@ function PaymentPageContent({ menupages }: { menupages: string }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#FBF8F3] text-stone-900 flex flex-col justify-between">
-      <div className="max-w-md w-full mx-auto min-h-screen flex flex-col bg-[#FBF8F3] border-x border-[#E5DFD4] shadow-xl">
+    <div className="min-h-screen menu-container text-text flex flex-col justify-between">
+      <div className="max-w-md w-full mx-auto min-h-screen flex flex-col menu-container border-x menu-border shadow-xl">
         
         {/* ─── Navigation Header ─── */}
-        <header className="sticky top-0 z-20 bg-[#FBF8F3]/95 backdrop-blur-xl border-b border-[#E5DFD4] px-4 py-3 flex items-center justify-between">
+        <header className="sticky top-0 z-20 menu-header/95 backdrop-blur-xl border-b menu-border px-4 py-3 flex items-center justify-between">
           <Link 
             href={`/${menupages}/menu/checkout`}
-            className="w-9 h-9 rounded-full bg-white hover:bg-[#F3EFE6] border border-[#E5DFD4] flex items-center justify-center transition-colors text-stone-600 hover:text-stone-900 shadow-xs"
+            className="w-9 h-9 rounded-full menu-card hover:bg-[var(--theme-surface)] border menu-border flex items-center justify-center transition-colors menu-muted hover:menu-text shadow-xs"
             aria-label="Back to checkout"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
 
           <div className="text-center">
-            <span className="text-[10px] uppercase tracking-widest text-stone-500 font-semibold block">Checkout</span>
-            <span className="text-sm font-bold text-stone-900">Payment</span>
+            <span className="text-[10px] uppercase tracking-widest menu-muted font-semibold block">Checkout</span>
+            <span className="text-sm font-bold menu-text">Payment</span>
           </div>
 
-          <div className="flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+          <div className="flex items-center gap-1 text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
             <Lock className="w-2.5 h-2.5" />
             <span>Secure</span>
           </div>
@@ -397,17 +397,17 @@ function PaymentPageContent({ menupages }: { menupages: string }) {
         <main className="flex-1 p-4 space-y-4">
           
           {isMenuLoading && lines.length === 0 ? (
-            <div className="py-24 text-center space-y-3 bg-white border border-[#E5DFD4] rounded-3xl shadow-xs">
-              <Loader2 className="w-8 h-8 animate-spin mx-auto text-[#B8860B]" />
-              <p className="text-sm font-bold text-stone-900">Loading order details...</p>
+            <div className="py-24 text-center space-y-3 menu-card border menu-border rounded-3xl shadow-xs">
+              <Loader2 className="w-8 h-8 animate-spin mx-auto menu-primary-text" />
+              <p className="text-sm font-bold menu-text">Loading order details...</p>
             </div>
           ) : lines.length === 0 ? (
-            <div className="bg-white border border-[#E5DFD4] rounded-3xl p-8 text-center space-y-4 shadow-sm my-6">
-              <div className="w-16 h-16 bg-[#F3EFE6] rounded-2xl mx-auto flex items-center justify-center border border-[#E5DFD4] text-stone-400">
+            <div className="menu-card border menu-border rounded-3xl p-8 text-center space-y-4 shadow-sm my-6">
+              <div className="w-16 h-16 bg-[var(--theme-surface)] rounded-2xl mx-auto flex items-center justify-center border menu-border menu-muted">
                 <ShoppingCart className="w-8 h-8" />
               </div>
-              <h3 className="text-lg font-bold text-stone-900">Your Cart is Empty</h3>
-              <p className="text-xs text-stone-500 max-w-xs mx-auto leading-relaxed">
+              <h3 className="text-lg font-bold menu-text">Your Cart is Empty</h3>
+              <p className="text-xs menu-muted max-w-xs mx-auto leading-relaxed">
                 No items found in your cart. Please add items from the menu before placing an order.
               </p>
               <Link
@@ -547,14 +547,14 @@ function PaymentPageContent({ menupages }: { menupages: string }) {
               </div>
 
               {/* ─── Segmented Payment Switch ─── */}
-              <div className="bg-[#F3EFE6] p-1 rounded-xl border border-[#E5DFD4] flex items-center gap-1">
+              <div className="bg-[var(--theme-surface)] p-1 rounded-xl border menu-border flex items-center gap-1">
                 <button
                   type="button"
                   onClick={() => setPaymentMethod("upi")}
                   className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5 ${
                     paymentMethod === "upi"
-                      ? "bg-[#B8860B] text-white shadow-sm"
-                      : "text-stone-600 hover:text-stone-900"
+                      ? "menu-primary-btn shadow-sm"
+                      : "menu-muted hover:menu-text"
                   }`}
                 >
                   <Smartphone className="w-3.5 h-3.5" />
@@ -566,8 +566,8 @@ function PaymentPageContent({ menupages }: { menupages: string }) {
                   onClick={() => setPaymentMethod("cash")}
                   className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5 ${
                     paymentMethod === "cash"
-                      ? "bg-[#B8860B] text-white shadow-sm"
-                      : "text-stone-600 hover:text-stone-900"
+                      ? "menu-primary-btn shadow-sm"
+                      : "menu-muted hover:menu-text"
                   }`}
                 >
                   <Wallet className="w-3.5 h-3.5" />
@@ -581,7 +581,7 @@ function PaymentPageContent({ menupages }: { menupages: string }) {
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="bg-white border border-[#E5DFD4] rounded-2xl p-4 text-center space-y-3.5 shadow-sm"
+                  className="menu-card border menu-border rounded-2xl p-4 text-center space-y-3.5 shadow-sm"
                 >
                   {activeQrCode ? (
                     <>
@@ -730,11 +730,11 @@ function PaymentPageContent({ menupages }: { menupages: string }) {
         </main>
 
         {/* ─── Sticky Footer ─── */}
-        <footer className="sticky bottom-0 bg-white/95 backdrop-blur-xl border-t border-[#E5DFD4] p-4 space-y-2 shadow-2xl">
+        <footer className="sticky bottom-0 menu-card/95 backdrop-blur-xl border-t menu-border p-4 space-y-2 shadow-2xl">
           {lines.length === 0 ? (
             <Link
               href={`/${menupages}/menu`}
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#B8860B] to-[#9C7006] hover:from-[#A2760A] hover:to-[#855D05] text-white font-bold text-sm shadow-lg shadow-[#B8860B]/25 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+              className="w-full py-3.5 rounded-xl menu-primary-btn hover:brightness-110 text-white font-bold text-sm shadow-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
             >
               Browse Menu
             </Link>
@@ -742,7 +742,7 @@ function PaymentPageContent({ menupages }: { menupages: string }) {
             <button
               onClick={handlePayment}
               disabled={processing || lines.length === 0}
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#B8860B] to-[#9C7006] hover:from-[#A2760A] hover:to-[#855D05] text-white font-bold text-sm shadow-lg shadow-[#B8860B]/25 transition-all active:scale-[0.99] disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full py-3.5 rounded-xl menu-primary-btn hover:brightness-110 text-white font-bold text-sm shadow-lg transition-all active:scale-[0.99] disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
             >
               {processing ? (
                 <span className="flex items-center gap-2">
@@ -755,7 +755,7 @@ function PaymentPageContent({ menupages }: { menupages: string }) {
             </button>
           )}
 
-          <p className="text-[10px] text-center text-stone-400 flex items-center justify-center gap-1 font-medium">
+          <p className="text-[10px] text-center menu-muted flex items-center justify-center gap-1 font-medium">
             <span>By confirming, your order will be sent to the kitchen.</span>
           </p>
         </footer>
