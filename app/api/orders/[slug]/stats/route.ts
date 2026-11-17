@@ -86,7 +86,7 @@ export const GET = withCafeAccess(async (
             $sum: { $cond: [{ $eq: ['$orderStatus', 'served'] }, 1, 0] }
           },
           completed: {
-            $sum: { $cond: [{ $eq: ['$paymentStatus', 'completed'] }, 1, 0] }
+            $sum: { $cond: [{ $or: [{ $eq: ['$paymentStatus', 'completed'] }, { $eq: ['$orderStatus', 'served'] }] }, 1, 0] }
           },
           cancelled: {
             $sum: { $cond: [{ $eq: ['$orderStatus', 'cancelled'] }, 1, 0] }

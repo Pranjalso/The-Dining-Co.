@@ -33,7 +33,17 @@ export const GET = withCafeAccess(async (
       }
     }
 
-    if (paymentStatus) {
+    if (paymentStatus === 'completed') {
+      // Include both explicitly completed payment orders and served orders in completed views
+      if (!query.orderStatus) {
+        query.$or = [
+          { paymentStatus: 'completed' },
+          { orderStatus: 'served' }
+        ];
+      } else {
+        query.paymentStatus = 'completed';
+      }
+    } else if (paymentStatus) {
       query.paymentStatus = paymentStatus;
     }
 
@@ -83,7 +93,7 @@ export const GET = withCafeAccess(async (
 
     const completedCount = await Order.countDocuments({
       cafeSlug: params.slug,
-      paymentStatus: 'completed',
+      $or: [{ paymentStatus: 'completed' }, { orderStatus: 'served' }],
     });
 
     // Calculate revenue
@@ -93,7 +103,7 @@ export const GET = withCafeAccess(async (
     const todayOrders = await Order.find({
       cafeSlug: params.slug,
       createdAt: { $gte: today },
-      paymentStatus: 'completed',
+      $or: [{ paymentStatus: 'completed' }, { orderStatus: 'served' }],
     });
 
     const todayRevenue = todayOrders.reduce((sum, order) => sum + order.total, 0);

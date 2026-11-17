@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import useSWR, { mutate } from "swr";
+import { getPusherClient } from "@/lib/pusher-client";
 
 // ─── Types ───
 type OrderItem = {
@@ -61,7 +62,7 @@ function getYesterdayDateString() {
 }
 
 // Date filter options
-type DateFilterOption = "today" | "yesterday" | "7d" | "30d" | "overall";
+type DateFilterOption = "today" | "yesterday" | "7d" | "30d" | "overall" | "custom";
 
 // ─── Component for Individual Order Card ───
 function OrderCard({ order, rating }: { order: Order; rating?: any }) {
@@ -302,6 +303,8 @@ export default function PaymentCompletedPage() {
       // No date filters
     } else if (dateFilter === "today") {
       url += `&date=${todayStr}`;
+    } else if (dateFilter === "custom") {
+      url += `&date=${selectedDate}`;
     } else {
       url += `&date=${selectedDate}`;
     }
@@ -310,13 +313,44 @@ export default function PaymentCompletedPage() {
   };
 
   const ordersUrl = getOrdersUrl();
-  const { data, isLoading: swrLoading } = useSWR(ordersUrl, (url: string) => fetch(url).then(res => res.json()), {
-    refreshInterval: 60000,
+  const { data, isLoading: swrLoading, mutate: mutateOrders } = useSWR(ordersUrl, (url: string) => fetch(url).then(res => res.json()), {
+    refreshInterval: 4000,
     revalidateOnFocus: true,
   });
 
   const orders = data?.success ? (data.data as Order[]) : [];
   const loading = swrLoading;
+
+  // Real-time synchronization via Pusher
+  useEffect(() => {
+    if (!slug) return;
+    const pusher = getPusherClient();
+    if (!pusher) return;
+
+    const channelName = `cafe-${slug.toLowerCase()}`;
+    const channel = pusher.subscribe(channelName);
+
+    const handleUpdate = () => {
+      mutateOrders();
+    };
+
+    channel.bind('new-order', handleUpdate);
+    channel.bind('order-status-updated', handleUpdate);
+    channel.bind('payment-received', handleUpdate);
+
+    const handleRefreshStats = () => {
+      mutateOrders();
+    };
+    window.addEventListener('refresh-admin-stats', handleRefreshStats);
+
+    return () => {
+      channel.unbind('new-order', handleUpdate);
+      channel.unbind('order-status-updated', handleUpdate);
+      channel.unbind('payment-received', handleUpdate);
+      pusher.unsubscribe(channelName);
+      window.removeEventListener('refresh-admin-stats', handleRefreshStats);
+    };
+  }, [slug, mutateOrders]);
 
   // Fetch ratings to link to completed orders
   const ratingsUrl = slug ? `/api/ratings/${slug}?limit=100` : null;
@@ -384,7 +418,7 @@ export default function PaymentCompletedPage() {
       } else if (date === getYesterdayDateString()) {
         setDateFilter("yesterday");
       } else {
-        setDateFilter("today");
+        setDateFilter("custom");
       }
     }
   };
@@ -415,6 +449,9 @@ export default function PaymentCompletedPage() {
     if (dateFilter === "7d") return "Last 7 Days";
     if (dateFilter === "30d") return "Last 30 Days";
     if (dateFilter === "overall") return "Overall";
+    if (dateFilter === "custom" || selectedDate) {
+      return new Date(selectedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
     
     return new Date(selectedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };

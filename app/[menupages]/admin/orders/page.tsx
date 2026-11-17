@@ -170,10 +170,11 @@ function OrderCard({
             <button
               onClick={handleMoveToPayment}
               disabled={isUpdating}
-              className="p-1.5 sm:p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all duration-300 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] sm:text-xs font-bold transition-all duration-300 shadow-md whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
               title="Move to Payment Completed"
             >
-              <CheckCircle size={16} strokeWidth={2} />
+              <CheckCircle size={12} strokeWidth={2} />
+              <span>Complete Payment</span>
             </button>
           )}
         </div>
@@ -293,8 +294,8 @@ export default function OrdersPage() {
   const [mobileView, setMobileView] = useState<"pending" | "served">("pending");
   const [isMobile, setIsMobile] = useState(false);
 
-  // Fetch both preparing/ready and served orders - only those that haven't paid yet
-  const preparingUrl = slug ? `/api/orders/${slug}?status=preparing,ready&paymentStatus=pending` : null;
+  // Fetch both preparing/ready and served orders
+  const preparingUrl = slug ? `/api/orders/${slug}?status=preparing,ready` : null;
   const servedUrl = slug ? `/api/orders/${slug}?status=served&paymentStatus=pending` : null;
 
   const { data: preparingData, isLoading: preparingLoading, mutate: mutatePreparing } = useSWR(preparingUrl, {
@@ -386,13 +387,13 @@ export default function OrdersPage() {
       const res = await fetch(`/api/orders/${slug}?id=${orderId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderStatus: "served" }),
+        body: JSON.stringify({ orderStatus: "served", paymentStatus: "completed" }),
       });
       const data = await res.json();
       if (data.success) {
         toast({
-          title: "Order Served",
-          description: `Order #${targetOrder?.orderNumber ?? data.data?.orderNumber} marked as served.`,
+          title: "Order Served & Completed",
+          description: `Order #${targetOrder?.orderNumber ?? data.data?.orderNumber} marked as served and moved to Payment Completed.`,
         });
         
         mutatePreparing();
