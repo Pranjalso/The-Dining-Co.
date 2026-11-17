@@ -22,7 +22,6 @@ import useSWR, { mutate } from "swr";
 import { getPusherClient } from "@/lib/pusher-client";
 import OfferPopupModal, { OfferItem } from "@/components/OfferPopupModal";
 import ServiceBellModal from "@/components/ServiceBellModal";
-import ElegantPaymentModal from "@/components/ElegantPaymentModal";
 import ItemCustomizationModal, { ModifierGroup } from "@/components/ItemCustomizationModal";
 import ActiveTableTabBanner, { ActiveTableTabData } from "@/components/ActiveTableTabBanner";
 import TableTabDrawer from "@/components/TableTabDrawer";
@@ -116,12 +115,6 @@ export default function MenuClient({
   const [rejectedAlert, setRejectedAlert] = useState<{
     orderNumber: string | number;
     tableNumber: string;
-    message?: string;
-  } | null>(null);
-  const [paymentAlert, setPaymentAlert] = useState<{
-    orderNumber?: string | number;
-    tableNumber?: string;
-    total?: number;
     message?: string;
   } | null>(null);
   const [customizingItem, setCustomizingItem] = useState<MenuItem | null>(null);
@@ -295,15 +288,6 @@ export default function MenuClient({
             message: parsed.message || `Your order #${parsed.orderNumber} for Table ${parsed.tableNumber || ''} is rejected`,
           });
         }
-        const ackPayment = window.sessionStorage.getItem(`sd:ackPayment:${parsed.orderNumber}`);
-        if (!ackPayment && parsed.paymentStatus === 'completed') {
-          setPaymentAlert({
-            orderNumber: parsed.orderNumber,
-            tableNumber: parsed.tableNumber || '',
-            total: parsed.total,
-            message: `Payment received for Table ${parsed.tableNumber || ''}! Thank you for dining with us.`,
-          });
-        }
       }
     } catch { }
   }, [menupages]);
@@ -389,14 +373,6 @@ export default function MenuClient({
         const matchesOrder = orderNumber && String(data.orderNumber) === String(orderNumber);
 
         if (matchesTable || matchesOrder || (!tableNumber && !orderNumber)) {
-          setPaymentAlert({
-            orderNumber: data.orderNumber,
-            tableNumber: data.tableNumber || tableNumber,
-            total: data.total,
-            message: data.message || `Payment of ₹${data.total || ''} received for Table ${data.tableNumber || tableNumber}! Thank you.`,
-          });
-          playPaymentSuccessChime();
-
           try {
             const raw = window.localStorage.getItem(`sd:latestOrder:${menupages}`);
             if (raw) {
@@ -1177,18 +1153,6 @@ export default function MenuClient({
           offers={activeOffers}
           cafeName={effectiveCafeName}
           onApplyOffer={handleApplyOffer}
-        />
-
-        {/* Elegant Payment Received Modal */}
-        <ElegantPaymentModal
-          data={paymentAlert}
-          cafeSlug={menupages}
-          onDismiss={() => {
-            if (typeof window !== "undefined" && paymentAlert?.orderNumber) {
-              window.sessionStorage.setItem(`sd:ackPayment:${paymentAlert.orderNumber}`, "true");
-            }
-            setPaymentAlert(null);
-          }}
         />
 
         {/* Floating Call Waiter & Service Bell */}
