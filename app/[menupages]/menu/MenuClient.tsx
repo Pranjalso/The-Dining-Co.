@@ -857,25 +857,25 @@ export default function MenuClient({
               <button
                 type="button"
                 onClick={() => setShowOfferPopup(true)}
-                className="w-full flex items-center justify-between py-2 px-3 rounded-xl bg-gradient-to-r from-[#F3EFE6] via-[#FBF8F3] to-[#F3EFE6] border border-primary/30 shadow-2xs hover:border-primary/50 transition-all text-left group cursor-pointer"
+                className="w-full flex items-center justify-between py-2 px-3 rounded-xl bg-[var(--theme-surface)] border menu-border shadow-2xs hover:border-[var(--theme-primary)]/50 transition-all text-left group cursor-pointer"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-7 h-7 rounded-lg bg-primary/10 border border-primary/25 flex items-center justify-center text-primary flex-shrink-0">
-                    <TicketPercent className="w-3.5 h-3.5 text-primary" />
+                  <div className="w-7 h-7 rounded-lg bg-[var(--theme-primary)]/10 border border-[var(--theme-primary)]/25 flex items-center justify-center menu-primary-text flex-shrink-0">
+                    <TicketPercent className="w-3.5 h-3.5 menu-primary-text" />
                   </div>
                   <div className="min-w-0">
-                    <div className="text-xs font-bold text-stone-900 flex items-center gap-1.5">
+                    <div className="text-xs font-bold menu-text flex items-center gap-1.5">
                       <span>{activeOffers.length} {activeOffers.length === 1 ? 'Special Deal' : 'Special Deals'} Active!</span>
-                      <span className="text-[10px] px-1.5 py-0.2 bg-primary/15 text-primary font-bold rounded-md font-price">
+                      <span className="text-[10px] px-1.5 py-0.2 bg-[var(--theme-primary)]/15 menu-primary-text font-bold rounded-md font-price">
                         {activeOffers[0].discountValue}
                       </span>
                     </div>
-                    <p className="text-[10px] text-stone-500 truncate mt-0.5 font-medium">
+                    <p className="text-[10px] menu-muted truncate mt-0.5 font-medium">
                       {activeOffers[0].title}
                     </p>
                   </div>
                 </div>
-                <span className="text-xs font-bold text-primary group-hover:translate-x-0.5 transition-transform shrink-0 ml-1.5">
+                <span className="text-xs font-bold menu-primary-text group-hover:translate-x-0.5 transition-transform shrink-0 ml-1.5">
                   View →
                 </span>
               </button>

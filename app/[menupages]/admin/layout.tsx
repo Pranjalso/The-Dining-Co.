@@ -518,7 +518,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </header>
 
           {/* Scrollable Page Content */}
-          <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 relative">
+          <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 relative menu-container">
             {cafeDeactivated ? (
               <div className="flex flex-col items-center justify-center h-full text-center space-y-6 max-w-2xl mx-auto">
                 <div className="w-20 h-20 bg-amber-500/10 rounded-2xl flex items-center justify-center border border-amber-500/20 shadow-lg shadow-amber-500/5">
