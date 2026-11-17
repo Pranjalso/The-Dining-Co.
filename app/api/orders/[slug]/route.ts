@@ -298,19 +298,6 @@ export const POST = async (
     if (body.parentOrderNumber) {
       parentOrderNumber = Number(body.parentOrderNumber);
       isAddonRound = true;
-    } else {
-      // Auto-detect if table already has an active pending tab
-      const existingOpenOrder = await Order.findOne({
-        cafeSlug: slug,
-        tableNumber: cleanTable,
-        orderStatus: { $ne: 'cancelled' },
-        paymentStatus: 'pending',
-      }).sort({ createdAt: 1 }).select('orderNumber').lean();
-
-      if (existingOpenOrder && typeof existingOpenOrder.orderNumber === 'number') {
-        parentOrderNumber = existingOpenOrder.orderNumber;
-        isAddonRound = true;
-      }
     }
 
     const order = await Order.create({
