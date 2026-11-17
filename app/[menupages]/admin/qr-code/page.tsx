@@ -88,10 +88,10 @@ export default function CafeMenuQrPage() {
   const effectiveTable = selectedTable === "general" ? "" : selectedTable;
 
   const getMenuUrlForTable = (table: string) => {
-    if (!origin) return `/${menupages}/menu`;
+    if (!origin) return `/${menupages}/menu?scan=1`;
     return table
-      ? `${origin}/${menupages}/menu?table=${encodeURIComponent(table)}`
-      : `${origin}/${menupages}/menu`;
+      ? `${origin}/${menupages}/menu?table=${encodeURIComponent(table)}&scan=1`
+      : `${origin}/${menupages}/menu?scan=1`;
   };
 
   const currentMenuUrl = getMenuUrlForTable(effectiveTable);

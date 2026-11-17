@@ -96,7 +96,23 @@ export default function MenuClient({
   const [items, setItems] = useState<MenuItem[]>(initialItems);
   const [categories] = useState<Array<{ name: string; image: string }>>(initialCategories);
   const [tableNumber, setTableNumber] = useState<string>(initialTable || "");
-  const [showWelcomeIntro, setShowWelcomeIntro] = useState<boolean>(true);
+  const [showWelcomeIntro, setShowWelcomeIntro] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('from') === 'order-more' || urlParams.has('skipWelcome')) {
+        return false;
+      }
+      const isExplicitScan = urlParams.has('scan');
+      const alreadyWelcomed = window.sessionStorage.getItem(`sd:welcomed:${menupages}`);
+      if (alreadyWelcomed && !isExplicitScan) {
+        return false;
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  });
   const [countdownSeconds, setCountdownSeconds] = useState<number>(2);
   const [introProgress, setIntroProgress] = useState<number>(0);
   const [rejectedAlert, setRejectedAlert] = useState<{
@@ -162,11 +178,12 @@ export default function MenuClient({
 
     // Check if user came from a fresh scan or already saw the intro in this tab
     const urlParams = new URLSearchParams(window.location.search);
-    const isExplicitScan = urlParams.has('table') || urlParams.has('scan');
+    const isExplicitScan = urlParams.has('scan');
+    const fromOrderMore = urlParams.get('from') === 'order-more' || urlParams.has('skipWelcome');
     const alreadyWelcomed = window.sessionStorage.getItem(`sd:welcomed:${menupages}`);
 
-    // If already welcomed in this tab and not a fresh QR scan with table, dock directly to poster
-    if (alreadyWelcomed && !isExplicitScan) {
+    // If already welcomed in this tab and not a fresh QR scan with ?scan=1, or if returning via Order More, skip intro
+    if ((alreadyWelcomed && !isExplicitScan) || fromOrderMore) {
       setShowWelcomeIntro(false);
       return;
     }
