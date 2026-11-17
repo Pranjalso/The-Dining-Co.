@@ -283,7 +283,7 @@ export default function PaymentCompletedPage() {
 
     let url = `/api/orders/${slug}?paymentStatus=completed`;
     const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
+    const todayStr = getTodayDateString();
 
     if (dateFilter === "yesterday") {
       const yesterday = new Date(today);

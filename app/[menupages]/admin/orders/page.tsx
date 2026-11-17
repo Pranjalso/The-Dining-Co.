@@ -30,6 +30,7 @@ type Order = {
   discountCode?: string;
   orderStatus: OrderStatus;
   paymentMethod: PaymentMethod;
+  paymentStatus?: "pending" | "completed" | "failed" | "refunded";
   items: OrderItem[];
   specialInstructions?: string;
   notes?: string;
@@ -355,7 +356,7 @@ export default function OrdersPage() {
     const prevServed = servedData;
 
     if (targetOrder) {
-      const movedOrder: Order = { ...targetOrder, orderStatus: 'served' };
+      const movedOrder: Order = { ...targetOrder, orderStatus: 'served', paymentStatus: targetOrder.paymentStatus || 'pending' };
       if (preparingData?.success && Array.isArray(preparingData.data)) {
         mutatePreparing(
           {
@@ -380,13 +381,13 @@ export default function OrdersPage() {
       const res = await fetch(`/api/orders/${slug}?id=${orderId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderStatus: "served", paymentStatus: "completed" }),
+        body: JSON.stringify({ orderStatus: "served" }),
       });
       const data = await res.json();
       if (data.success) {
         toast({
-          title: "Order Served & Completed",
-          description: `Order #${targetOrder?.orderNumber ?? data.data?.orderNumber} marked as served and moved to Payment Completed.`,
+          title: "Order Served",
+          description: `Order #${targetOrder?.orderNumber ?? data.data?.orderNumber} marked as served and moved to Served Orders.`,
         });
         
         mutatePreparing();
