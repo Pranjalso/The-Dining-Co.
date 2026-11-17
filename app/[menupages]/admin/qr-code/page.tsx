@@ -24,9 +24,16 @@ import {
   CheckCircle2,
   Loader2,
   AlertCircle,
+  FileText,
 } from "lucide-react";
 import useSWR, { mutate } from "swr";
 import { QrCode, generateQrSvgPath, getQrPngDataUrl } from "@/lib/qrcode";
+import {
+  formatTableLabel,
+  formatTableBadge,
+  downloadStandeesPdf,
+  printStandeesInIsolatedFrame,
+} from "@/lib/pdf-standee";
 import { Button } from "@/components/ui/button";
 import {
   useToast,
@@ -63,8 +70,17 @@ export default function CafeMenuQrPage() {
   const [copied, setCopied] = useState(false);
   const [isSavingTables, setIsSavingTables] = useState(false);
   const [isDownloadingBulk, setIsDownloadingBulk] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [printBulkMode, setPrintBulkMode] = useState(false);
   const [showClearModal, setShowClearModal] = useState(false);
+
+  const currentTheme = cafeData?.data?.theme || "warm-beige";
+  const themeAccentColor =
+    currentTheme === "red-black"
+      ? "#E50914"
+      : currentTheme === "light-green-creme"
+      ? "#15803D"
+      : "#D97706";
 
   // Initialize tables from API data
   useEffect(() => {
@@ -204,9 +220,10 @@ export default function CafeMenuQrPage() {
       if (!dataUrl) return;
 
       const link = document.createElement("a");
-      const filename = targetTable
-        ? `${cafeName.replace(/\s+/g, "-")}-Table-${targetTable}-Menu-QR.png`
-        : `${cafeName.replace(/\s+/g, "-")}-General-Menu-QR.png`;
+      const badge = formatTableBadge(targetTable);
+      const safeBadge = badge.replace(/\s+/g, "-");
+      const safeCafe = cafeName.replace(/\s+/g, "-");
+      const filename = `${safeCafe}-${safeBadge}-QR.png`;
       link.download = filename;
       link.href = dataUrl;
       document.body.appendChild(link);
@@ -217,7 +234,79 @@ export default function CafeMenuQrPage() {
     }
   };
 
-  // Bulk Download All QRs sequentially
+  // Download single table standee as a real high-res PDF file
+  const handleDownloadSinglePdf = async (tableName?: string) => {
+    const targetTable = tableName !== undefined ? tableName : effectiveTable;
+    const targetUrl = getMenuUrlForTable(targetTable);
+    const badge = formatTableBadge(targetTable);
+    const safeBadge = badge.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const safeCafe = cafeName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const filename = `${safeCafe}-${safeBadge}-standee.pdf`;
+
+    setIsGeneratingPdf(true);
+    toast({
+      title: "Generating Standee PDF",
+      description: `Creating high-resolution print PDF for ${badge}...`,
+    });
+
+    try {
+      await downloadStandeesPdf(
+        cafeName,
+        [{ tableLabel: targetTable, url: targetUrl }],
+        filename,
+        themeAccentColor
+      );
+      toast({
+        title: "PDF Ready!",
+        description: `${badge} standee PDF has been downloaded.`,
+      });
+    } catch (err: any) {
+      toast({
+        title: "PDF Generation Error",
+        description: err.message || "Failed to generate PDF",
+        variant: "destructive" as any,
+      });
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
+  // Bulk Download All Tables as a single, multi-page, high-res PDF
+  const handleDownloadAllPdf = async () => {
+    if (tables.length === 0) return;
+    setIsDownloadingBulk(true);
+    toast({
+      title: "Generating All Tables PDF",
+      description: `Building a complete ${tables.length}-page high-resolution print PDF...`,
+    });
+
+    try {
+      const items = tables.map((t) => ({
+        tableLabel: t,
+        url: getMenuUrlForTable(t),
+      }));
+
+      const safeCafe = cafeName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      const filename = `${safeCafe}-all-tables-standees.pdf`;
+
+      await downloadStandeesPdf(cafeName, items, filename, themeAccentColor);
+
+      toast({
+        title: "All Tables PDF Downloaded!",
+        description: `Complete ${tables.length}-page table standees PDF is ready.`,
+      });
+    } catch (err: any) {
+      toast({
+        title: "Failed to Generate PDF",
+        description: err.message || "Could not generate multi-page PDF",
+        variant: "destructive" as any,
+      });
+    } finally {
+      setIsDownloadingBulk(false);
+    }
+  };
+
+  // Bulk Download All QRs as PNGs sequentially
   const handleDownloadAllQrs = async () => {
     if (tables.length === 0) return;
     setIsDownloadingBulk(true);
@@ -251,20 +340,49 @@ export default function CafeMenuQrPage() {
     }
   };
 
-  // Single Print Standee
-  const handlePrintSingle = () => {
-    setPrintBulkMode(false);
-    setTimeout(() => {
-      window.print();
-    }, 100);
+  // Single Print Standee (uses clean isolated iframe for 100% pixel-perfect print / Save as PDF)
+  const handlePrintSingle = (tableName?: string) => {
+    const targetTable = tableName !== undefined ? tableName : effectiveTable;
+    const targetUrl = getMenuUrlForTable(targetTable);
+    let qrSvgData: { path: string; viewBoxSize: number } = { path: "", viewBoxSize: 37 };
+    try {
+      const qr = QrCode.encodeText(targetUrl);
+      qrSvgData = generateQrSvgPath(qr, 3);
+    } catch {}
+
+    printStandeesInIsolatedFrame(
+      cafeName,
+      [
+        {
+          tableLabel: targetTable,
+          url: targetUrl,
+          qrSvgPath: qrSvgData.path,
+          qrViewBoxSize: qrSvgData.viewBoxSize,
+        },
+      ],
+      themeAccentColor
+    );
   };
 
-  // Bulk Print All Standees
+  // Bulk Print All Standees (exactly 1 table per A4 page, zero URL headers/footers)
   const handlePrintBulk = () => {
-    setPrintBulkMode(true);
-    setTimeout(() => {
-      window.print();
-    }, 150);
+    if (tables.length === 0) return;
+    const items = tables.map((t) => {
+      const url = getMenuUrlForTable(t);
+      let qrSvgData: { path: string; viewBoxSize: number } = { path: "", viewBoxSize: 37 };
+      try {
+        const qr = QrCode.encodeText(url);
+        qrSvgData = generateQrSvgPath(qr, 3);
+      } catch {}
+      return {
+        tableLabel: t,
+        url,
+        qrSvgPath: qrSvgData.path,
+        qrViewBoxSize: qrSvgData.viewBoxSize,
+      };
+    });
+
+    printStandeesInIsolatedFrame(cafeName, items, themeAccentColor);
   };
 
   return (
@@ -424,13 +542,13 @@ export default function CafeMenuQrPage() {
                     onClick={() => setSelectedTable(t)}
                     className="px-3 py-1.5 flex items-center gap-1 text-inherit"
                   >
-                    <span>Table {t}</span>
+                    <span>{formatTableLabel(t)}</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => handleRemoveTable(t)}
                     className="px-2 py-1.5 hover:bg-black/10 text-inherit/70 hover:text-inherit transition-colors border-l border-inherit/20"
-                    title={`Delete Table ${t}`}
+                    title={`Delete ${formatTableLabel(t)}`}
                   >
                     <Trash2 className="w-3 h-3" />
                   </button>
@@ -472,30 +590,41 @@ export default function CafeMenuQrPage() {
           {/* Bulk Action Buttons (Visible for Big Restaurants) */}
           <div className="flex items-center gap-2 flex-wrap">
             <Button
+              onClick={handleDownloadAllPdf}
+              disabled={isDownloadingBulk || tables.length === 0}
+              className="py-2.5 px-4 rounded-xl text-xs font-bold menu-primary-btn hover:brightness-110 text-white flex items-center gap-2 shadow-sm cursor-pointer"
+            >
+              {isDownloadingBulk ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  Building PDF...
+                </>
+              ) : (
+                <>
+                  <FileText className="w-3.5 h-3.5" />
+                  Download All Tables (PDF)
+                </>
+              )}
+            </Button>
+
+            <Button
               onClick={handlePrintBulk}
               variant="outline"
-              className="py-2.5 px-4 rounded-xl text-xs font-bold border-border bg-white hover:bg-surface text-text hover:text-primary flex items-center gap-2 shadow-sm"
+              className="py-2.5 px-4 rounded-xl text-xs font-bold border-border bg-white hover:bg-surface text-text hover:text-primary flex items-center gap-2 shadow-sm cursor-pointer"
             >
               <Printer className="w-3.5 h-3.5" />
-              Print All Standees ({tables.length})
+              Print All Standees (PDF)
             </Button>
 
             <Button
               onClick={handleDownloadAllQrs}
               disabled={isDownloadingBulk || tables.length === 0}
-              className="py-2.5 px-4 rounded-xl text-xs font-bold bg-primary hover:bg-primary-hover text-white flex items-center gap-2 shadow-sm"
+              variant="outline"
+              className="py-2.5 px-3 rounded-xl text-xs font-semibold border-border bg-surface text-muted hover:text-text flex items-center gap-1.5 cursor-pointer"
+              title="Download all QR codes as individual PNG images"
             >
-              {isDownloadingBulk ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  Downloading...
-                </>
-              ) : (
-                <>
-                  <Download className="w-3.5 h-3.5" />
-                  Download All QRs (PNG)
-                </>
-              )}
+              <Download className="w-3.5 h-3.5" />
+              PNGs
             </Button>
           </div>
         </div>
@@ -512,7 +641,7 @@ export default function CafeMenuQrPage() {
                     Selected Table QR Details
                   </h3>
                   <p className="text-xs menu-muted mt-1">
-                    Custom table selected: <strong className="menu-primary-text">{effectiveTable ? `Table ${effectiveTable}` : "General (No Table)"}</strong>
+                    Custom table selected: <strong className="menu-primary-text">{effectiveTable ? formatTableBadge(effectiveTable) : "General (No Table)"}</strong>
                   </p>
                 </div>
 
@@ -521,7 +650,7 @@ export default function CafeMenuQrPage() {
                   <label className="text-xs font-semibold menu-muted flex items-center justify-between">
                     <span>QR Destination Link</span>
                     <span className="text-[11px] menu-primary-text font-mono">
-                      {effectiveTable ? `Auto-fills Table ${effectiveTable}` : "Opens General Menu"}
+                      {effectiveTable ? `Auto-fills ${formatTableBadge(effectiveTable)}` : "Opens General Menu"}
                     </span>
                   </label>
 
@@ -556,21 +685,42 @@ export default function CafeMenuQrPage() {
                 {/* Actions */}
                 <div className="space-y-3 pt-2 border-t menu-border">
                   <Button
-                    onClick={() => handleDownloadSinglePng()}
-                    className="w-full py-4 rounded-xl font-bold menu-primary-btn hover:brightness-110 text-white shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+                    onClick={() => handleDownloadSinglePdf()}
+                    disabled={isGeneratingPdf}
+                    className="w-full py-4 rounded-xl font-bold menu-primary-btn hover:brightness-110 text-white shadow-sm flex items-center justify-center gap-2 cursor-pointer text-sm"
                   >
-                    <Download className="w-4 h-4" />
-                    Download Standee QR (PNG)
+                    {isGeneratingPdf ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Generating Standee PDF...
+                      </>
+                    ) : (
+                      <>
+                        <FileText className="w-4 h-4" />
+                        Download Standee (PDF)
+                      </>
+                    )}
                   </Button>
 
-                  <Button
-                    onClick={handlePrintSingle}
-                    variant="outline"
-                    className="w-full py-4 rounded-xl font-bold border-border bg-surface hover:bg-surface-hover text-text hover:text-primary flex items-center justify-center gap-2"
-                  >
-                    <Printer className="w-4 h-4" />
-                    Print Table Standee
-                  </Button>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <Button
+                      onClick={() => handlePrintSingle()}
+                      variant="outline"
+                      className="w-full py-3 rounded-xl font-semibold border-border bg-surface hover:bg-surface-hover text-text hover:text-primary flex items-center justify-center gap-1.5 text-xs cursor-pointer"
+                    >
+                      <Printer className="w-3.5 h-3.5" />
+                      Print / Save as PDF
+                    </Button>
+
+                    <Button
+                      onClick={() => handleDownloadSinglePng()}
+                      variant="outline"
+                      className="w-full py-3 rounded-xl font-semibold border-border bg-surface hover:bg-surface-hover text-text hover:text-primary flex items-center justify-center gap-1.5 text-xs cursor-pointer"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      Download PNG
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -605,7 +755,7 @@ export default function CafeMenuQrPage() {
 
                   {effectiveTable && (
                     <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-amber-50 text-amber-800 border-2 border-amber-400 font-extrabold text-sm shadow-sm">
-                      <span>Table {effectiveTable}</span>
+                      <span>{formatTableBadge(effectiveTable)}</span>
                     </div>
                   )}
 
@@ -665,7 +815,7 @@ export default function CafeMenuQrPage() {
                   >
                     <div className="flex items-center justify-between w-full">
                       <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
-                        Table {tableNum}
+                        {formatTableBadge(tableNum)}
                       </span>
                       <button
                         type="button"
@@ -673,7 +823,7 @@ export default function CafeMenuQrPage() {
                           setSelectedTable(tableNum);
                           setActiveTab("single");
                         }}
-                        className="text-xs text-muted hover:text-primary transition-colors flex items-center gap-1"
+                        className="text-xs text-muted hover:text-primary transition-colors flex items-center gap-1 cursor-pointer"
                         title="Preview Standee"
                       >
                         <Eye className="w-3.5 h-3.5" />
@@ -703,14 +853,33 @@ export default function CafeMenuQrPage() {
                       </p>
                     </div>
 
-                    <div className="w-full pt-1">
+                    <div className="w-full pt-1 flex items-center gap-1.5">
                       <Button
                         size="sm"
-                        onClick={() => handleDownloadSinglePng(tableNum)}
-                        className="w-full py-2 h-8 rounded-lg text-xs font-bold bg-[#FBF8F3] hover:bg-surface border border-border text-text hover:text-primary hover:border-primary transition-all flex items-center justify-center gap-1.5 shadow-none"
+                        onClick={() => handleDownloadSinglePdf(tableNum)}
+                        className="flex-1 py-2 h-8 rounded-lg text-xs font-bold bg-primary hover:bg-primary-hover text-white flex items-center justify-center gap-1 shadow-none cursor-pointer"
+                        title="Download Standee PDF"
                       >
-                        <Download className="w-3 h-3 text-primary" />
-                        Download PNG
+                        <FileText className="w-3 h-3" />
+                        PDF
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handlePrintSingle(tableNum)}
+                        className="py-2 px-2.5 h-8 rounded-lg text-xs font-medium border-border bg-surface text-text hover:text-primary flex items-center justify-center shadow-none cursor-pointer"
+                        title="Print Standee"
+                      >
+                        <Printer className="w-3 h-3" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDownloadSinglePng(tableNum)}
+                        className="py-2 px-2.5 h-8 rounded-lg text-xs font-medium border-border bg-surface text-muted hover:text-text flex items-center justify-center shadow-none cursor-pointer"
+                        title="Download PNG"
+                      >
+                        <Download className="w-3 h-3" />
                       </Button>
                     </div>
                   </div>
@@ -751,7 +920,7 @@ export default function CafeMenuQrPage() {
                   </div>
 
                   <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-amber-50 text-amber-800 border-2 border-amber-400 font-extrabold text-sm shadow-sm">
-                    <span>Table {tableNum}</span>
+                    <span>{formatTableBadge(tableNum)}</span>
                   </div>
 
                   <div className="bg-white p-3 rounded-2xl border-2 border-zinc-200 shadow-inner inline-block my-1">
@@ -786,50 +955,20 @@ export default function CafeMenuQrPage() {
           </div>
         </div>
 
-        {/* ─── Print Styles ─── */}
+        {/* ─── Global Print Styles ─── */}
         <style jsx global>{`
+          @page {
+            size: A4 portrait;
+            margin: 8mm;
+          }
           @media print {
-            body * {
-              visibility: hidden;
+            body {
+              background: #ffffff !important;
+              color: #111827 !important;
             }
-            ${printBulkMode
-              ? `
-              #bulk-printable-container,
-              #bulk-printable-container * {
-                visibility: visible;
-              }
-              #bulk-printable-container {
-                display: block !important;
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-              }
-              .bulk-standee-card {
-                width: 100%;
-                max-width: 450px;
-                margin: 0 auto 40px auto;
-                page-break-after: always;
-                page-break-inside: avoid;
-              }
-            `
-              : `
-              #single-printable-standee,
-              #single-printable-standee * {
-                visibility: visible;
-              }
-              #single-printable-standee {
-                position: absolute;
-                left: 50%;
-                top: 5%;
-                transform: translateX(-50%);
-                width: 100%;
-                max-width: 450px;
-                box-shadow: none !important;
-                border: 2px solid #ddd !important;
-                page-break-inside: avoid;
-              }
-            `}
+            header, aside, nav, button, input {
+              display: none !important;
+            }
           }
         `}</style>
 
