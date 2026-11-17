@@ -113,8 +113,6 @@ export default function MenuClient({
       return false;
     }
   });
-  const [countdownSeconds, setCountdownSeconds] = useState<number>(2);
-  const [introProgress, setIntroProgress] = useState<number>(0);
   const [rejectedAlert, setRejectedAlert] = useState<{
     orderNumber: string | number;
     tableNumber: string;
@@ -172,7 +170,7 @@ export default function MenuClient({
 
   const effectiveCafeName = cafeName || cafePublicData?.data?.cafeName || menupages;
 
-  // 2-Second timer for Namaste Welcome Intro
+  // Smooth 2.2-Second timer for Namaste Welcome Intro (zero interval overhead)
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -188,27 +186,14 @@ export default function MenuClient({
       return;
     }
 
-    const duration = 2000;
-    const intervalStep = 25;
-    let elapsed = 0;
+    const timer = setTimeout(() => {
+      setShowWelcomeIntro(false);
+      try {
+        window.sessionStorage.setItem(`sd:welcomed:${menupages}`, 'true');
+      } catch { }
+    }, 2200);
 
-    const timer = setInterval(() => {
-      elapsed += intervalStep;
-      const remaining = Math.max(0, Math.ceil((duration - elapsed) / 1000));
-      setCountdownSeconds(remaining);
-      const pct = Math.min(100, (elapsed / duration) * 100);
-      setIntroProgress(pct);
-
-      if (elapsed >= duration) {
-        clearInterval(timer);
-        setShowWelcomeIntro(false);
-        try {
-          window.sessionStorage.setItem(`sd:welcomed:${menupages}`, 'true');
-        } catch { }
-      }
-    }, intervalStep);
-
-    return () => clearInterval(timer);
+    return () => clearTimeout(timer);
   }, [menupages]);
 
   const handleDismissIntro = () => {
@@ -766,43 +751,69 @@ export default function MenuClient({
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Elegant Namaste Welcome Screen (Shown on QR Scan, slides upside smoothly after 5s) */}
+      {/* Elegant Namaste Welcome Screen (Shown on QR Scan, slides upside smoothly) */}
       <AnimatePresence>
         {showWelcomeIntro && (
           <motion.div
             key="namaste-welcome-screen"
-            initial={{ opacity: 0, y: 0 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             exit={{
+              opacity: 0,
               y: "-100%",
+              transition: {
+                duration: 0.65,
+                ease: [0.32, 0.72, 0, 1],
+              },
             }}
+            transition={{ duration: 0.45, ease: "easeOut" }}
             className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#FBF8F3]/98 backdrop-blur-2xl px-6 text-center select-none cursor-pointer"
             onClick={handleDismissIntro}
           >
             {/* Ambient Honey Gold Radial Glow */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+            <motion.div
+              initial={{ scale: 0.85, opacity: 0 }}
+              animate={{ scale: [1, 1.15, 1], opacity: [0.18, 0.28, 0.18] }}
+              transition={{ repeat: Infinity, duration: 3.5, ease: "easeInOut" }}
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-primary/20 rounded-full blur-3xl pointer-events-none"
+            />
 
             {/* Pure Transparent Joined Palms (Namaste) - Zero background */}
-            <div className="relative mb-4 flex items-center justify-center">
+            <motion.div
+              initial={{ scale: 0.88, opacity: 0, y: 14 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+              className="relative mb-4 flex items-center justify-center"
+            >
               <img
                 src="/images/namaste-transparent.png"
                 alt="Namaste"
                 className="w-36 h-44 sm:w-40 sm:h-48 object-contain drop-shadow-[0_8px_30px_rgba(184,134,11,0.35)] select-none pointer-events-none"
               />
-            </div>
+            </motion.div>
 
             {/* Namaste Text */}
-            <div className="space-y-1 relative z-10">
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
+              className="space-y-1 relative z-10"
+            >
               <h2 className="text-4xl sm:text-5xl font-extrabold gold-text tracking-wider font-serif">
                 नमस्ते
               </h2>
               <p className="text-xs font-bold tracking-[0.4em] text-primary uppercase font-luxury">
                 NAMASTE
               </p>
-            </div>
+            </motion.div>
 
             {/* Welcome to Cafe Name */}
-            <div className="mt-5 space-y-1 relative z-10">
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.25, ease: "easeOut" }}
+              className="mt-5 space-y-1 relative z-10"
+            >
               <p className="text-[10px] uppercase tracking-[0.25em] text-muted font-bold font-luxury">
                 WELCOME TO
               </p>
@@ -814,27 +825,26 @@ export default function MenuClient({
               {tableNumber ? (
                 <div className="mt-3 inline-flex items-center gap-2 px-4 py-1.5 bg-primary/10 border border-primary/30 rounded-full text-primary text-xs font-bold shadow-sm">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>Table {tableNumber}</span>
+                  <span>{tableNumber.toLowerCase().startsWith('table') ? tableNumber : `Table ${tableNumber}`}</span>
                 </div>
               ) : (
                 <p className="text-xs text-muted mt-2 font-medium">
                   Scan. Order. Enjoy.
                 </p>
               )}
-            </div>
+            </motion.div>
 
-            {/* 2-Second Timer Progress Bar & Smooth slide hint */}
-            <div className="mt-8 w-full max-w-xs relative z-10">
-              <div className="w-full bg-[#E5DFD4] h-1.5 rounded-full overflow-hidden border border-primary/20">
-                <div
-                  className="h-full bg-gradient-to-r from-primary via-primary-hover to-primary transition-all duration-75 ease-linear rounded-full"
-                  style={{ width: `${introProgress}%` }}
-                />
-              </div>
-              <p className="text-[11px] text-muted mt-2.5 font-medium tracking-wide">
-                Entering menu in {countdownSeconds}s • Tap anywhere to start
-              </p>
-            </div>
+            {/* Tap to enter hint */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0.45, 0.9, 0.45] }}
+              transition={{ repeat: Infinity, duration: 2, ease: "easeInOut", delay: 0.35 }}
+              className="mt-8 relative z-10"
+            >
+              <span className="text-[11px] font-semibold tracking-widest text-muted uppercase">
+                Tap anywhere to enter
+              </span>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
