@@ -240,31 +240,42 @@ export default function MenuClient({
   const [showOfferPopup, setShowOfferPopup] = useState<boolean>(false);
   const hasAutoOpenedOffersRef = useRef<boolean>(false);
 
-  // Clear any legacy blocking flags on mount so testing & fresh scans always work
+  // Trigger Offer Popup ONLY after a fresh QR scan and once per scan session
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    try {
-      window.sessionStorage.removeItem(`sd:offers_dismissed:${menupages}`);
-    } catch { }
-  }, [menupages]);
-
-  // Trigger Offer Popup Form after Namaste screen exits (runs once per visit)
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (showWelcomeIntro) return; // Wait until Namaste welcome screen has fully exited
+    if (showWelcomeIntro) return; // Wait until Namaste welcome screen has fully finished
     if (hasAutoOpenedOffersRef.current) return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const isExplicitScan = urlParams.has('scan');
+    const fromOrderMore = urlParams.get('from') === 'order-more' || urlParams.has('skipWelcome');
+
+    // ONLY show if user explicitly scanned a QR code and is not returning from order-more
+    if (!isExplicitScan || fromOrderMore) return;
+
+    // Check if offer popup was already shown or dismissed in this session
+    const alreadyShown = window.sessionStorage.getItem(`sd:offers_shown:${menupages}`);
+    if (alreadyShown) return;
 
     if (activeOffers.length > 0) {
       hasAutoOpenedOffersRef.current = true;
       const timer = setTimeout(() => {
         setShowOfferPopup(true);
-      }, 300);
+        try {
+          window.sessionStorage.setItem(`sd:offers_shown:${menupages}`, 'true');
+        } catch { }
+      }, 400);
       return () => clearTimeout(timer);
     }
-  }, [showWelcomeIntro, activeOffers]);
+  }, [showWelcomeIntro, activeOffers, menupages]);
 
   const handleCloseOfferPopup = () => {
     setShowOfferPopup(false);
+    if (typeof window !== 'undefined') {
+      try {
+        window.sessionStorage.setItem(`sd:offers_shown:${menupages}`, 'true');
+      } catch { }
+    }
   };
 
   const handleApplyOffer = (offer: OfferItem) => {
@@ -278,6 +289,7 @@ export default function MenuClient({
         };
         window.sessionStorage.setItem(`sd:appliedOffer:${menupages}`, JSON.stringify(payload));
         window.localStorage.setItem(`sd:appliedOffer:${menupages}`, JSON.stringify(payload));
+        window.sessionStorage.setItem(`sd:offers_shown:${menupages}`, 'true');
       } catch { }
     }
     setShowOfferPopup(false);
