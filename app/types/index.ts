@@ -14,7 +14,7 @@ export interface ICafe {
   ownerName: string;
   city: string;
   location: string;
-  subscriptionPlan: 'Demo (7 Days)' | '1 Month' | '3 Months' | '6 Months' | '12 Months' | 'Lifetime';
+  subscriptionPlan: 'Demo (15 Days)' | '1 Month (₹999)' | '1 Year (₹9,999)' | 'Demo (1 Day)' | 'Demo (7 Days)' | '1 Month' | '3 Months' | '6 Months' | '12 Months' | '1 Year' | 'Lifetime';
   startDate: Date;
   endDate: Date;
   slug: string;

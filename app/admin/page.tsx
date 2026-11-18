@@ -231,7 +231,7 @@ export default function SuperAdmin() {
   const [slug, setSlug] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [plan, setPlan] = useState('demo');
+  const [plan, setPlan] = useState('demo15');
   const [showSuccess, setShowSuccess] = useState(false);
   const [menuLink, setMenuLink] = useState('');
   const [adminLink, setAdminLink] = useState('');
@@ -274,27 +274,33 @@ export default function SuperAdmin() {
 
   const planLabelFromCode = (code: string) => {
     const map: Record<string, string> = {
+      demo15: 'Demo (15 Days)',
+      demo: 'Demo (15 Days)',
       demo1: 'Demo (1 Day)',
-      demo: 'Demo (7 Days)',
-      '1': '1 Month',
+      '1': '1 Month (₹999)',
       '3': '3 Months',
       '6': '6 Months',
-      '12': '12 Months',
+      '12': '1 Year (₹9,999)',
       lifetime: 'Lifetime',
     };
-    return map[code] || 'Demo (7 Days)';
+    return map[code] || 'Demo (15 Days)';
   };
   const planCodeFromLabel = (label: string) => {
     const rev: Record<string, string> = {
+      'Demo (15 Days)': 'demo15',
+      'Demo (7 Days)': 'demo15',
       'Demo (1 Day)': 'demo1',
-      'Demo (7 Days)': 'demo',
+      '1 Month (₹999)': '1',
       '1 Month': '1',
       '3 Months': '3',
       '6 Months': '6',
+      '1 Year (₹9,999)': '12',
+      '12 Months (₹9,999)': '12',
       '12 Months': '12',
+      '1 Year': '12',
       'Lifetime': 'lifetime',
     };
-    return rev[label] || 'demo';
+    return rev[label] || 'demo15';
   };
 
   const modalRef = useRef<HTMLDivElement>(null);
@@ -373,10 +379,10 @@ export default function SuperAdmin() {
 
     const date = new Date(startDate);
     
-    if (plan === 'demo1') {
+    if (plan === 'demo15' || plan === 'demo') {
+      date.setDate(date.getDate() + 15);
+    } else if (plan === 'demo1') {
       date.setDate(date.getDate() + 1);
-    } else if (plan === 'demo') {
-      date.setDate(date.getDate() + 7);
     } else {
       date.setMonth(date.getMonth() + parseInt(plan));
     }
@@ -389,10 +395,10 @@ export default function SuperAdmin() {
 
     const date = new Date(editStartDate);
     
-    if (editPlan === 'demo1') {
+    if (editPlan === 'demo15' || editPlan === 'demo') {
+      date.setDate(date.getDate() + 15);
+    } else if (editPlan === 'demo1') {
       date.setDate(date.getDate() + 1);
-    } else if (editPlan === 'demo') {
-      date.setDate(date.getDate() + 7);
     } else if (editPlan === 'lifetime') {
       date.setFullYear(date.getFullYear() + 100);
     } else {
@@ -421,12 +427,12 @@ export default function SuperAdmin() {
     const form = e.currentTarget as HTMLFormElement;
     const fd = new FormData(form);
     const planMap: Record<string, string> = {
+      demo15: 'Demo (15 Days)',
+      demo: 'Demo (15 Days)',
       demo1: 'Demo (1 Day)',
-      demo: 'Demo (7 Days)',
-      '1': '1 Month',
-      '3': '3 Months',
-      '6': '6 Months',
-      '12': '12 Months',
+      '1': '1 Month (₹999)',
+      '12': '1 Year (₹9,999)',
+      lifetime: 'Lifetime',
     };
     const payload = {
       cafeName,
@@ -434,7 +440,7 @@ export default function SuperAdmin() {
       email: (fd.get('email') as string) || '',
       city: (fd.get('city') as string) || '',
       location: (fd.get('location') as string) || '',
-      subscriptionPlan: planMap[plan] || 'Demo (7 Days)',
+      subscriptionPlan: planMap[plan] || 'Demo (15 Days)',
       contactNumber: (fd.get('contactNumber') as string) || '',
       startDate,
       endDate,
@@ -800,12 +806,9 @@ export default function SuperAdmin() {
                           required
                         >
                           <option value="" disabled className="text-stone-400">Select a subscription plan</option>
-                          <option value="demo1" className="bg-white text-stone-900">Demo (1 Day)</option>
-                          <option value="demo" className="bg-white text-stone-900">Demo (7 Days)</option>
+                          <option value="demo15" className="bg-white text-stone-900">Demo (15 Days)</option>
                           <option value="1" className="bg-white text-stone-900">1 Month (₹999)</option>
-                          <option value="3" className="bg-white text-stone-900">3 Months</option>
-                          <option value="6" className="bg-white text-stone-900">6 Months</option>
-                          <option value="12" className="bg-white text-stone-900">12 Months (₹9,999)</option>
+                          <option value="12" className="bg-white text-stone-900">1 Year (₹9,999)</option>
                         </select>
                         <ChevronDown className="w-4 h-4 text-stone-400 pointer-events-none absolute right-4 top-1/2 -translate-y-1/2" />
                       </div>
@@ -1246,12 +1249,9 @@ export default function SuperAdmin() {
                                 }
                               }}
                             >
-                              <option value="demo1" className="bg-white text-stone-900">Demo (1 Day)</option>
-                              <option value="demo" className="bg-white text-stone-900">Demo (7 Days)</option>
+                              <option value="demo15" className="bg-white text-stone-900">Demo (15 Days)</option>
                               <option value="1" className="bg-white text-stone-900">1 Month (₹999)</option>
-                              <option value="3" className="bg-white text-stone-900">3 Months</option>
-                              <option value="6" className="bg-white text-stone-900">6 Months</option>
-                              <option value="12" className="bg-white text-stone-900">12 Months (₹9,999)</option>
+                              <option value="12" className="bg-white text-stone-900">1 Year (₹9,999)</option>
                               <option value="lifetime" className="bg-white text-stone-900">Lifetime</option>
                             </select>
                             <ChevronDown className="w-4 h-4 text-stone-400 pointer-events-none absolute right-4 top-1/2 -translate-y-1/2" />

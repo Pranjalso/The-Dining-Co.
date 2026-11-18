@@ -6,7 +6,7 @@ export interface ICafeDocument extends Document {
   email: string;
   city: string;
   location: string;
-  subscriptionPlan: 'Demo (1 Day)' | 'Demo (7 Days)' | '1 Month' | '3 Months' | '6 Months' | '12 Months' | 'Lifetime';
+  subscriptionPlan: 'Demo (15 Days)' | '1 Month (₹999)' | '1 Year (₹9,999)' | 'Demo (1 Day)' | 'Demo (7 Days)' | '1 Month' | '3 Months' | '6 Months' | '12 Months' | '1 Year' | 'Lifetime';
   startDate: Date;
   endDate: Date;
   slug: string;
@@ -54,7 +54,8 @@ const CafeSchema = new Schema<ICafeDocument>(
     },
     subscriptionPlan: {
       type: String,
-      enum: ['Demo (1 Day)', 'Demo (7 Days)', '1 Month', '3 Months', '6 Months', '12 Months', 'Lifetime'],
+      enum: ['Demo (15 Days)', '1 Month (₹999)', '1 Year (₹9,999)', 'Demo (1 Day)', 'Demo (7 Days)', '1 Month', '3 Months', '6 Months', '12 Months', '1 Year', 'Lifetime'],
+      default: 'Demo (15 Days)',
       required: true,
     },
     startDate: {
