@@ -262,7 +262,8 @@ function PaymentPageContent({ menupages }: { menupages: string }) {
   // Deep-link for mobile UPI apps
   const upiDeepLink = useMemo(() => {
     if (!cafeUpiId) return null;
-    const note = encodeURIComponent(`Order Table ${tableNumber || ''} - ${cafeName}`.trim());
+    const cleanNote = `Order Table ${tableNumber || '1'} ${cafeName}`.replace(/[^a-zA-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 35);
+    const note = encodeURIComponent(cleanNote);
     return `upi://pay?pa=${encodeURIComponent(cafeUpiId)}&pn=${encodeURIComponent(cafeName)}&am=${total}&cu=INR&tn=${note}`;
   }, [cafeUpiId, cafeName, total, tableNumber]);
 
@@ -638,6 +639,10 @@ function PaymentPageContent({ menupages }: { menupages: string }) {
                           </button>
                         </div>
                       )}
+
+                      <p className="text-[10px] text-stone-400 text-center pt-0.5">
+                        Tip: If your bank limits UPI, switch to another bank in your UPI app or choose Cash at Counter.
+                      </p>
                     </>
                   ) : (
                     <div className="py-6 space-y-1.5 text-center">
