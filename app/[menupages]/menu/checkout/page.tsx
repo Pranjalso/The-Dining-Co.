@@ -259,11 +259,13 @@ export default function CheckoutPage() {
     minOrderAmount?: number;
   } | null>(null);
 
-  // Restore applied promo from sessionStorage
+  // Restore applied promo from sessionStorage or localStorage
   useEffect(() => {
     try {
       if (!menupages) return;
-      const rawPromo = window.sessionStorage.getItem(`sd:appliedOffer:${menupages}`);
+      const rawPromo =
+        window.sessionStorage.getItem(`sd:appliedOffer:${menupages}`) ||
+        window.localStorage.getItem(`sd:appliedOffer:${menupages}`);
       if (rawPromo) {
         setAppliedPromo(JSON.parse(rawPromo));
       }

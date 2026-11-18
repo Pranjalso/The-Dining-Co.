@@ -21,6 +21,7 @@ import {
 import useSWR, { mutate } from "swr";
 import { getPusherClient } from "@/lib/pusher-client";
 import OfferPopupModal, { OfferItem } from "@/components/OfferPopupModal";
+import InaugurationCountdownBar from "@/components/InaugurationCountdownBar";
 import ServiceBellModal from "@/components/ServiceBellModal";
 import ItemCustomizationModal, { ModifierGroup } from "@/components/ItemCustomizationModal";
 import ActiveTableTabBanner, { ActiveTableTabData } from "@/components/ActiveTableTabBanner";
@@ -866,6 +867,9 @@ export default function MenuClient({
             </div>
           )}
 
+          {/* Minimal Inauguration Countdown Bar (Only for Ignite Aeros & Only for Today) */}
+          <InaugurationCountdownBar cafeSlug={menupages} />
+
           {/* Active Offers Top Banner (Allows re-opening popup anytime) */}
           {activeOffers.length > 0 && (
             <div className="mx-4 mt-2.5">
@@ -1037,9 +1041,34 @@ export default function MenuClient({
                               {item.description}
                             </p>
                           )}
-                          <p className="text-sm sm:text-base font-black menu-text mt-1 font-price tabular-nums">
-                            ₹{item.price}
-                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <p className="text-sm sm:text-base font-black menu-text font-price tabular-nums">
+                              ₹{item.price}
+                            </p>
+                            {menupages?.toLowerCase().includes("ignite-aeros") &&
+                              (item.name.toLowerCase().includes("tea") || item.name.toLowerCase().includes("chai")) &&
+                              (() => {
+                                const now = new Date();
+                                const startDay = new Date("2026-11-18T00:00:00+05:30");
+                                const endDay = new Date("2026-11-18T23:59:59+05:30");
+                                if (now < startDay || now > endDay) return null;
+                                const startFree = new Date("2026-11-18T18:00:00+05:30");
+                                const endFree = new Date("2026-11-18T20:00:00+05:30");
+                                if (now >= startFree && now <= endFree) {
+                                  return (
+                                    <span className="text-[10px] font-black text-emerald-600 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
+                                      Free (6-8 PM)
+                                    </span>
+                                  );
+                                }
+                                return (
+                                  <span className="text-[9px] font-bold text-amber-700 bg-amber-500/15 border border-amber-500/25 px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                                    Free 6-8 PM Today
+                                  </span>
+                                );
+                              })()
+                            }
+                          </div>
                           {item.modifierGroups && item.modifierGroups.length > 0 && (
                             <span className="inline-block mt-0.5 text-[9px] font-bold uppercase tracking-wider menu-primary-text bg-[var(--theme-primary)]/10 px-1.5 py-0.5 rounded">
                               Customizable
