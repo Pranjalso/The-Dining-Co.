@@ -19,6 +19,8 @@ import {
   Tag,
   TicketPercent,
   Receipt,
+  Store,
+  CheckCircle2,
 } from "lucide-react";
 import useSWR from "swr";
 
@@ -547,130 +549,119 @@ function PaymentPageContent({ menupages }: { menupages: string }) {
                 </div>
               </div>
 
-              {/* ─── Segmented Payment Switch ─── */}
-              <div className="bg-[var(--theme-surface)] p-1 rounded-xl border menu-border flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod("upi")}
-                  className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5 ${
-                    paymentMethod === "upi"
-                      ? "menu-primary-btn shadow-sm"
-                      : "menu-muted hover:menu-text"
-                  }`}
-                >
-                  <Smartphone className="w-3.5 h-3.5" />
-                  <span>UPI (QR / App)</span>
-                </button>
+              {/* ─── Payment Method Selection ─── */}
+              <div className="space-y-2.5">
+                <label className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block">
+                  Payment Method
+                </label>
 
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod("cash")}
-                  className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5 ${
-                    paymentMethod === "cash"
-                      ? "menu-primary-btn shadow-sm"
-                      : "menu-muted hover:menu-text"
-                  }`}
-                >
-                  <Wallet className="w-3.5 h-3.5" />
-                  <span>Cash at Counter</span>
-                </button>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {/* Option 1: Scan UPI at Counter */}
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("upi")}
+                    className={`p-3.5 rounded-2xl border text-left transition-all duration-200 relative ${
+                      paymentMethod === "upi"
+                        ? "bg-[#FBF8F3] border-[#B8860B] ring-2 ring-[#B8860B]/20 shadow-sm"
+                        : "bg-white border-[#E5DFD4] hover:border-stone-300"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+                        paymentMethod === "upi" ? "bg-[#B8860B] text-white" : "bg-stone-100 text-stone-600"
+                      }`}>
+                        <QrCode className="w-4 h-4" />
+                      </div>
+                      <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                        paymentMethod === "upi" ? "border-[#B8860B] bg-[#B8860B]" : "border-stone-300"
+                      }`}>
+                        {paymentMethod === "upi" && <Check className="w-2.5 h-2.5 text-white stroke-[3]" />}
+                      </span>
+                    </div>
+                    <p className="text-xs font-bold text-stone-900 leading-snug">UPI at Counter</p>
+                    <p className="text-[10px] text-stone-500 mt-0.5">Scan Cafe Standee QR</p>
+                  </button>
+
+                  {/* Option 2: Cash at Counter */}
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("cash")}
+                    className={`p-3.5 rounded-2xl border text-left transition-all duration-200 relative ${
+                      paymentMethod === "cash"
+                        ? "bg-[#FBF8F3] border-[#B8860B] ring-2 ring-[#B8860B]/20 shadow-sm"
+                        : "bg-white border-[#E5DFD4] hover:border-stone-300"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+                        paymentMethod === "cash" ? "bg-[#B8860B] text-white" : "bg-stone-100 text-stone-600"
+                      }`}>
+                        <Wallet className="w-4 h-4" />
+                      </div>
+                      <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                        paymentMethod === "cash" ? "border-[#B8860B] bg-[#B8860B]" : "border-stone-300"
+                      }`}>
+                        {paymentMethod === "cash" && <Check className="w-2.5 h-2.5 text-white stroke-[3]" />}
+                      </span>
+                    </div>
+                    <p className="text-xs font-bold text-stone-900 leading-snug">Cash at Counter</p>
+                    <p className="text-[10px] text-stone-500 mt-0.5">Pay cash to staff</p>
+                  </button>
+                </div>
               </div>
 
-              {/* ─── UPI Payment Section ─── */}
-              {paymentMethod === "upi" && (
-                <motion.div
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="menu-card border menu-border rounded-2xl p-4 text-center space-y-3.5 shadow-sm"
-                >
-                  {activeQrCode ? (
-                    <>
-                      {/* Clean QR Box */}
-                      <div className="inline-block p-3 bg-white rounded-2xl shadow-xs border border-[#E5DFD4] relative">
-                        <img 
-                          src={activeQrCode} 
-                          alt="UPI QR Code" 
-                          className="w-44 h-44 sm:w-48 sm:h-48 object-contain rounded-lg"
-                        />
-                      </div>
+              {/* ─── How Counter Confirmation Works Card ─── */}
+              <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2 }}
+                className="bg-white border border-[#E5DFD4] rounded-2xl p-4 space-y-3 shadow-xs"
+              >
+                <div className="flex items-center gap-2.5 pb-2.5 border-b border-[#E5DFD4]">
+                  <div className="w-8 h-8 rounded-xl bg-[#B8860B]/10 text-[#B8860B] flex items-center justify-center flex-shrink-0">
+                    <Store className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-stone-900">
+                      {paymentMethod === "upi" ? "Scan QR & Pay at Cafe Counter" : "Pay Cash at Cafe Counter"}
+                    </h4>
+                    <p className="text-[10px] text-stone-500">Quick 3-step order confirmation</p>
+                  </div>
+                </div>
 
-                      <div className="space-y-1">
-                        <p className="text-xs text-stone-600 font-semibold">
-                          Scan with GPay, PhonePe, Paytm, or any UPI App
-                        </p>
-                        {total > 0 && (
-                          <p className="text-[11px] text-[#B8860B] font-bold">
-                            Amount: ₹{total} {tableNumber ? `• Table ${tableNumber}` : ''}
-                          </p>
-                        )}
-                      </div>
+                {/* 3 Step Visual Flow */}
+                <div className="space-y-2.5 text-xs">
+                  <div className="flex items-start gap-2.5">
+                    <span className="w-5 h-5 rounded-full bg-[#B8860B]/15 text-[#B8860B] font-bold text-[11px] flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+                    <div>
+                      <p className="font-semibold text-stone-800">Place Order</p>
+                      <p className="text-[11px] text-stone-500">Tap below to submit your order and get your Order #.</p>
+                    </div>
+                  </div>
 
-                      {/* One-Tap Pay Deep-Link */}
-                      {upiDeepLink && (
-                        <a
-                          href={upiDeepLink}
-                          className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#B8860B] to-[#9C7006] hover:from-[#A2760A] hover:to-[#855D05] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-[#B8860B]/15 transition-all active:scale-[0.98]"
-                        >
-                          <Smartphone className="w-3.5 h-3.5" />
-                          <span>Tap to Pay ₹{total} in UPI App</span>
-                          <ExternalLink className="w-3 h-3 ml-0.5 opacity-80" />
-                        </a>
-                      )}
-
-                      {/* Minimal Copy UPI ID */}
-                      {cafeUpiId && (
-                        <div className="flex items-center justify-center gap-1.5 text-[11px] text-stone-500 pt-1">
-                          <span>UPI ID:</span>
-                          <span className="font-mono font-semibold text-stone-900 select-all">{cafeUpiId}</span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (typeof navigator !== 'undefined' && navigator.clipboard) {
-                                navigator.clipboard.writeText(cafeUpiId);
-                                setCopiedUpi(true);
-                                setTimeout(() => setCopiedUpi(false), 2000);
-                              }
-                            }}
-                            className="text-[#B8860B] hover:opacity-80 transition-opacity p-0.5"
-                            title="Copy UPI ID"
-                          >
-                            {copiedUpi ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                          </button>
-                        </div>
-                      )}
-
-                      <p className="text-[10px] text-stone-400 text-center pt-0.5">
-                        Tip: If your bank limits UPI, switch to another bank in your UPI app or choose Cash at Counter.
+                  <div className="flex items-start gap-2.5">
+                    <span className="w-5 h-5 rounded-full bg-[#B8860B]/15 text-[#B8860B] font-bold text-[11px] flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+                    <div>
+                      <p className="font-semibold text-stone-800">
+                        {paymentMethod === "upi" ? "Scan QR Standee at Counter" : "Pay Cash at Counter"}
                       </p>
-                    </>
-                  ) : (
-                    <div className="py-6 space-y-1.5 text-center">
-                      <QrCode className="w-8 h-8 text-stone-400 mx-auto" />
-                      <p className="text-xs font-semibold text-stone-900">QR Code Not Configured</p>
-                      <p className="text-[11px] text-stone-500 max-w-xs mx-auto">
-                        Please pay at the cafe counter or choose cash below.
+                      <p className="text-[11px] text-stone-500">
+                        {paymentMethod === "upi" 
+                          ? `Visit the counter and scan the physical QR standee for ₹${total} using any UPI app.` 
+                          : `Hand ₹${total} in cash to the cafe staff at the billing counter.`}
                       </p>
                     </div>
-                  )}
-                </motion.div>
-              )}
+                  </div>
 
-              {/* ─── Cash Payment Note ─── */}
-              {paymentMethod === "cash" && (
-                <motion.div
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-center space-y-1 shadow-xs"
-                >
-                  <Wallet className="w-6 h-6 text-amber-700 mx-auto mb-1" />
-                  <p className="text-xs font-bold text-amber-900">Pay ₹{total} in Cash</p>
-                  <p className="text-[11px] text-amber-800">
-                    Please hand the cash to your server or at the billing counter.
-                  </p>
-                </motion.div>
-              )}
+                  <div className="flex items-start gap-2.5">
+                    <span className="w-5 h-5 rounded-full bg-[#B8860B]/15 text-[#B8860B] font-bold text-[11px] flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+                    <div>
+                      <p className="font-semibold text-stone-800">Owner Confirms & Prepares Food</p>
+                      <p className="text-[11px] text-stone-500">The cafe owner confirms receipt on their portal and kitchen starts preparing your food!</p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
 
               {/* ─── Collapsible Special Instructions ─── */}
               <div className="pt-1">
@@ -755,13 +746,13 @@ function PaymentPageContent({ menupages }: { menupages: string }) {
                   Confirming Order...
                 </span>
               ) : (
-                <span>Place Order · ₹{total}</span>
+                <span>Place Order & Pay at Counter · ₹{total}</span>
               )}
             </button>
           )}
 
           <p className="text-[10px] text-center menu-muted flex items-center justify-center gap-1 font-medium">
-            <span>By confirming, your order will be sent to the kitchen.</span>
+            <span>Pay at cafe counter via UPI QR or Cash to confirm your order.</span>
           </p>
         </footer>
       </div>

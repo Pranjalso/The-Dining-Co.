@@ -125,7 +125,7 @@ export default function NewOrdersPage() {
     };
   }, [slug, boundMutate]);
 
-  const handleUpdateStatus = async (orderId: string, newStatus: OrderStatus) => {
+  const handleUpdateStatus = async (orderId: string, newStatus: OrderStatus, paymentStatus?: PaymentStatus) => {
     setUpdating(orderId);
     // 🛡️ Permanently mark this order as handled immediately so it can NEVER flash or come back
     setHandledOrderIds(prev => new Set(prev).add(orderId));
@@ -149,19 +149,26 @@ export default function NewOrdersPage() {
     }
 
     try {
+      const updatePayload: any = { orderStatus: newStatus };
+      if (paymentStatus) updatePayload.paymentStatus = paymentStatus;
+
       const res = await fetch(`/api/orders/${slug}?id=${orderId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderStatus: newStatus }),
+        body: JSON.stringify(updatePayload),
       });
       const resData = await res.json();
       if (resData.success) {
         const orderNum = targetOrder?.orderNumber ?? resData.data?.orderNumber;
         const tableNum = targetOrder?.tableNumber ?? resData.data?.tableNumber;
         toast({
-          title: newStatus === 'preparing' ? 'Order Accepted' : 'Order Rejected',
+          title: newStatus === 'preparing' 
+            ? (paymentStatus === 'completed' ? 'Payment Confirmed & Accepted' : 'Order Accepted')
+            : 'Order Rejected',
           description: newStatus === 'preparing' 
-            ? `Order #${orderNum} has been accepted and moved to preparing.` 
+            ? (paymentStatus === 'completed'
+                ? `Order #${orderNum} payment confirmed and moved to kitchen.`
+                : `Order #${orderNum} has been accepted and moved to preparing.`)
             : `Order #${orderNum} has been rejected. Notification sent to Table ${tableNum}.`,
           variant: newStatus === 'cancelled' ? 'destructive' : 'default',
         });
@@ -311,6 +318,19 @@ export default function NewOrdersPage() {
                         <PaymentIcon size={10} strokeWidth={2.5} />
                         <span>{paymentBadge.label}</span>
                       </div>
+
+                      {/* Payment Status Badge */}
+                      {order.paymentStatus !== 'completed' ? (
+                        <div className="flex items-center gap-1 px-2 py-0.5 sm:px-2 sm:py-1 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 text-[10px] sm:text-xs font-bold whitespace-nowrap">
+                          <Clock size={10} strokeWidth={2.5} />
+                          <span>Collect at Counter</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 px-2 py-0.5 sm:px-2 sm:py-1 rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] sm:text-xs font-bold whitespace-nowrap">
+                          <Check size={10} strokeWidth={2.5} />
+                          <span>Paid</span>
+                        </div>
+                      )}
                     </div>
                     
                     <div className="flex items-center gap-2 text-[10px] sm:text-sm text-muted font-medium mt-0.5 sm:mt-1">
@@ -341,24 +361,36 @@ export default function NewOrdersPage() {
                   </div>
                   
                   <div className="flex items-center gap-1.5 sm:gap-2">
-                    {/* Accept Button */}
+                    {/* Confirm Paid & Accept Button (Primary) */}
+                    <button
+                      onClick={() => handleUpdateStatus(order._id, "preparing", "completed")}
+                      disabled={isUpdating}
+                      className="flex items-center gap-1 sm:gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-[10px] sm:text-xs font-bold transition-all duration-300 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+                      title="Customer paid at counter: confirm payment and start preparing food"
+                    >
+                      <Check size={12} strokeWidth={3} />
+                      <span>Confirm Paid & Accept</span>
+                    </button>
+
+                    {/* Accept (Pay Later) Button */}
                     <button
                       onClick={() => handleUpdateStatus(order._id, "preparing")}
                       disabled={isUpdating}
-                      className="flex items-center gap-0.5 sm:gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[10px] sm:text-sm font-bold transition-all duration-300 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex items-center gap-0.5 sm:gap-1 bg-white border border-border text-text hover:bg-surface px-2 py-1.5 sm:px-2.5 sm:py-2 rounded-xl text-[10px] sm:text-xs font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs"
+                      title="Accept order now without confirming payment"
                     >
-                      <Check size={12} strokeWidth={3} />
-                      <span className="sm:inline">Accept</span>
+                      <span>Pay Later</span>
                     </button>
 
                     {/* Reject Button */}
                     <button
                       onClick={() => handleUpdateStatus(order._id, "cancelled")}
                       disabled={isUpdating}
-                      className="flex items-center gap-0.5 sm:gap-1.5 bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 hover:border-rose-300 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[10px] sm:text-sm font-bold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                      className="flex items-center gap-0.5 sm:gap-1 bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 hover:border-rose-300 px-2 py-1.5 sm:px-2.5 sm:py-2 rounded-xl text-[10px] sm:text-xs font-bold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs"
+                      title="Reject order"
                     >
                       <X size={12} strokeWidth={3} />
-                      <span className="sm:inline">Reject</span>
+                      <span className="hidden sm:inline">Reject</span>
                     </button>
                   </div>
                 </div>

@@ -13,7 +13,10 @@ import {
   AlertCircle,
   X,
   MessageSquare,
-  Eye
+  Eye,
+  Store,
+  QrCode,
+  Wallet
 } from "lucide-react";
 import { Suspense, useEffect, useState, useRef } from "react";
 import useSWR from "swr";
@@ -431,14 +434,22 @@ function OrderConfirmationContent({ menupages }: { menupages: string }) {
     <div className="min-h-screen menu-container">
       <div className="max-w-md mx-auto menu-container min-h-screen shadow-xl border-x menu-border">
         <div className="p-8 flex flex-col items-center justify-center min-h-screen">
-          {/* Success Icon */}
+          {/* Status Icon */}
           <motion.div 
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 200, damping: 20 }}
-            className="w-24 h-24 bg-emerald-100 rounded-3xl mb-6 flex items-center justify-center border border-emerald-200 shadow-md text-emerald-600"
+            className={`w-24 h-24 rounded-3xl mb-6 flex items-center justify-center border shadow-md ${
+              paymentStatus === 'completed'
+                ? 'bg-emerald-100 border-emerald-200 text-emerald-600'
+                : 'bg-amber-100 border-amber-200 text-amber-700'
+            }`}
           >
-            <CheckCircle className="w-12 h-12" />
+            {paymentStatus === 'completed' ? (
+              <CheckCircle className="w-12 h-12" />
+            ) : (
+              <Store className="w-12 h-12 animate-pulse" />
+            )}
           </motion.div>
           
           {/* Title */}
@@ -448,7 +459,7 @@ function OrderConfirmationContent({ menupages }: { menupages: string }) {
             transition={{ delay: 0.1 }}
             className="text-2xl font-bold text-text tracking-tight text-center"
           >
-            Order Confirmed!
+            {paymentStatus === 'completed' ? "Order Confirmed!" : "Order Placed · Pay at Counter"}
           </motion.h1>
           
           {/* Order & Table Badges */}
@@ -478,9 +489,9 @@ function OrderConfirmationContent({ menupages }: { menupages: string }) {
                 Payment Received
               </motion.span>
             ) : (
-              <span className="text-sm text-amber-800 font-medium bg-amber-100 border border-amber-300 rounded-xl px-3 py-2 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                Payment Pending
+              <span className="text-sm text-amber-900 font-bold bg-amber-100/90 border border-amber-300 rounded-xl px-3.5 py-2 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-amber-600 animate-ping" />
+                Pay at Counter
               </span>
             )}
           </motion.div>
@@ -490,7 +501,7 @@ function OrderConfirmationContent({ menupages }: { menupages: string }) {
             <motion.div
               initial={{ opacity: 0, y: 8, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              className="w-full bg-emerald-50 border border-emerald-200 rounded-2xl p-4 mt-4 text-left flex items-start gap-3 shadow-sm"
+              className="w-full bg-emerald-50 border border-emerald-200 rounded-2xl p-4 mt-5 text-left flex items-start gap-3 shadow-sm"
             >
               <div className="w-9 h-9 rounded-xl bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-700 flex-shrink-0 mt-0.5">
                 <CheckCircle2 className="w-5 h-5" />
@@ -505,8 +516,59 @@ function OrderConfirmationContent({ menupages }: { menupages: string }) {
                   )}
                 </div>
                 <p className="text-xs text-emerald-700 mt-0.5 leading-relaxed">
-                  Your payment has been received and confirmed by the counter. Thank you!
+                  Your payment has been received and confirmed by the counter. Kitchen is now preparing your food!
                 </p>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Counter Payment Action Card (When awaiting payment) */}
+          {paymentStatus !== 'completed' && (
+            <motion.div
+              initial={{ opacity: 0, y: 8, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              className="w-full bg-gradient-to-br from-amber-50 to-orange-50/50 border-2 border-amber-300 rounded-2xl p-4.5 mt-5 text-left shadow-sm space-y-3"
+            >
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-400/40 flex items-center justify-center text-amber-800 flex-shrink-0 mt-0.5">
+                  <Store className="w-5 h-5 text-amber-700" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-1 flex-wrap">
+                    <h4 className="text-sm font-bold text-amber-950">
+                      Visit Counter to Confirm Order
+                    </h4>
+                    {orderTotal > 0 && (
+                      <span className="text-xs font-mono font-black text-amber-900 bg-amber-200/80 px-2 py-0.5 rounded-md border border-amber-300">
+                        ₹{orderTotal}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-amber-800 mt-0.5 leading-relaxed">
+                    Scan the counter QR or pay cash to begin food preparation.
+                  </p>
+                </div>
+              </div>
+
+              {/* 3 Step Visual Guide */}
+              <div className="bg-white/90 rounded-xl p-3 border border-amber-200/80 space-y-2 text-xs text-stone-700">
+                <div className="flex items-start gap-2">
+                  <span className="w-5 h-5 rounded-full bg-amber-500/20 text-amber-800 font-bold text-[11px] flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+                  <span>Go to the counter and mention <strong>Order #{orderNumber}</strong>.</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="w-5 h-5 rounded-full bg-amber-500/20 text-amber-800 font-bold text-[11px] flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+                  <span>Scan the physical cafe QR standee with any UPI app (or pay Cash).</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="w-5 h-5 rounded-full bg-amber-500/20 text-amber-800 font-bold text-[11px] flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+                  <span>The owner confirms your payment on the portal & your screen will automatically update!</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-center gap-2 pt-1 text-[11px] text-amber-900 font-medium">
+                <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                <span>Waiting for counter payment confirmation...</span>
               </div>
             </motion.div>
           )}
