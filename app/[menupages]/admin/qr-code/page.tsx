@@ -71,7 +71,7 @@ export default function CafeMenuQrPage() {
   // Configured tables list
   const [tables, setTables] = useState<string[]>([]);
   const [newTableInput, setNewTableInput] = useState("");
-  const [selectedTable, setSelectedTable] = useState<string>("general");
+  const [selectedTable, setSelectedTable] = useState<string>("1");
   const [copied, setCopied] = useState(false);
   const [isSavingTables, setIsSavingTables] = useState(false);
   const [isDownloadingBulk, setIsDownloadingBulk] = useState(false);
@@ -938,55 +938,34 @@ export default function CafeMenuQrPage() {
                         <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-zinc-600"></div>
 
                         {/* INNER VISIBLE WINDOW (45 x 63 mm representation) */}
-                        <div className="w-[230px] sm:w-[250px] min-h-[415px] border border-dashed border-amber-400/80 bg-white rounded-xl p-3 flex flex-col items-center justify-between text-center relative mt-3 mb-1 shadow-inner">
+                        <div className="w-[230px] sm:w-[250px] min-h-[380px] sm:min-h-[400px] border border-dashed border-amber-400/80 bg-white rounded-xl p-3 flex flex-col items-center justify-start text-center relative mt-3 mb-1 shadow-inner">
                           {/* Inner window badge label */}
                           <div className="absolute -top-2.5 bg-amber-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-xs">
                             Visible Window (45 × 63 mm)
                           </div>
 
-                          <div className="w-full space-y-1 pt-1">
-                            <div className="w-12 h-1 bg-amber-500 rounded-full mx-auto"></div>
-                            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-700">
-                              The Dining Co.
-                            </div>
-                            <h2 className="text-xl font-extrabold text-zinc-900 tracking-tight leading-tight truncate px-1">
-                              {cafeName}
-                            </h2>
+                          {/* Table number on top in vertical */}
+                          <div className="w-full pt-3 pb-2 text-center">
+                            <span className="text-xl sm:text-2xl font-black text-zinc-900 uppercase tracking-widest block">
+                              {effectiveTable ? formatTableBadge(effectiveTable) : "DINE-IN MENU"}
+                            </span>
                           </div>
 
-                          {effectiveTable && (
-                            <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-400 font-extrabold text-xs shadow-xs my-0.5">
-                              <span>{formatTableBadge(effectiveTable)}</span>
-                            </div>
-                          )}
-
-                          {/* Centered QR Box */}
-                          <div className="bg-white p-2 rounded-xl border border-zinc-200 shadow-sm inline-block my-1">
+                          {/* QR Code occupying most of the space */}
+                          <div className="w-full flex-1 flex items-center justify-center p-1 my-auto">
                             {qrSvg ? (
                               <svg
                                 viewBox={`0 0 ${qrSvg.viewBoxSize} ${qrSvg.viewBoxSize}`}
-                                className="w-40 h-40 sm:w-44 sm:h-44"
+                                className="w-48 h-48 sm:w-52 sm:h-52 max-w-full drop-shadow-xs"
                                 fill="#000000"
                               >
                                 <path d={qrSvg.path} />
                               </svg>
                             ) : (
-                              <div className="w-40 h-40 flex items-center justify-center text-zinc-400 text-xs">
+                              <div className="w-48 h-48 flex items-center justify-center text-zinc-400 text-xs">
                                 Generating QR...
                               </div>
                             )}
-                          </div>
-
-                          <div className="space-y-0.5 w-full">
-                            <p className="text-xs font-extrabold text-zinc-900">
-                              Scan to View Menu & Order
-                            </p>
-                            <p className="text-[10px] text-zinc-500">
-                              Open phone camera or QR scanner
-                            </p>
-                            <p className="text-[9px] font-mono text-zinc-400 truncate max-w-[200px] mx-auto pt-0.5">
-                              {currentMenuUrl.replace(/^https?:\/\//, "")}
-                            </p>
                           </div>
                         </div>
 
@@ -1015,48 +994,25 @@ export default function CafeMenuQrPage() {
                             Visible Window (63 × 45 mm)
                           </div>
 
-                          {/* Left Column */}
-                          <div className="flex-1 space-y-2">
-                            <div>
-                              <div className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-700">
-                                The Dining Co.
-                              </div>
-                              <h2 className="text-lg font-extrabold text-zinc-900 tracking-tight leading-tight truncate">
-                                {cafeName}
-                              </h2>
-                            </div>
-
-                            {effectiveTable && (
-                              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-400 font-extrabold text-xs shadow-xs">
-                                <span>{formatTableBadge(effectiveTable)}</span>
-                              </div>
-                            )}
-
-                            <div className="space-y-0.5 pt-1">
-                              <p className="text-xs font-extrabold text-zinc-900">
-                                Scan to Order
-                              </p>
-                              <p className="text-[10px] text-zinc-500">
-                                Camera • QR Scanner
-                              </p>
-                              <p className="text-[8px] font-mono text-zinc-400 truncate max-w-[150px]">
-                                {currentMenuUrl.replace(/^https?:\/\//, "")}
-                              </p>
-                            </div>
+                          {/* Left Column: Table Number */}
+                          <div className="flex-1 text-center py-2">
+                            <span className="text-2xl font-black text-zinc-900 uppercase tracking-widest block">
+                              {effectiveTable ? formatTableBadge(effectiveTable) : "DINE-IN MENU"}
+                            </span>
                           </div>
 
                           {/* Right Column: QR Box */}
-                          <div className="bg-white p-2 rounded-xl border border-zinc-200 shadow-sm flex-shrink-0">
+                          <div className="bg-white p-1 rounded-xl flex-shrink-0">
                             {qrSvg ? (
                               <svg
                                 viewBox={`0 0 ${qrSvg.viewBoxSize} ${qrSvg.viewBoxSize}`}
-                                className="w-36 h-36"
+                                className="w-40 h-40"
                                 fill="#000000"
                               >
                                 <path d={qrSvg.path} />
                               </svg>
                             ) : (
-                              <div className="w-36 h-36 flex items-center justify-center text-zinc-400 text-xs">
+                              <div className="w-40 h-40 flex items-center justify-center text-zinc-400 text-xs">
                                 Generating QR...
                               </div>
                             )}
@@ -1095,59 +1051,30 @@ export default function CafeMenuQrPage() {
                   /* STANDARD A4 STANDEE CARD */
                   <div
                     id="single-printable-standee"
-                    className="bg-white text-zinc-900 rounded-3xl p-7 sm:p-8 shadow-2xl border-4 border-amber-500/20 text-center flex flex-col items-center space-y-4 relative overflow-hidden"
+                    className="bg-white text-zinc-900 rounded-3xl p-7 sm:p-8 shadow-2xl border-4 border-amber-500/20 text-center flex flex-col items-center justify-center space-y-4 relative overflow-hidden"
                   >
-                    <div className="w-24 h-1.5 bg-gradient-to-r from-amber-500 to-amber-600 rounded-full mb-1"></div>
-
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-center gap-1.5 text-amber-700">
-                        <UtensilsCrossed className="w-4 h-4" />
-                        <span className="text-xs font-black uppercase tracking-[0.2em]">The Dining Co.</span>
-                      </div>
-                      <h2 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 tracking-tight">
-                        {cafeName}
-                      </h2>
-                      <p className="text-xs font-semibold text-zinc-500 tracking-wide uppercase">
-                        Digital Menu & Ordering
-                      </p>
+                    {/* Table Number on Top */}
+                    <div className="w-full text-center">
+                      <span className="text-3xl sm:text-4xl font-black text-zinc-900 uppercase tracking-widest block">
+                        {effectiveTable ? formatTableBadge(effectiveTable) : "DINE-IN MENU"}
+                      </span>
                     </div>
 
-                    {effectiveTable && (
-                      <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-amber-50 text-amber-800 border-2 border-amber-400 font-extrabold text-sm shadow-sm">
-                        <span>{formatTableBadge(effectiveTable)}</span>
-                      </div>
-                    )}
-
-                    <div className="bg-white p-3 rounded-2xl border-2 border-zinc-200 shadow-inner inline-block my-1">
+                    {/* QR Code occupying most of the space */}
+                    <div className="bg-white p-3 rounded-2xl border-2 border-zinc-200 shadow-inner inline-block my-2">
                       {qrSvg ? (
                         <svg
                           viewBox={`0 0 ${qrSvg.viewBoxSize} ${qrSvg.viewBoxSize}`}
-                          className="w-56 h-56 sm:w-64 sm:h-64"
+                          className="w-72 h-72 sm:w-80 sm:h-80"
                           fill="#000000"
                         >
                           <path d={qrSvg.path} />
                         </svg>
                       ) : (
-                        <div className="w-56 h-56 flex items-center justify-center text-zinc-400 text-sm">
+                        <div className="w-72 h-72 flex items-center justify-center text-zinc-400 text-sm">
                           Generating QR...
                         </div>
                       )}
-                    </div>
-
-                    <div className="space-y-1 pt-1">
-                      <p className="text-base font-extrabold text-zinc-900 flex items-center justify-center gap-1.5">
-                        <Smartphone className="w-4 h-4 text-amber-700" />
-                        Scan to View Menu & Order
-                      </p>
-                      <p className="text-xs text-zinc-600 max-w-xs">
-                        Open your camera or any QR scanner app to browse dishes and place your order.
-                      </p>
-                    </div>
-
-                    <div className="pt-3 border-t border-zinc-200 w-full text-center">
-                      <p className="text-[10px] font-mono text-zinc-500 truncate max-w-[280px] mx-auto">
-                        {currentMenuUrl}
-                      </p>
                     </div>
                   </div>
                 )}

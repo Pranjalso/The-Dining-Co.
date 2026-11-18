@@ -15,11 +15,11 @@ export function formatTableLabel(t?: string): string {
 }
 
 export function formatTableBadge(t?: string): string {
-  if (!t || t.trim().toLowerCase() === "general") return "General Dine-In Menu";
+  if (!t || t.trim() === "" || t.trim().toLowerCase() === "general") return "Table 1";
   const trimmed = t.trim();
   if (/^table\s+/i.test(trimmed)) return trimmed;
   if (/^\d+$/.test(trimmed)) return `Table ${trimmed}`;
-  return trimmed;
+  return `Table ${trimmed}`;
 }
 
 /**
@@ -73,68 +73,20 @@ export function drawStandeeToCanvas(
   ctx.fill();
   ctx.restore();
 
-  // 1. Brand Header: "THE DINING CO."
+  // 1. Table Number on top in vertical
+  const badgeText = formatTableBadge(tableLabel).toUpperCase();
   ctx.save();
-  ctx.fillStyle = accentColor;
-  ctx.font = "900 24px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+  ctx.fillStyle = "#111827";
+  ctx.font = "900 68px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.letterSpacing = "6px";
-  ctx.fillText("THE DINING CO.", width / 2, margin + 100);
+  ctx.fillText(badgeText, width / 2, margin + 140);
   ctx.restore();
 
-  // 2. Cafe Name
-  ctx.save();
-  ctx.fillStyle = "#111827";
-  ctx.font = "bold 60px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-
-  // Fit long cafe names
-  let displayCafeName = cafeName;
-  if (displayCafeName.length > 25) {
-    ctx.font = "bold 48px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-  }
-  ctx.fillText(displayCafeName, width / 2, margin + 175);
-  ctx.restore();
-
-  // 3. Subheading: "DIGITAL MENU & ORDERING"
-  ctx.save();
-  ctx.fillStyle = "#6B7280";
-  ctx.font = "700 22px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.letterSpacing = "3px";
-  ctx.fillText("DIGITAL MENU & ORDERING", width / 2, margin + 235);
-  ctx.restore();
-
-  // 4. Table Badge Pill
-  const badgeText = formatTableBadge(tableLabel);
-  ctx.save();
-  ctx.font = "bold 34px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-  const badgeMetrics = ctx.measureText(badgeText);
-  const badgePaddingX = 40;
-  const badgeW = badgeMetrics.width + badgePaddingX * 2;
-  const badgeH = 64;
-  const badgeY = margin + 280;
-
-  ctx.beginPath();
-  ctx.roundRect((width - badgeW) / 2, badgeY, badgeW, badgeH, 32);
-  ctx.fillStyle = "#FFFBEB";
-  ctx.fill();
-  ctx.lineWidth = 4;
-  ctx.strokeStyle = accentColor;
-  ctx.stroke();
-
-  ctx.fillStyle = "#92400E";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(badgeText, width / 2, badgeY + badgeH / 2);
-  ctx.restore();
-
-  // 5. Draw QR Code in center
-  const qrBoxSize = 640;
-  const qrBoxY = margin + 380;
+  // 2. Draw Large QR Code occupying most of the space
+  const qrBoxSize = 920;
+  const qrBoxY = margin + 240;
   const qrBoxX = (width - qrBoxSize) / 2;
 
   // QR box border & background
@@ -151,7 +103,7 @@ export function drawStandeeToCanvas(
   // Render QR Modules directly
   try {
     const qr = QrCode.encodeText(url, QrErrorCorrectionLevel.HIGH);
-    const qrPadding = 48;
+    const qrPadding = 36;
     const qrInnerSize = qrBoxSize - qrPadding * 2;
     const moduleSize = qrInnerSize / qr.size;
 
@@ -171,51 +123,7 @@ export function drawStandeeToCanvas(
     console.error("Failed to render QR on canvas:", err);
   }
 
-  // 6. Action CTA: "Scan to View Menu & Order"
-  ctx.save();
-  ctx.fillStyle = "#111827";
-  ctx.font = "bold 40px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText("Scan to View Menu & Order", width / 2, margin + 1100);
-  ctx.restore();
-
-  // 7. Explanatory Text
-  ctx.save();
-  ctx.fillStyle = "#4B5563";
-  ctx.font = "500 24px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(
-    "Open your phone camera or QR scanner to browse dishes and order.",
-    width / 2,
-    margin + 1155
-  );
-  ctx.restore();
-
-  // 8. Bottom Divider Line
-  ctx.save();
-  ctx.beginPath();
-  ctx.moveTo(margin + 120, margin + 1240);
-  ctx.lineTo(width - margin - 120, margin + 1240);
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = "#E5E7EB";
-  ctx.stroke();
-  ctx.restore();
-
-  // 9. URL Link
-  ctx.save();
-  ctx.fillStyle = "#6B7280";
-  ctx.font = "500 20px monospace";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-
-  let displayUrl = url;
-  if (displayUrl.length > 55) {
-    displayUrl = displayUrl.substring(0, 52) + "...";
-  }
-  ctx.fillText(displayUrl, width / 2, margin + 1285);
-  ctx.restore();
+  return canvas;
 
   return canvas;
 }
@@ -735,90 +643,35 @@ export function drawMiniStandeeToCanvas(
     ctx.restore();
   }
 
-  // Draw content inside the inner window
+  // Draw content inside the inner window (Table Number on top + QR Code occupying most of the space)
   if (isPortrait) {
-    // 1. Top accent pill
-    ctx.save();
-    ctx.beginPath();
-    const pillW = 60;
-    const pillH = 6;
-    drawRoundRectHelper(ctx, innerX + (innerW - pillW) / 2, innerY + 20, pillW, pillH, 3);
-    ctx.fillStyle = accentColor;
-    ctx.fill();
-    ctx.restore();
-
-    // 2. "THE DINING CO." micro-brand
-    ctx.save();
-    ctx.fillStyle = accentColor;
-    ctx.font = "900 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.letterSpacing = "3px";
-    ctx.fillText("THE DINING CO.", innerX + innerW / 2, innerY + 44);
-    ctx.restore();
-
-    // 3. Cafe Name
+    // 1. Table Number on top (Vertical orientation)
+    const badgeText = formatTableBadge(tableLabel).toUpperCase();
     ctx.save();
     ctx.fillStyle = "#111827";
-    ctx.font = "800 30px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    ctx.font = "900 48px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    let displayName = cafeName;
-    if (displayName.length > 20) {
-      ctx.font = "800 24px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-    }
-    ctx.fillText(displayName, innerX + innerW / 2, innerY + 84);
+    ctx.letterSpacing = "4px";
+    ctx.fillText(badgeText, innerX + innerW / 2, innerY + 60);
     ctx.restore();
 
-    // 4. Table Badge Pill
-    const badgeText = formatTableBadge(tableLabel);
-    ctx.save();
-    ctx.font = "800 18px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-    const badgeMetrics = ctx.measureText(badgeText);
-    const badgeW = Math.max(120, badgeMetrics.width + 36);
-    const badgeH = 36;
-    const badgeY = innerY + 118;
-    ctx.beginPath();
-    drawRoundRectHelper(ctx, innerX + (innerW - badgeW) / 2, badgeY, badgeW, badgeH, 18);
-    ctx.fillStyle = "#FFFBEB";
-    ctx.fill();
-    ctx.lineWidth = 2.5;
-    ctx.strokeStyle = accentColor;
-    ctx.stroke();
-    ctx.fillStyle = "#92400E";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(badgeText, innerX + innerW / 2, badgeY + badgeH / 2);
-    ctx.restore();
-
-    // 5. QR Code in Center (scannable size ~360px / approx 30mm)
-    const qrBoxSize = 350;
+    // 2. Large QR Code occupying most of the space (approx 480 x 480 px in 532 x 744 px window)
+    const qrBoxSize = 480;
     const qrBoxX = innerX + (innerW - qrBoxSize) / 2;
-    const qrBoxY = innerY + 172;
-
-    ctx.save();
-    ctx.beginPath();
-    drawRoundRectHelper(ctx, qrBoxX, qrBoxY, qrBoxSize, qrBoxSize, 20);
-    ctx.fillStyle = "#FFFFFF";
-    ctx.fill();
-    ctx.lineWidth = 2.5;
-    ctx.strokeStyle = "#E5E7EB";
-    ctx.stroke();
-    ctx.restore();
+    const qrBoxY = innerY + 115;
 
     try {
       const qr = QrCode.encodeText(url, QrErrorCorrectionLevel.HIGH);
-      const qrPadding = 24;
-      const qrInnerSize = qrBoxSize - qrPadding * 2;
-      const moduleSize = qrInnerSize / qr.size;
+      const moduleSize = qrBoxSize / qr.size;
 
       ctx.save();
       ctx.fillStyle = "#000000";
       for (let y = 0; y < qr.size; y++) {
         for (let x = 0; x < qr.size; x++) {
           if (qr.getModule(x, y)) {
-            const px = qrBoxX + qrPadding + x * moduleSize;
-            const py = qrBoxY + qrPadding + y * moduleSize;
+            const px = qrBoxX + x * moduleSize;
+            const py = qrBoxY + y * moduleSize;
             ctx.fillRect(px, py, moduleSize + 0.3, moduleSize + 0.3);
           }
         }
@@ -827,141 +680,36 @@ export function drawMiniStandeeToCanvas(
     } catch (e) {
       console.error("QR render error:", e);
     }
-
-    // 6. Action CTA: "Scan to View Menu & Order"
-    ctx.save();
-    ctx.fillStyle = "#111827";
-    ctx.font = "800 24px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText("Scan to View Menu & Order", innerX + innerW / 2, innerY + 560);
-    ctx.restore();
-
-    // 7. Subtext
-    ctx.save();
-    ctx.fillStyle = "#4B5563";
-    ctx.font = "600 14px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText("Open camera or QR scanner", innerX + innerW / 2, innerY + 592);
-    ctx.restore();
-
-    // 8. Mini URL
-    ctx.save();
-    ctx.fillStyle = "#9CA3AF";
-    ctx.font = "500 12px monospace";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    let shortUrl = url.replace(/^https?:\/\//, "");
-    if (shortUrl.length > 32) shortUrl = shortUrl.substring(0, 30) + "...";
-    ctx.fillText(shortUrl, innerX + innerW / 2, innerY + 624);
-    ctx.restore();
-
   } else {
-    // LANDSCAPE (63mm W x 45mm H inner)
-    const leftW = 340;
-    const rightW = innerW - leftW;
+    // LANDSCAPE (63mm W x 45mm H inner): Table Number on left/top + Large QR
+    const badgeText = formatTableBadge(tableLabel).toUpperCase();
 
-    // Brand
-    ctx.save();
-    ctx.fillStyle = accentColor;
-    ctx.font = "900 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-    ctx.textAlign = "left";
-    ctx.textBaseline = "middle";
-    ctx.letterSpacing = "2px";
-    ctx.fillText("THE DINING CO.", innerX + 24, innerY + 45);
-    ctx.restore();
-
-    // Cafe Name
+    // Left side: Table Number
     ctx.save();
     ctx.fillStyle = "#111827";
-    ctx.font = "800 28px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-    ctx.textAlign = "left";
+    ctx.font = "900 44px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    let displayName = cafeName;
-    if (displayName.length > 16) {
-      ctx.font = "800 22px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-    }
-    ctx.fillText(displayName, innerX + 24, innerY + 95);
+    ctx.letterSpacing = "3px";
+    ctx.fillText(badgeText, innerX + 160, innerY + innerH / 2);
     ctx.restore();
 
-    // Table Badge
-    const badgeText = formatTableBadge(tableLabel);
-    ctx.save();
-    ctx.font = "800 18px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-    const badgeMetrics = ctx.measureText(badgeText);
-    const badgeW = Math.max(110, badgeMetrics.width + 30);
-    const badgeH = 34;
-    ctx.beginPath();
-    drawRoundRectHelper(ctx, innerX + 24, innerY + 140, badgeW, badgeH, 17);
-    ctx.fillStyle = "#FFFBEB";
-    ctx.fill();
-    ctx.lineWidth = 2.5;
-    ctx.strokeStyle = accentColor;
-    ctx.stroke();
-    ctx.fillStyle = "#92400E";
-    ctx.textAlign = "left";
-    ctx.textBaseline = "middle";
-    ctx.fillText(badgeText, innerX + 39, innerY + 140 + badgeH / 2);
-    ctx.restore();
-
-    // Action CTA
-    ctx.save();
-    ctx.fillStyle = "#111827";
-    ctx.font = "800 20px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-    ctx.textAlign = "left";
-    ctx.textBaseline = "middle";
-    ctx.fillText("Scan to Order", innerX + 24, innerY + 225);
-    ctx.restore();
-
-    // Help
-    ctx.save();
-    ctx.fillStyle = "#6B7280";
-    ctx.font = "600 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-    ctx.textAlign = "left";
-    ctx.textBaseline = "middle";
-    ctx.fillText("Open camera or QR app", innerX + 24, innerY + 255);
-    ctx.restore();
-
-    // URL
-    ctx.save();
-    ctx.fillStyle = "#9CA3AF";
-    ctx.font = "500 11px monospace";
-    ctx.textAlign = "left";
-    ctx.textBaseline = "middle";
-    let shortUrl = url.replace(/^https?:\/\//, "");
-    if (shortUrl.length > 25) shortUrl = shortUrl.substring(0, 23) + "...";
-    ctx.fillText(shortUrl, innerX + 24, innerY + 285);
-    ctx.restore();
-
-    // Right Column: QR Code
-    const qrBoxSize = 350;
-    const qrBoxX = innerX + leftW + (rightW - qrBoxSize) / 2;
+    // Right side: QR Box occupying most of the space
+    const qrBoxSize = 460;
+    const qrBoxX = innerX + innerW - qrBoxSize - 20;
     const qrBoxY = innerY + (innerH - qrBoxSize) / 2;
-
-    ctx.save();
-    ctx.beginPath();
-    drawRoundRectHelper(ctx, qrBoxX, qrBoxY, qrBoxSize, qrBoxSize, 20);
-    ctx.fillStyle = "#FFFFFF";
-    ctx.fill();
-    ctx.lineWidth = 2.5;
-    ctx.strokeStyle = "#E5E7EB";
-    ctx.stroke();
-    ctx.restore();
 
     try {
       const qr = QrCode.encodeText(url, QrErrorCorrectionLevel.HIGH);
-      const qrPadding = 24;
-      const qrInnerSize = qrBoxSize - qrPadding * 2;
-      const moduleSize = qrInnerSize / qr.size;
+      const moduleSize = qrBoxSize / qr.size;
 
       ctx.save();
       ctx.fillStyle = "#000000";
       for (let y = 0; y < qr.size; y++) {
         for (let x = 0; x < qr.size; x++) {
           if (qr.getModule(x, y)) {
-            const px = qrBoxX + qrPadding + x * moduleSize;
-            const py = qrBoxY + qrPadding + y * moduleSize;
+            const px = qrBoxX + x * moduleSize;
+            const py = qrBoxY + y * moduleSize;
             ctx.fillRect(px, py, moduleSize + 0.3, moduleSize + 0.3);
           }
         }
@@ -1157,20 +905,13 @@ export function printMiniStandeesInIsolatedFrame(
                 <div class="cut-label">✂ CUT (57.5 × 88 mm)</div>
 
                 <div class="inner-window-portrait">
-                  <div class="top-pill"></div>
-                  <div class="mini-brand">THE DINING CO.</div>
-                  <div class="mini-cafe-name">${escapeHtml(cafeName)}</div>
-                  <div class="mini-table-badge">${escapeHtml(badgeText)}</div>
+                  <div class="mini-table-title">${escapeHtml(badgeText.toUpperCase())}</div>
 
                   <div class="mini-qr-box">
                     <svg viewBox="0 0 ${item.qrViewBoxSize} ${item.qrViewBoxSize}" class="mini-qr-svg" fill="#000000">
                       <path d="${item.qrSvgPath}" />
                     </svg>
                   </div>
-
-                  <div class="mini-cta">Scan to Order</div>
-                  <div class="mini-sub">Open Camera • Scanner</div>
-                  <div class="mini-url">${escapeHtml(item.url.replace(/^https?:\/\//, ""))}</div>
                 </div>
               </div>
             `;
@@ -1184,21 +925,11 @@ export function printMiniStandeesInIsolatedFrame(
                 <div class="cut-label">✂ CUT (88 × 57.5 mm)</div>
 
                 <div class="inner-window-landscape">
-                  <div class="land-left">
-                    <div class="mini-brand">THE DINING CO.</div>
-                    <div class="mini-cafe-name">${escapeHtml(cafeName)}</div>
-                    <div class="mini-table-badge">${escapeHtml(badgeText)}</div>
-                    <div class="mini-cta">Scan to Order</div>
-                    <div class="mini-sub">Camera • Scanner</div>
-                    <div class="mini-url">${escapeHtml(item.url.replace(/^https?:\/\//, ""))}</div>
-                  </div>
-
-                  <div class="land-right">
-                    <div class="mini-qr-box">
-                      <svg viewBox="0 0 ${item.qrViewBoxSize} ${item.qrViewBoxSize}" class="mini-qr-svg-land" fill="#000000">
-                        <path d="${item.qrSvgPath}" />
-                      </svg>
-                    </div>
+                  <div class="land-table-title">${escapeHtml(badgeText.toUpperCase())}</div>
+                  <div class="mini-qr-box">
+                    <svg viewBox="0 0 ${item.qrViewBoxSize} ${item.qrViewBoxSize}" class="mini-qr-svg-land" fill="#000000">
+                      <path d="${item.qrSvgPath}" />
+                    </svg>
                   </div>
                 </div>
               </div>
@@ -1356,8 +1087,8 @@ export function printMiniStandeesInIsolatedFrame(
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-between;
-            padding: 2mm 1.5mm 1.5mm 1.5mm;
+            justify-content: flex-start;
+            padding: 3mm 2mm;
             text-align: center;
           }
 
@@ -1369,99 +1100,46 @@ export function printMiniStandeesInIsolatedFrame(
             box-sizing: border-box;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 2mm 2.5mm;
+            justify-content: space-around;
+            padding: 2mm 3mm;
           }
 
-          .land-left {
-            width: 30mm;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            height: 100%;
-            text-align: left;
+          .mini-table-title {
+            font-size: 13pt;
+            font-weight: 900;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #111827;
+            margin-top: 1.5mm;
+            margin-bottom: 2mm;
+            line-height: 1.1;
           }
-          .land-right {
-            width: 28mm;
+
+          .land-table-title {
+            font-size: 13pt;
+            font-weight: 900;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #111827;
+          }
+
+          .mini-qr-box {
             display: flex;
             align-items: center;
             justify-content: center;
+            width: 100%;
           }
 
-          .top-pill {
-            width: 12mm;
-            height: 1mm;
-            background: ${accentColor};
-            border-radius: 9999px;
-            margin-bottom: 0.5mm;
-          }
-          .mini-brand {
-            font-size: 4.5pt;
-            font-weight: 900;
-            letter-spacing: 0.15em;
-            color: ${accentColor};
-            text-transform: uppercase;
-            line-height: 1;
-          }
-          .mini-cafe-name {
-            font-size: 7.5pt;
-            font-weight: 800;
-            color: #111827;
-            line-height: 1.1;
-            margin: 0.5mm 0;
-            max-width: 42mm;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-          }
-          .mini-table-badge {
-            background: #fffbeb;
-            color: #92400e;
-            border: 0.75px solid ${accentColor};
-            border-radius: 9999px;
-            font-size: 5.5pt;
-            font-weight: 800;
-            padding: 0.5mm 2.5mm;
-            line-height: 1.2;
-            display: inline-block;
-          }
-          .mini-qr-box {
-            background: #ffffff;
-            border: 0.75px solid #e5e7eb;
-            border-radius: 2mm;
-            padding: 1mm;
-            display: inline-block;
-          }
           .mini-qr-svg {
-            width: 27mm;
-            height: 27mm;
+            width: 40mm;
+            height: 40mm;
             display: block;
           }
+
           .mini-qr-svg-land {
-            width: 26mm;
-            height: 26mm;
+            width: 38mm;
+            height: 38mm;
             display: block;
-          }
-          .mini-cta {
-            font-size: 5.5pt;
-            font-weight: 800;
-            color: #111827;
-            line-height: 1.1;
-          }
-          .mini-sub {
-            font-size: 4pt;
-            color: #4b5563;
-            line-height: 1;
-          }
-          .mini-url {
-            font-size: 3.5pt;
-            font-family: monospace;
-            color: #9ca3af;
-            max-width: 42mm;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            line-height: 1;
           }
         </style>
       </head>
