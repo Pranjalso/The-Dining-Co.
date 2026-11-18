@@ -33,6 +33,11 @@ import {
   formatTableBadge,
   downloadStandeesPdf,
   printStandeesInIsolatedFrame,
+  drawMiniStandeeToCanvas,
+  downloadMiniStandeesPdf,
+  printMiniStandeesInIsolatedFrame,
+  canvasToJpegBytes,
+  downloadBlob,
 } from "@/lib/pdf-standee";
 import { Button } from "@/components/ui/button";
 import {
@@ -81,6 +86,22 @@ export default function CafeMenuQrPage() {
       : currentTheme === "light-green-creme"
       ? "#15803D"
       : "#D97706";
+
+  // Check if cafe is Ignite Aeros (custom easel standee)
+  const isIgniteAeros =
+    menupages.toLowerCase().includes("ignite-aeros") ||
+    cafeData?.data?.slug?.toLowerCase()?.includes("ignite-aeros") ||
+    cafeData?.data?.cafeName?.toLowerCase()?.includes("ignite aeros");
+
+  // Standee physical format: mini-easel (57.5 x 88 mm) or standard (A4 poster)
+  const [standeeFormat, setStandeeFormat] = useState<"mini-easel" | "standard">("mini-easel");
+  const [miniOrientation, setMiniOrientation] = useState<"portrait" | "landscape">("portrait");
+
+  useEffect(() => {
+    if (isIgniteAeros) {
+      setStandeeFormat("mini-easel");
+    }
+  }, [isIgniteAeros]);
 
   // Initialize tables from API data
   useEffect(() => {
@@ -216,13 +237,30 @@ export default function CafeMenuQrPage() {
     const targetTable = tableName !== undefined ? tableName : effectiveTable;
     const targetUrl = getMenuUrlForTable(targetTable);
     try {
+      const badge = formatTableBadge(targetTable);
+      const safeBadge = badge.replace(/\s+/g, "-");
+      const safeCafe = cafeName.replace(/\s+/g, "-");
+
+      if (standeeFormat === "mini-easel") {
+        const canvas = drawMiniStandeeToCanvas(cafeName, targetTable, targetUrl, {
+          orientation: miniOrientation,
+          accentColor: themeAccentColor,
+          showGuides: true,
+        });
+        const dataUrl = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.download = `${safeCafe}-${safeBadge}-mini-standee.png`;
+        link.href = dataUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        return;
+      }
+
       const dataUrl = getQrPngDataUrl(targetUrl, 1024, 4, "#000000", "#FFFFFF");
       if (!dataUrl) return;
 
       const link = document.createElement("a");
-      const badge = formatTableBadge(targetTable);
-      const safeBadge = badge.replace(/\s+/g, "-");
-      const safeCafe = cafeName.replace(/\s+/g, "-");
       const filename = `${safeCafe}-${safeBadge}-QR.png`;
       link.download = filename;
       link.href = dataUrl;
@@ -241,21 +279,34 @@ export default function CafeMenuQrPage() {
     const badge = formatTableBadge(targetTable);
     const safeBadge = badge.toLowerCase().replace(/[^a-z0-9]+/g, "-");
     const safeCafe = cafeName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-    const filename = `${safeCafe}-${safeBadge}-standee.pdf`;
+    const filename = standeeFormat === "mini-easel"
+      ? `${safeCafe}-${safeBadge}-mini-standee.pdf`
+      : `${safeCafe}-${safeBadge}-standee.pdf`;
 
     setIsGeneratingPdf(true);
     toast({
       title: "Generating Standee PDF",
-      description: `Creating high-resolution print PDF for ${badge}...`,
+      description: standeeFormat === "mini-easel"
+        ? `Creating exact scale mini easel PDF (57.5 × 88 mm) for ${badge}...`
+        : `Creating high-resolution print PDF for ${badge}...`,
     });
 
     try {
-      await downloadStandeesPdf(
-        cafeName,
-        [{ tableLabel: targetTable, url: targetUrl }],
-        filename,
-        themeAccentColor
-      );
+      if (standeeFormat === "mini-easel") {
+        await downloadMiniStandeesPdf(
+          cafeName,
+          [{ tableLabel: targetTable, url: targetUrl }],
+          filename,
+          { orientation: miniOrientation, accentColor: themeAccentColor }
+        );
+      } else {
+        await downloadStandeesPdf(
+          cafeName,
+          [{ tableLabel: targetTable, url: targetUrl }],
+          filename,
+          themeAccentColor
+        );
+      }
       toast({
         title: "PDF Ready!",
         description: `${badge} standee PDF has been downloaded.`,
@@ -277,7 +328,9 @@ export default function CafeMenuQrPage() {
     setIsDownloadingBulk(true);
     toast({
       title: "Generating All Tables PDF",
-      description: `Building a complete ${tables.length}-page high-resolution print PDF...`,
+      description: standeeFormat === "mini-easel"
+        ? `Building printable A4 cut-out sheets for all ${tables.length} tables (57.5 × 88 mm)...`
+        : `Building a complete ${tables.length}-page high-resolution print PDF...`,
     });
 
     try {
@@ -287,13 +340,26 @@ export default function CafeMenuQrPage() {
       }));
 
       const safeCafe = cafeName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-      const filename = `${safeCafe}-all-tables-standees.pdf`;
+      const filename = standeeFormat === "mini-easel"
+        ? `${safeCafe}-all-tables-mini-standees-sheet.pdf`
+        : `${safeCafe}-all-tables-standees.pdf`;
 
-      await downloadStandeesPdf(cafeName, items, filename, themeAccentColor);
+      if (standeeFormat === "mini-easel") {
+        await downloadMiniStandeesPdf(
+          cafeName,
+          items,
+          filename,
+          { orientation: miniOrientation, accentColor: themeAccentColor }
+        );
+      } else {
+        await downloadStandeesPdf(cafeName, items, filename, themeAccentColor);
+      }
 
       toast({
         title: "All Tables PDF Downloaded!",
-        description: `Complete ${tables.length}-page table standees PDF is ready.`,
+        description: standeeFormat === "mini-easel"
+          ? `Complete ${tables.length}-table printable cut-out sheet is ready.`
+          : `Complete ${tables.length}-page table standees PDF is ready.`,
       });
     } catch (err: any) {
       toast({
@@ -312,7 +378,7 @@ export default function CafeMenuQrPage() {
     setIsDownloadingBulk(true);
     toast({
       title: "Downloading All QRs",
-      description: `Generating high-res QR images for ${tables.length} tables...`,
+      description: `Generating high-res images for ${tables.length} tables...`,
     });
 
     try {
@@ -350,18 +416,33 @@ export default function CafeMenuQrPage() {
       qrSvgData = generateQrSvgPath(qr, 3);
     } catch {}
 
-    printStandeesInIsolatedFrame(
-      cafeName,
-      [
-        {
-          tableLabel: targetTable,
-          url: targetUrl,
-          qrSvgPath: qrSvgData.path,
-          qrViewBoxSize: qrSvgData.viewBoxSize,
-        },
-      ],
-      themeAccentColor
-    );
+    if (standeeFormat === "mini-easel") {
+      printMiniStandeesInIsolatedFrame(
+        cafeName,
+        [
+          {
+            tableLabel: targetTable,
+            url: targetUrl,
+            qrSvgPath: qrSvgData.path,
+            qrViewBoxSize: qrSvgData.viewBoxSize,
+          },
+        ],
+        { orientation: miniOrientation, accentColor: themeAccentColor }
+      );
+    } else {
+      printStandeesInIsolatedFrame(
+        cafeName,
+        [
+          {
+            tableLabel: targetTable,
+            url: targetUrl,
+            qrSvgPath: qrSvgData.path,
+            qrViewBoxSize: qrSvgData.viewBoxSize,
+          },
+        ],
+        themeAccentColor
+      );
+    }
   };
 
   // Bulk Print All Standees (exactly 1 table per A4 page, zero URL headers/footers)
@@ -382,7 +463,14 @@ export default function CafeMenuQrPage() {
       };
     });
 
-    printStandeesInIsolatedFrame(cafeName, items, themeAccentColor);
+    if (standeeFormat === "mini-easel") {
+      printMiniStandeesInIsolatedFrame(cafeName, items, {
+        orientation: miniOrientation,
+        accentColor: themeAccentColor,
+      });
+    } else {
+      printStandeesInIsolatedFrame(cafeName, items, themeAccentColor);
+    }
   };
 
   return (
@@ -645,6 +733,101 @@ export default function CafeMenuQrPage() {
                   </p>
                 </div>
 
+                {/* Standee Physical Format (Mini Easel vs Full Sheet) */}
+                <div className="space-y-2.5 pt-2 border-t menu-border">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold menu-text flex items-center gap-1.5">
+                      <span>Standee Physical Format</span>
+                      {isIgniteAeros && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 font-extrabold uppercase border border-amber-500/30">
+                          Ignite Custom Frame
+                        </span>
+                      )}
+                    </label>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setStandeeFormat("mini-easel")}
+                      className={`py-2 px-2.5 rounded-xl text-xs font-bold border transition-all text-left flex flex-col gap-0.5 cursor-pointer ${
+                        standeeFormat === "mini-easel"
+                          ? "bg-amber-500/10 border-amber-500 text-amber-700 shadow-sm"
+                          : "bg-surface border-border text-muted hover:text-text"
+                      }`}
+                    >
+                      <span className="flex items-center gap-1">
+                        <span>🖼️ Mini Easel Card</span>
+                      </span>
+                      <span className="text-[10px] opacity-75 font-normal">
+                        57.5 × 88 mm (Outer)
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setStandeeFormat("standard")}
+                      className={`py-2 px-2.5 rounded-xl text-xs font-bold border transition-all text-left flex flex-col gap-0.5 cursor-pointer ${
+                        standeeFormat === "standard"
+                          ? "bg-primary/10 border-primary text-primary shadow-sm"
+                          : "bg-surface border-border text-muted hover:text-text"
+                      }`}
+                    >
+                      <span className="flex items-center gap-1">
+                        <span>📄 Full A4 Standee</span>
+                      </span>
+                      <span className="text-[10px] opacity-75 font-normal">
+                        Standard Table Tent
+                      </span>
+                    </button>
+                  </div>
+
+                  {standeeFormat === "mini-easel" && (
+                    <div className="pt-2 space-y-2">
+                      <div className="flex items-center justify-between text-xs font-semibold menu-muted">
+                        <span>Card Orientation:</span>
+                        <div className="flex items-center gap-1 bg-surface p-0.5 rounded-lg border menu-border">
+                          <button
+                            type="button"
+                            onClick={() => setMiniOrientation("portrait")}
+                            className={`px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer ${
+                              miniOrientation === "portrait"
+                                ? "bg-amber-600 text-white shadow-xs"
+                                : "text-muted hover:text-text"
+                            }`}
+                          >
+                            Vertical (Portrait)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setMiniOrientation("landscape")}
+                            className={`px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer ${
+                              miniOrientation === "landscape"
+                                ? "bg-amber-600 text-white shadow-xs"
+                                : "text-muted hover:text-text"
+                            }`}
+                          >
+                            Horizontal (Landscape)
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="text-[11px] bg-amber-500/10 border border-amber-500/20 rounded-xl p-2.5 space-y-1 text-amber-900 dark:text-amber-200">
+                        <div className="font-bold flex items-center gap-1 text-amber-800 dark:text-amber-300">
+                          <span>📐 Dimensions Calibrated:</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-1.5 text-[10px] font-mono">
+                          <div>• Bahar (Outer): <strong>{miniOrientation === "portrait" ? "57.5 × 88 mm" : "88 × 57.5 mm"}</strong></div>
+                          <div>• Andar (Inner): <strong>{miniOrientation === "portrait" ? "45 × 63 mm" : "63 × 45 mm"}</strong></div>
+                        </div>
+                        <p className="text-[10px] text-amber-700/80 pt-0.5 leading-tight">
+                          Content is centered inside the 45×63mm opening so nothing is covered by the frame bezel.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {/* Target URL */}
                 <div className="space-y-1.5 pt-2 border-t menu-border">
                   <label className="text-xs font-semibold menu-muted flex items-center justify-between">
@@ -697,7 +880,7 @@ export default function CafeMenuQrPage() {
                     ) : (
                       <>
                         <FileText className="w-4 h-4" />
-                        Download Standee (PDF)
+                        {standeeFormat === "mini-easel" ? "Download Standee PDF (57.5 × 88 mm)" : "Download Standee (PDF)"}
                       </>
                     )}
                   </Button>
@@ -727,70 +910,247 @@ export default function CafeMenuQrPage() {
 
             {/* Right Standee Card Preview */}
             <div className="lg:col-span-7 flex flex-col items-center">
-              <div className="w-full max-w-sm sm:max-w-md">
-                <div className="text-xs font-semibold text-muted/60 mb-2 flex items-center justify-between">
+              <div className="w-full max-w-sm sm:max-w-md flex flex-col items-center">
+                <div className="w-full text-xs font-semibold text-muted/60 mb-2 flex items-center justify-between">
                   <span>Single Standee Preview</span>
-                  <span className="text-[11px] text-primary font-medium">Ready to Print</span>
+                  <span className="text-[11px] text-primary font-medium">
+                    {standeeFormat === "mini-easel" ? "Mini Easel Standee" : "Ready to Print"}
+                  </span>
                 </div>
 
-                {/* Printable Table Standee Card */}
-                <div
-                  id="single-printable-standee"
-                  className="bg-white text-zinc-900 rounded-3xl p-7 sm:p-8 shadow-2xl border-4 border-amber-500/20 text-center flex flex-col items-center space-y-4 relative overflow-hidden"
-                >
-                  <div className="w-24 h-1.5 bg-gradient-to-r from-amber-500 to-amber-600 rounded-full mb-1"></div>
-
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-center gap-1.5 text-amber-700">
-                      <UtensilsCrossed className="w-4 h-4" />
-                      <span className="text-xs font-black uppercase tracking-[0.2em]">The Dining Co.</span>
-                    </div>
-                    <h2 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 tracking-tight">
-                      {cafeName}
-                    </h2>
-                    <p className="text-xs font-semibold text-zinc-500 tracking-wide uppercase">
-                      Digital Menu & Ordering
-                    </p>
-                  </div>
-
-                  {effectiveTable && (
-                    <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-amber-50 text-amber-800 border-2 border-amber-400 font-extrabold text-sm shadow-sm">
-                      <span>{formatTableBadge(effectiveTable)}</span>
-                    </div>
-                  )}
-
-                  <div className="bg-white p-3 rounded-2xl border-2 border-zinc-200 shadow-inner inline-block my-1">
-                    {qrSvg ? (
-                      <svg
-                        viewBox={`0 0 ${qrSvg.viewBoxSize} ${qrSvg.viewBoxSize}`}
-                        className="w-56 h-56 sm:w-64 sm:h-64"
-                        fill="#000000"
+                {/* MINI EASEL CARD PREVIEW (Exact proportions: Outer 57.5 x 88 mm, Inner 45 x 63 mm) */}
+                {standeeFormat === "mini-easel" ? (
+                  <div className="w-full flex flex-col items-center space-y-3">
+                    {miniOrientation === "portrait" ? (
+                      /* PORTRAIT MINI EASEL CARD */
+                      <div
+                        id="single-printable-standee"
+                        className="w-[280px] sm:w-[310px] bg-white text-zinc-900 rounded-2xl p-4 border-2 border-dashed border-zinc-400 shadow-2xl relative flex flex-col items-center justify-between select-none"
+                        style={{ minHeight: "475px" }}
                       >
-                        <path d={qrSvg.path} />
-                      </svg>
+                        {/* Outer cut guide markers */}
+                        <div className="absolute top-1 left-2 text-[9px] font-mono text-zinc-400 font-bold uppercase tracking-wider">
+                          ✂ CUT: 57.5 × 88 mm
+                        </div>
+                        <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-zinc-600"></div>
+                        <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-zinc-600"></div>
+                        <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-zinc-600"></div>
+                        <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-zinc-600"></div>
+
+                        {/* INNER VISIBLE WINDOW (45 x 63 mm representation) */}
+                        <div className="w-[230px] sm:w-[250px] min-h-[415px] border border-dashed border-amber-400/80 bg-white rounded-xl p-3 flex flex-col items-center justify-between text-center relative mt-3 mb-1 shadow-inner">
+                          {/* Inner window badge label */}
+                          <div className="absolute -top-2.5 bg-amber-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-xs">
+                            Visible Window (45 × 63 mm)
+                          </div>
+
+                          <div className="w-full space-y-1 pt-1">
+                            <div className="w-12 h-1 bg-amber-500 rounded-full mx-auto"></div>
+                            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-700">
+                              The Dining Co.
+                            </div>
+                            <h2 className="text-xl font-extrabold text-zinc-900 tracking-tight leading-tight truncate px-1">
+                              {cafeName}
+                            </h2>
+                          </div>
+
+                          {effectiveTable && (
+                            <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-400 font-extrabold text-xs shadow-xs my-0.5">
+                              <span>{formatTableBadge(effectiveTable)}</span>
+                            </div>
+                          )}
+
+                          {/* Centered QR Box */}
+                          <div className="bg-white p-2 rounded-xl border border-zinc-200 shadow-sm inline-block my-1">
+                            {qrSvg ? (
+                              <svg
+                                viewBox={`0 0 ${qrSvg.viewBoxSize} ${qrSvg.viewBoxSize}`}
+                                className="w-40 h-40 sm:w-44 sm:h-44"
+                                fill="#000000"
+                              >
+                                <path d={qrSvg.path} />
+                              </svg>
+                            ) : (
+                              <div className="w-40 h-40 flex items-center justify-center text-zinc-400 text-xs">
+                                Generating QR...
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="space-y-0.5 w-full">
+                            <p className="text-xs font-extrabold text-zinc-900">
+                              Scan to View Menu & Order
+                            </p>
+                            <p className="text-[10px] text-zinc-500">
+                              Open phone camera or QR scanner
+                            </p>
+                            <p className="text-[9px] font-mono text-zinc-400 truncate max-w-[200px] mx-auto pt-0.5">
+                              {currentMenuUrl.replace(/^https?:\/\//, "")}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="text-[9px] text-zinc-400 font-medium">
+                          Slide into mini easel frame after cutting
+                        </div>
+                      </div>
                     ) : (
-                      <div className="w-56 h-56 flex items-center justify-center text-zinc-400 text-sm">
-                        Generating QR...
+                      /* LANDSCAPE MINI EASEL CARD */
+                      <div
+                        id="single-printable-standee"
+                        className="w-[360px] sm:w-[410px] bg-white text-zinc-900 rounded-2xl p-4 border-2 border-dashed border-zinc-400 shadow-2xl relative flex flex-col items-center justify-between select-none"
+                        style={{ minHeight: "270px" }}
+                      >
+                        <div className="absolute top-1 left-2 text-[9px] font-mono text-zinc-400 font-bold uppercase tracking-wider">
+                          ✂ CUT: 88 × 57.5 mm
+                        </div>
+                        <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-zinc-600"></div>
+                        <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-zinc-600"></div>
+                        <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-zinc-600"></div>
+                        <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-zinc-600"></div>
+
+                        {/* INNER VISIBLE WINDOW (63 x 45 mm representation) */}
+                        <div className="w-[320px] sm:w-[370px] min-h-[225px] border border-dashed border-amber-400/80 bg-white rounded-xl p-3 flex items-center justify-between text-left relative mt-3 mb-1 shadow-inner gap-3">
+                          <div className="absolute -top-2.5 left-4 bg-amber-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-xs">
+                            Visible Window (63 × 45 mm)
+                          </div>
+
+                          {/* Left Column */}
+                          <div className="flex-1 space-y-2">
+                            <div>
+                              <div className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-700">
+                                The Dining Co.
+                              </div>
+                              <h2 className="text-lg font-extrabold text-zinc-900 tracking-tight leading-tight truncate">
+                                {cafeName}
+                              </h2>
+                            </div>
+
+                            {effectiveTable && (
+                              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-400 font-extrabold text-xs shadow-xs">
+                                <span>{formatTableBadge(effectiveTable)}</span>
+                              </div>
+                            )}
+
+                            <div className="space-y-0.5 pt-1">
+                              <p className="text-xs font-extrabold text-zinc-900">
+                                Scan to Order
+                              </p>
+                              <p className="text-[10px] text-zinc-500">
+                                Camera • QR Scanner
+                              </p>
+                              <p className="text-[8px] font-mono text-zinc-400 truncate max-w-[150px]">
+                                {currentMenuUrl.replace(/^https?:\/\//, "")}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Right Column: QR Box */}
+                          <div className="bg-white p-2 rounded-xl border border-zinc-200 shadow-sm flex-shrink-0">
+                            {qrSvg ? (
+                              <svg
+                                viewBox={`0 0 ${qrSvg.viewBoxSize} ${qrSvg.viewBoxSize}`}
+                                className="w-36 h-36"
+                                fill="#000000"
+                              >
+                                <path d={qrSvg.path} />
+                              </svg>
+                            ) : (
+                              <div className="w-36 h-36 flex items-center justify-center text-zinc-400 text-xs">
+                                Generating QR...
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="text-[9px] text-zinc-400 font-medium">
+                          Slide into mini easel frame after cutting
+                        </div>
                       </div>
                     )}
-                  </div>
 
-                  <div className="space-y-1 pt-1">
-                    <p className="text-base font-extrabold text-zinc-900 flex items-center justify-center gap-1.5">
-                      <Smartphone className="w-4 h-4 text-amber-700" />
-                      Scan to View Menu & Order
-                    </p>
-                    <p className="text-xs text-zinc-600 max-w-xs">
-                      Open your camera or any QR scanner app to browse dishes and place your order.
-                    </p>
+                    {/* Frame Calibration Guide Callout */}
+                    <div className="w-full text-xs bg-surface border border-border rounded-xl p-3.5 space-y-2">
+                      <div className="font-bold menu-text flex items-center gap-2">
+                        <span>🪚 Standee Calibration Specs (Ignite Aeros)</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-[11px] menu-muted">
+                        <div className="bg-white/60 dark:bg-zinc-800/60 p-2 rounded-lg border border-border">
+                          <span className="font-semibold menu-text block">Bahar ki Border:</span>
+                          <span className="font-mono text-amber-600 font-bold">57.5 mm × 88 mm</span>
+                          <span className="text-[10px] block opacity-75">Card slot cut line</span>
+                        </div>
+                        <div className="bg-white/60 dark:bg-zinc-800/60 p-2 rounded-lg border border-border">
+                          <span className="font-semibold menu-text block">Andar Wala:</span>
+                          <span className="font-mono text-emerald-600 font-bold">45 mm × 63 mm</span>
+                          <span className="text-[10px] block opacity-75">Visible display opening</span>
+                        </div>
+                      </div>
+                      <p className="text-[10px] menu-muted leading-relaxed">
+                        💡 <strong>Printing tip:</strong> Print on standard A4 paper at <strong>100% scale (no scaling)</strong>. Cut along the dashed line and the card will fit smoothly into your brown easel holder.
+                      </p>
+                    </div>
                   </div>
+                ) : (
+                  /* STANDARD A4 STANDEE CARD */
+                  <div
+                    id="single-printable-standee"
+                    className="bg-white text-zinc-900 rounded-3xl p-7 sm:p-8 shadow-2xl border-4 border-amber-500/20 text-center flex flex-col items-center space-y-4 relative overflow-hidden"
+                  >
+                    <div className="w-24 h-1.5 bg-gradient-to-r from-amber-500 to-amber-600 rounded-full mb-1"></div>
 
-                  <div className="pt-3 border-t border-zinc-200 w-full text-center">
-                    <p className="text-[10px] font-mono text-zinc-500 truncate max-w-[280px] mx-auto">
-                      {currentMenuUrl}
-                    </p>
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-center gap-1.5 text-amber-700">
+                        <UtensilsCrossed className="w-4 h-4" />
+                        <span className="text-xs font-black uppercase tracking-[0.2em]">The Dining Co.</span>
+                      </div>
+                      <h2 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 tracking-tight">
+                        {cafeName}
+                      </h2>
+                      <p className="text-xs font-semibold text-zinc-500 tracking-wide uppercase">
+                        Digital Menu & Ordering
+                      </p>
+                    </div>
+
+                    {effectiveTable && (
+                      <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-amber-50 text-amber-800 border-2 border-amber-400 font-extrabold text-sm shadow-sm">
+                        <span>{formatTableBadge(effectiveTable)}</span>
+                      </div>
+                    )}
+
+                    <div className="bg-white p-3 rounded-2xl border-2 border-zinc-200 shadow-inner inline-block my-1">
+                      {qrSvg ? (
+                        <svg
+                          viewBox={`0 0 ${qrSvg.viewBoxSize} ${qrSvg.viewBoxSize}`}
+                          className="w-56 h-56 sm:w-64 sm:h-64"
+                          fill="#000000"
+                        >
+                          <path d={qrSvg.path} />
+                        </svg>
+                      ) : (
+                        <div className="w-56 h-56 flex items-center justify-center text-zinc-400 text-sm">
+                          Generating QR...
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-1 pt-1">
+                      <p className="text-base font-extrabold text-zinc-900 flex items-center justify-center gap-1.5">
+                        <Smartphone className="w-4 h-4 text-amber-700" />
+                        Scan to View Menu & Order
+                      </p>
+                      <p className="text-xs text-zinc-600 max-w-xs">
+                        Open your camera or any QR scanner app to browse dishes and place your order.
+                      </p>
+                    </div>
+
+                    <div className="pt-3 border-t border-zinc-200 w-full text-center">
+                      <p className="text-[10px] font-mono text-zinc-500 truncate max-w-[280px] mx-auto">
+                        {currentMenuUrl}
+                      </p>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>

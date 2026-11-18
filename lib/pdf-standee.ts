@@ -621,3 +621,865 @@ function escapeHtml(str: string): string {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
+
+function drawRoundRectHelper(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number
+) {
+  if (typeof (ctx as any).roundRect === "function") {
+    (ctx as any).roundRect(x, y, w, h, r);
+  } else {
+    ctx.rect(x, y, w, h);
+  }
+}
+
+export interface MiniStandeeOptions {
+  orientation?: "portrait" | "landscape";
+  accentColor?: string;
+  showGuides?: boolean;
+}
+
+/**
+ * Draws a high-resolution, print-ready 300-DPI mini easel standee card onto an HTML5 canvas.
+ * Dimensions:
+ * - Outer card boundary (cut border): 57.5mm x 88mm (Portrait) or 88mm x 57.5mm (Landscape)
+ * - Inner visible window: 45mm x 63mm (Portrait) or 63mm x 45mm (Landscape)
+ * At 300 DPI: 1 mm ≈ 11.811 px.
+ * - Portrait outer: 680 x 1040 px; Inner window: 532 x 744 px (Left/Right: 74px, Top/Bottom: 148px)
+ * - Landscape outer: 1040 x 680 px; Inner window: 744 x 532 px (Left/Right: 148px, Top/Bottom: 74px)
+ */
+export function drawMiniStandeeToCanvas(
+  cafeName: string,
+  tableLabel: string,
+  url: string,
+  options: MiniStandeeOptions = {}
+): HTMLCanvasElement {
+  const orientation = options.orientation || "portrait";
+  const accentColor = options.accentColor || "#D97706";
+  const showGuides = options.showGuides !== false;
+
+  const isPortrait = orientation === "portrait";
+  const width = isPortrait ? 680 : 1040;
+  const height = isPortrait ? 1040 : 680;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return canvas;
+
+  // Background - pristine white
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(0, 0, width, height);
+
+  // Outer cutting dashed border (exact 57.5mm x 88mm / 88mm x 57.5mm)
+  ctx.save();
+  ctx.strokeStyle = "#9CA3AF";
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([8, 6]);
+  ctx.strokeRect(4, 4, width - 8, height - 8);
+  ctx.restore();
+
+  // Corner crop marks
+  const cropLen = 22;
+  ctx.save();
+  ctx.strokeStyle = "#4B5563";
+  ctx.lineWidth = 2;
+  // Top-left
+  ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(cropLen, 0); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, cropLen); ctx.stroke();
+  // Top-right
+  ctx.beginPath(); ctx.moveTo(width, 0); ctx.lineTo(width - cropLen, 0); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(width, 0); ctx.lineTo(width, cropLen); ctx.stroke();
+  // Bottom-left
+  ctx.beginPath(); ctx.moveTo(0, height); ctx.lineTo(cropLen, height); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, height); ctx.lineTo(0, height - cropLen); ctx.stroke();
+  // Bottom-right
+  ctx.beginPath(); ctx.moveTo(width, height); ctx.lineTo(width - cropLen, height); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(width, height); ctx.lineTo(width, height - cropLen); ctx.stroke();
+  ctx.restore();
+
+  // Subtle cutting instruction in outer margin
+  ctx.save();
+  ctx.fillStyle = "#9CA3AF";
+  ctx.font = "600 12px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  if (isPortrait) {
+    ctx.fillText("✂ CUT ALONG DASHED LINE (57.5 × 88 mm)", width / 2, 28);
+  } else {
+    ctx.fillText("✂ CUT ALONG DASHED LINE (88 × 57.5 mm)", width / 2, 22);
+  }
+  ctx.restore();
+
+  // Inner visible window coordinates:
+  // Portrait: 45mm x 63mm -> 532 x 744 px
+  // Landscape: 63mm x 45mm -> 744 x 532 px
+  const innerW = isPortrait ? 532 : 744;
+  const innerH = isPortrait ? 744 : 532;
+  const innerX = (width - innerW) / 2;
+  const innerY = (height - innerH) / 2;
+
+  // Faint guide for the inner visible window
+  if (showGuides) {
+    ctx.save();
+    ctx.strokeStyle = "#E5E7EB";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.strokeRect(innerX, innerY, innerW, innerH);
+    ctx.restore();
+  }
+
+  // Draw content inside the inner window
+  if (isPortrait) {
+    // 1. Top accent pill
+    ctx.save();
+    ctx.beginPath();
+    const pillW = 60;
+    const pillH = 6;
+    drawRoundRectHelper(ctx, innerX + (innerW - pillW) / 2, innerY + 20, pillW, pillH, 3);
+    ctx.fillStyle = accentColor;
+    ctx.fill();
+    ctx.restore();
+
+    // 2. "THE DINING CO." micro-brand
+    ctx.save();
+    ctx.fillStyle = accentColor;
+    ctx.font = "900 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.letterSpacing = "3px";
+    ctx.fillText("THE DINING CO.", innerX + innerW / 2, innerY + 44);
+    ctx.restore();
+
+    // 3. Cafe Name
+    ctx.save();
+    ctx.fillStyle = "#111827";
+    ctx.font = "800 30px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    let displayName = cafeName;
+    if (displayName.length > 20) {
+      ctx.font = "800 24px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    }
+    ctx.fillText(displayName, innerX + innerW / 2, innerY + 84);
+    ctx.restore();
+
+    // 4. Table Badge Pill
+    const badgeText = formatTableBadge(tableLabel);
+    ctx.save();
+    ctx.font = "800 18px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    const badgeMetrics = ctx.measureText(badgeText);
+    const badgeW = Math.max(120, badgeMetrics.width + 36);
+    const badgeH = 36;
+    const badgeY = innerY + 118;
+    ctx.beginPath();
+    drawRoundRectHelper(ctx, innerX + (innerW - badgeW) / 2, badgeY, badgeW, badgeH, 18);
+    ctx.fillStyle = "#FFFBEB";
+    ctx.fill();
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = accentColor;
+    ctx.stroke();
+    ctx.fillStyle = "#92400E";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(badgeText, innerX + innerW / 2, badgeY + badgeH / 2);
+    ctx.restore();
+
+    // 5. QR Code in Center (scannable size ~360px / approx 30mm)
+    const qrBoxSize = 350;
+    const qrBoxX = innerX + (innerW - qrBoxSize) / 2;
+    const qrBoxY = innerY + 172;
+
+    ctx.save();
+    ctx.beginPath();
+    drawRoundRectHelper(ctx, qrBoxX, qrBoxY, qrBoxSize, qrBoxSize, 20);
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fill();
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = "#E5E7EB";
+    ctx.stroke();
+    ctx.restore();
+
+    try {
+      const qr = QrCode.encodeText(url, QrErrorCorrectionLevel.HIGH);
+      const qrPadding = 24;
+      const qrInnerSize = qrBoxSize - qrPadding * 2;
+      const moduleSize = qrInnerSize / qr.size;
+
+      ctx.save();
+      ctx.fillStyle = "#000000";
+      for (let y = 0; y < qr.size; y++) {
+        for (let x = 0; x < qr.size; x++) {
+          if (qr.getModule(x, y)) {
+            const px = qrBoxX + qrPadding + x * moduleSize;
+            const py = qrBoxY + qrPadding + y * moduleSize;
+            ctx.fillRect(px, py, moduleSize + 0.3, moduleSize + 0.3);
+          }
+        }
+      }
+      ctx.restore();
+    } catch (e) {
+      console.error("QR render error:", e);
+    }
+
+    // 6. Action CTA: "Scan to View Menu & Order"
+    ctx.save();
+    ctx.fillStyle = "#111827";
+    ctx.font = "800 24px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("Scan to View Menu & Order", innerX + innerW / 2, innerY + 560);
+    ctx.restore();
+
+    // 7. Subtext
+    ctx.save();
+    ctx.fillStyle = "#4B5563";
+    ctx.font = "600 14px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("Open camera or QR scanner", innerX + innerW / 2, innerY + 592);
+    ctx.restore();
+
+    // 8. Mini URL
+    ctx.save();
+    ctx.fillStyle = "#9CA3AF";
+    ctx.font = "500 12px monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    let shortUrl = url.replace(/^https?:\/\//, "");
+    if (shortUrl.length > 32) shortUrl = shortUrl.substring(0, 30) + "...";
+    ctx.fillText(shortUrl, innerX + innerW / 2, innerY + 624);
+    ctx.restore();
+
+  } else {
+    // LANDSCAPE (63mm W x 45mm H inner)
+    const leftW = 340;
+    const rightW = innerW - leftW;
+
+    // Brand
+    ctx.save();
+    ctx.fillStyle = accentColor;
+    ctx.font = "900 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.letterSpacing = "2px";
+    ctx.fillText("THE DINING CO.", innerX + 24, innerY + 45);
+    ctx.restore();
+
+    // Cafe Name
+    ctx.save();
+    ctx.fillStyle = "#111827";
+    ctx.font = "800 28px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    let displayName = cafeName;
+    if (displayName.length > 16) {
+      ctx.font = "800 22px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    }
+    ctx.fillText(displayName, innerX + 24, innerY + 95);
+    ctx.restore();
+
+    // Table Badge
+    const badgeText = formatTableBadge(tableLabel);
+    ctx.save();
+    ctx.font = "800 18px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    const badgeMetrics = ctx.measureText(badgeText);
+    const badgeW = Math.max(110, badgeMetrics.width + 30);
+    const badgeH = 34;
+    ctx.beginPath();
+    drawRoundRectHelper(ctx, innerX + 24, innerY + 140, badgeW, badgeH, 17);
+    ctx.fillStyle = "#FFFBEB";
+    ctx.fill();
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = accentColor;
+    ctx.stroke();
+    ctx.fillStyle = "#92400E";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(badgeText, innerX + 39, innerY + 140 + badgeH / 2);
+    ctx.restore();
+
+    // Action CTA
+    ctx.save();
+    ctx.fillStyle = "#111827";
+    ctx.font = "800 20px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText("Scan to Order", innerX + 24, innerY + 225);
+    ctx.restore();
+
+    // Help
+    ctx.save();
+    ctx.fillStyle = "#6B7280";
+    ctx.font = "600 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText("Open camera or QR app", innerX + 24, innerY + 255);
+    ctx.restore();
+
+    // URL
+    ctx.save();
+    ctx.fillStyle = "#9CA3AF";
+    ctx.font = "500 11px monospace";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    let shortUrl = url.replace(/^https?:\/\//, "");
+    if (shortUrl.length > 25) shortUrl = shortUrl.substring(0, 23) + "...";
+    ctx.fillText(shortUrl, innerX + 24, innerY + 285);
+    ctx.restore();
+
+    // Right Column: QR Code
+    const qrBoxSize = 350;
+    const qrBoxX = innerX + leftW + (rightW - qrBoxSize) / 2;
+    const qrBoxY = innerY + (innerH - qrBoxSize) / 2;
+
+    ctx.save();
+    ctx.beginPath();
+    drawRoundRectHelper(ctx, qrBoxX, qrBoxY, qrBoxSize, qrBoxSize, 20);
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fill();
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = "#E5E7EB";
+    ctx.stroke();
+    ctx.restore();
+
+    try {
+      const qr = QrCode.encodeText(url, QrErrorCorrectionLevel.HIGH);
+      const qrPadding = 24;
+      const qrInnerSize = qrBoxSize - qrPadding * 2;
+      const moduleSize = qrInnerSize / qr.size;
+
+      ctx.save();
+      ctx.fillStyle = "#000000";
+      for (let y = 0; y < qr.size; y++) {
+        for (let x = 0; x < qr.size; x++) {
+          if (qr.getModule(x, y)) {
+            const px = qrBoxX + qrPadding + x * moduleSize;
+            const py = qrBoxY + qrPadding + y * moduleSize;
+            ctx.fillRect(px, py, moduleSize + 0.3, moduleSize + 0.3);
+          }
+        }
+      }
+      ctx.restore();
+    } catch (e) {
+      console.error("QR render error:", e);
+    }
+  }
+
+  return canvas;
+}
+
+/**
+ * Renders an A4 print sheet (2480 x 3508 px at 300 DPI) containing a grid of mini standees.
+ * For portrait cards (57.5mm x 88mm): 3 columns x 3 rows = 9 cards per A4 page!
+ * For landscape cards (88mm x 57.5mm): 2 columns x 4 rows = 8 cards per A4 page!
+ */
+export function drawMiniStandeesA4SheetToCanvas(
+  cafeName: string,
+  items: Array<{ tableLabel: string; url: string }>,
+  options: MiniStandeeOptions = {}
+): HTMLCanvasElement {
+  const orientation = options.orientation || "portrait";
+  const accentColor = options.accentColor || "#D97706";
+  const isPortrait = orientation === "portrait";
+
+  const a4Canvas = document.createElement("canvas");
+  a4Canvas.width = 2480;
+  a4Canvas.height = 3508;
+
+  const ctx = a4Canvas.getContext("2d");
+  if (!ctx) return a4Canvas;
+
+  // Background - white
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(0, 0, a4Canvas.width, a4Canvas.height);
+
+  // Sheet Header text
+  ctx.save();
+  ctx.fillStyle = "#4B5563";
+  ctx.font = "700 24px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(
+    `THE DINING CO. • ${cafeName.toUpperCase()} • MINI EASEL STANDEES (OUTER: 57.5 × 88 mm | INNER: 45 × 63 mm)`,
+    a4Canvas.width / 2,
+    80
+  );
+  ctx.fillStyle = "#9CA3AF";
+  ctx.font = "500 18px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+  ctx.fillText("Print at 100% scale (No scaling) and cut along dashed lines", a4Canvas.width / 2, 115);
+  ctx.restore();
+
+  if (isPortrait) {
+    // 3 columns x 3 rows
+    const cardW = 680;
+    const cardH = 1040;
+    const cols = 3;
+    const rows = 3;
+    const startX = (a4Canvas.width - cols * cardW) / 2; // (2480 - 2040) / 2 = 220px
+    const startY = 160 + (a4Canvas.height - 160 - rows * cardH) / 2;
+
+    const maxItems = Math.min(items.length, 9);
+    for (let i = 0; i < maxItems; i++) {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      const x = startX + col * cardW;
+      const y = startY + row * cardH;
+
+      const cardCanvas = drawMiniStandeeToCanvas(
+        cafeName,
+        items[i].tableLabel,
+        items[i].url,
+        { orientation: "portrait", accentColor, showGuides: true }
+      );
+      ctx.drawImage(cardCanvas, x, y);
+    }
+  } else {
+    // 2 columns x 4 rows
+    const cardW = 1040;
+    const cardH = 680;
+    const cols = 2;
+    const rows = 4;
+    const startX = (a4Canvas.width - cols * cardW) / 2; // (2480 - 2080) / 2 = 200px
+    const startY = 160 + (a4Canvas.height - 160 - rows * cardH) / 2;
+
+    const maxItems = Math.min(items.length, 8);
+    for (let i = 0; i < maxItems; i++) {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      const x = startX + col * cardW;
+      const y = startY + row * cardH;
+
+      const cardCanvas = drawMiniStandeeToCanvas(
+        cafeName,
+        items[i].tableLabel,
+        items[i].url,
+        { orientation: "landscape", accentColor, showGuides: true }
+      );
+      ctx.drawImage(cardCanvas, x, y);
+    }
+  }
+
+  return a4Canvas;
+}
+
+/**
+ * Downloads a high-resolution PDF for the Mini Easel Standees.
+ * Can generate either a single card or an A4 cut-out sheet with 8-9 cards per page!
+ */
+export async function downloadMiniStandeesPdf(
+  cafeName: string,
+  items: Array<{ tableLabel: string; url: string }>,
+  filename: string,
+  options: MiniStandeeOptions = {}
+): Promise<void> {
+  const isPortrait = options.orientation !== "landscape";
+  const itemsPerPage = isPortrait ? 9 : 8;
+  const jpegImages: Array<{ bytes: Uint8Array; width: number; height: number }> = [];
+
+  if (items.length === 1) {
+    // For a single card, generate an A4 sheet with the card centered and cut lines
+    const sheetCanvas = drawMiniStandeesA4SheetToCanvas(cafeName, items, options);
+    const bytes = await canvasToJpegBytes(sheetCanvas, 0.94);
+    jpegImages.push({ bytes, width: sheetCanvas.width, height: sheetCanvas.height });
+  } else {
+    // For bulk tables, chunk into pages of 9 (or 8 for landscape)
+    for (let i = 0; i < items.length; i += itemsPerPage) {
+      const pageItems = items.slice(i, i + itemsPerPage);
+      const sheetCanvas = drawMiniStandeesA4SheetToCanvas(cafeName, pageItems, options);
+      const bytes = await canvasToJpegBytes(sheetCanvas, 0.94);
+      jpegImages.push({ bytes, width: sheetCanvas.width, height: sheetCanvas.height });
+    }
+  }
+
+  const pdfBlob = buildPdfFromJpegImages(jpegImages);
+  downloadBlob(pdfBlob, filename);
+}
+
+/**
+ * Prints Mini Easel Standees using browser print in exact CSS millimeters.
+ * Outer border: 57.5mm x 88mm. Inner window: 45mm x 63mm.
+ */
+export function printMiniStandeesInIsolatedFrame(
+  cafeName: string,
+  items: Array<{ tableLabel: string; url: string; qrSvgPath: string; qrViewBoxSize: number }>,
+  options: MiniStandeeOptions = {}
+): void {
+  const existing = document.getElementById("the-dining-co-print-frame");
+  if (existing) {
+    existing.parentNode?.removeChild(existing);
+  }
+
+  const iframe = document.createElement("iframe");
+  iframe.id = "the-dining-co-print-frame";
+  iframe.style.position = "fixed";
+  iframe.style.right = "0";
+  iframe.style.bottom = "0";
+  iframe.style.width = "0";
+  iframe.style.height = "0";
+  iframe.style.border = "0";
+  iframe.style.opacity = "0";
+  iframe.style.pointerEvents = "none";
+  iframe.style.zIndex = "-9999";
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow?.document;
+  if (!doc) return;
+
+  const isPortrait = options.orientation !== "landscape";
+  const accentColor = options.accentColor || "#D97706";
+  const itemsPerPage = isPortrait ? 9 : 8;
+
+  // Chunk items into pages
+  const pages: Array<typeof items> = [];
+  for (let i = 0; i < items.length; i += itemsPerPage) {
+    pages.push(items.slice(i, i + itemsPerPage));
+  }
+
+  const pagesHtml = pages
+    .map((pageItems, pageIdx) => {
+      const cardsHtml = pageItems
+        .map((item) => {
+          const badgeText = formatTableBadge(item.tableLabel);
+          if (isPortrait) {
+            return `
+              <div class="mini-card-portrait">
+                <div class="cut-corner tl"></div>
+                <div class="cut-corner tr"></div>
+                <div class="cut-corner bl"></div>
+                <div class="cut-corner br"></div>
+                <div class="cut-label">✂ CUT (57.5 × 88 mm)</div>
+
+                <div class="inner-window-portrait">
+                  <div class="top-pill"></div>
+                  <div class="mini-brand">THE DINING CO.</div>
+                  <div class="mini-cafe-name">${escapeHtml(cafeName)}</div>
+                  <div class="mini-table-badge">${escapeHtml(badgeText)}</div>
+
+                  <div class="mini-qr-box">
+                    <svg viewBox="0 0 ${item.qrViewBoxSize} ${item.qrViewBoxSize}" class="mini-qr-svg" fill="#000000">
+                      <path d="${item.qrSvgPath}" />
+                    </svg>
+                  </div>
+
+                  <div class="mini-cta">Scan to Order</div>
+                  <div class="mini-sub">Open Camera • Scanner</div>
+                  <div class="mini-url">${escapeHtml(item.url.replace(/^https?:\/\//, ""))}</div>
+                </div>
+              </div>
+            `;
+          } else {
+            return `
+              <div class="mini-card-landscape">
+                <div class="cut-corner tl"></div>
+                <div class="cut-corner tr"></div>
+                <div class="cut-corner bl"></div>
+                <div class="cut-corner br"></div>
+                <div class="cut-label">✂ CUT (88 × 57.5 mm)</div>
+
+                <div class="inner-window-landscape">
+                  <div class="land-left">
+                    <div class="mini-brand">THE DINING CO.</div>
+                    <div class="mini-cafe-name">${escapeHtml(cafeName)}</div>
+                    <div class="mini-table-badge">${escapeHtml(badgeText)}</div>
+                    <div class="mini-cta">Scan to Order</div>
+                    <div class="mini-sub">Camera • Scanner</div>
+                    <div class="mini-url">${escapeHtml(item.url.replace(/^https?:\/\//, ""))}</div>
+                  </div>
+
+                  <div class="land-right">
+                    <div class="mini-qr-box">
+                      <svg viewBox="0 0 ${item.qrViewBoxSize} ${item.qrViewBoxSize}" class="mini-qr-svg-land" fill="#000000">
+                        <path d="${item.qrSvgPath}" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }
+        })
+        .join("");
+
+      return `
+        <div class="a4-print-sheet">
+          <div class="sheet-header">
+            <span>THE DINING CO. • <strong>${escapeHtml(cafeName)}</strong> • MINI EASEL STANDEES</span>
+            <span class="sheet-spec">Outer: ${isPortrait ? "57.5 × 88 mm" : "88 × 57.5 mm"} | Inner: ${isPortrait ? "45 × 63 mm" : "63 × 45 mm"}</span>
+          </div>
+          <div class="grid-container ${isPortrait ? "portrait-grid" : "landscape-grid"}">
+            ${cardsHtml}
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+
+  doc.open();
+  doc.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>${escapeHtml(cafeName)} - Mini Easel Standees</title>
+        <style>
+          @page {
+            size: A4 portrait;
+            margin: 8mm;
+          }
+          * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          html, body {
+            margin: 0;
+            padding: 0;
+            background: #ffffff;
+            color: #111827;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+          }
+          .a4-print-sheet {
+            width: 100%;
+            height: 100vh;
+            min-height: 275mm;
+            page-break-after: always;
+            break-after: page;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4mm 0;
+          }
+          .a4-print-sheet:last-child {
+            page-break-after: auto;
+            break-after: auto;
+          }
+          .sheet-header {
+            width: 100%;
+            max-width: 185mm;
+            margin-bottom: 4mm;
+            padding-bottom: 2mm;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 8pt;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+          }
+          .sheet-spec {
+            font-weight: 700;
+            color: ${accentColor};
+          }
+          .portrait-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 57.5mm);
+            grid-template-rows: repeat(3, 88mm);
+            gap: 2mm;
+            justify-content: center;
+            align-content: center;
+          }
+          .landscape-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 88mm);
+            grid-template-rows: repeat(4, 57.5mm);
+            gap: 2mm;
+            justify-content: center;
+            align-content: center;
+          }
+
+          /* PORTRAIT CARD (Outer: 57.5mm x 88mm) */
+          .mini-card-portrait {
+            width: 57.5mm;
+            height: 88mm;
+            border: 1px dashed #9ca3af;
+            background: #ffffff;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+          }
+
+          /* LANDSCAPE CARD (Outer: 88mm x 57.5mm) */
+          .mini-card-landscape {
+            width: 88mm;
+            height: 57.5mm;
+            border: 1px dashed #9ca3af;
+            background: #ffffff;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+          }
+
+          .cut-label {
+            position: absolute;
+            top: 1.5mm;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 5pt;
+            font-weight: 600;
+            color: #9ca3af;
+            letter-spacing: 0.05em;
+          }
+
+          .cut-corner {
+            position: absolute;
+            width: 3mm;
+            height: 3mm;
+            border-color: #4b5563;
+            border-style: solid;
+          }
+          .cut-corner.tl { top: -0.5px; left: -0.5px; border-width: 1px 0 0 1px; }
+          .cut-corner.tr { top: -0.5px; right: -0.5px; border-width: 1px 1px 0 0; }
+          .cut-corner.bl { bottom: -0.5px; left: -0.5px; border-width: 0 0 1px 1px; }
+          .cut-corner.br { bottom: -0.5px; right: -0.5px; border-width: 0 1px 1px 0; }
+
+          /* INNER VISIBLE WINDOW (Portrait: 45mm x 63mm) */
+          .inner-window-portrait {
+            width: 45mm;
+            height: 63mm;
+            border: 1px dashed #e5e7eb;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 2mm 1.5mm 1.5mm 1.5mm;
+            text-align: center;
+          }
+
+          /* INNER VISIBLE WINDOW (Landscape: 63mm x 45mm) */
+          .inner-window-landscape {
+            width: 63mm;
+            height: 45mm;
+            border: 1px dashed #e5e7eb;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 2mm 2.5mm;
+          }
+
+          .land-left {
+            width: 30mm;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            text-align: left;
+          }
+          .land-right {
+            width: 28mm;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .top-pill {
+            width: 12mm;
+            height: 1mm;
+            background: ${accentColor};
+            border-radius: 9999px;
+            margin-bottom: 0.5mm;
+          }
+          .mini-brand {
+            font-size: 4.5pt;
+            font-weight: 900;
+            letter-spacing: 0.15em;
+            color: ${accentColor};
+            text-transform: uppercase;
+            line-height: 1;
+          }
+          .mini-cafe-name {
+            font-size: 7.5pt;
+            font-weight: 800;
+            color: #111827;
+            line-height: 1.1;
+            margin: 0.5mm 0;
+            max-width: 42mm;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+          .mini-table-badge {
+            background: #fffbeb;
+            color: #92400e;
+            border: 0.75px solid ${accentColor};
+            border-radius: 9999px;
+            font-size: 5.5pt;
+            font-weight: 800;
+            padding: 0.5mm 2.5mm;
+            line-height: 1.2;
+            display: inline-block;
+          }
+          .mini-qr-box {
+            background: #ffffff;
+            border: 0.75px solid #e5e7eb;
+            border-radius: 2mm;
+            padding: 1mm;
+            display: inline-block;
+          }
+          .mini-qr-svg {
+            width: 27mm;
+            height: 27mm;
+            display: block;
+          }
+          .mini-qr-svg-land {
+            width: 26mm;
+            height: 26mm;
+            display: block;
+          }
+          .mini-cta {
+            font-size: 5.5pt;
+            font-weight: 800;
+            color: #111827;
+            line-height: 1.1;
+          }
+          .mini-sub {
+            font-size: 4pt;
+            color: #4b5563;
+            line-height: 1;
+          }
+          .mini-url {
+            font-size: 3.5pt;
+            font-family: monospace;
+            color: #9ca3af;
+            max-width: 42mm;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1;
+          }
+        </style>
+      </head>
+      <body>
+        ${pagesHtml}
+      </body>
+    </html>
+  `);
+  doc.close();
+
+  iframe.contentWindow?.focus();
+  setTimeout(() => {
+    iframe.contentWindow?.print();
+    setTimeout(() => {
+      if (iframe.parentNode) {
+        iframe.parentNode.removeChild(iframe);
+      }
+    }, 4000);
+  }, 250);
+}
+
