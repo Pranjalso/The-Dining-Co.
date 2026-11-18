@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
+import connectDB from '@/lib/db/connect';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,7 +9,8 @@ export async function GET(req: NextRequest) {
     timestamp: new Date().toISOString(),
     env: {
       has_MONGODB_URI: !!process.env.MONGODB_URI,
-      uri_start: process.env.MONGODB_URI ? process.env.MONGODB_URI.slice(0, 18) + '...' : null,
+      uri_user: process.env.MONGODB_URI ? process.env.MONGODB_URI.split('://')[1]?.split(':')[0] : null,
+      uri_host: process.env.MONGODB_URI ? process.env.MONGODB_URI.split('@')[1]?.split('/')[0] : null,
       has_JWT_SECRET: !!process.env.JWT_SECRET,
       has_JWT_REFRESH_SECRET: !!process.env.JWT_REFRESH_SECRET,
       has_SUPERADMIN_USERNAME: !!process.env.SUPERADMIN_USERNAME,
@@ -27,10 +29,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const start = Date.now();
-    await mongoose.connect(process.env.MONGODB_URI, {
-      serverSelectionTimeoutMS: 5000,
-      connectTimeoutMS: 5000,
-    });
+    await connectDB();
     result.mongo.connected = true;
     result.mongo.connectDurationMs = Date.now() - start;
 
