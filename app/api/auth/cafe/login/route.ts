@@ -41,10 +41,11 @@ export async function POST(req: NextRequest) {
 
     // Search for the user in both Admin and Cafe collections
     // The input 'username' could be: username, email, or cafe slug
+    const usernameEscaped = username.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     let admin = await Admin.findOne({
       $or: [
-        { username: username },
-        { cafeSlug: username }
+        { username: { $regex: new RegExp(`^${usernameEscaped}$`, 'i') } },
+        { cafeSlug: username.trim().toLowerCase() }
       ]
     });
 
@@ -53,9 +54,9 @@ export async function POST(req: NextRequest) {
     if (!admin) {
       cafe = await Cafe.findOne({
         $or: [
-          { username: username },
-          { email: username.toLowerCase() },
-          { slug: username.toLowerCase() }
+          { username: { $regex: new RegExp(`^${usernameEscaped}$`, 'i') } },
+          { email: username.trim().toLowerCase() },
+          { slug: username.trim().toLowerCase() }
         ]
       });
 
@@ -68,7 +69,10 @@ export async function POST(req: NextRequest) {
 
       // If we found a cafe, find its associated admin
       admin = await Admin.findOne({
-        username: cafe.username
+        $or: [
+          { username: cafe.username },
+          { cafeSlug: cafe.slug }
+        ]
       });
 
       // If no admin record exists yet for this cafe, we'll use the cafe record for login
@@ -95,7 +99,7 @@ export async function POST(req: NextRequest) {
 
         setTokenCookies(token, refreshToken, 'cafeadmin');
 
-        return NextResponse.json({
+        const response = NextResponse.json({
           success: true,
           message: 'Login successful',
           token,
@@ -108,6 +112,24 @@ export async function POST(req: NextRequest) {
             cafeName: cafe.cafeName,
           },
         });
+
+        const sevenDays = 60 * 60 * 24 * 7;
+        response.cookies.set('token_cafeadmin', token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: sevenDays,
+          path: '/',
+        });
+        response.cookies.set('refreshToken_cafeadmin', refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: sevenDays,
+          path: '/',
+        });
+
+        return response;
       }
     }
 
@@ -124,7 +146,7 @@ export async function POST(req: NextRequest) {
         ]
       });
 
-      if (cafeForMigration) {
+      if (cafeForMigration && cafeForMigration.password) {
         const cafeValid = await import('bcryptjs').then(m => m.default.compare(password, cafeForMigration.password));
         if (cafeValid) {
           // Migrate admin password to correct hash based on provided password
@@ -167,7 +189,7 @@ export async function POST(req: NextRequest) {
 
     setTokenCookies(token, refreshToken, 'cafeadmin');
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       message: 'Login successful',
       token,
@@ -180,10 +202,28 @@ export async function POST(req: NextRequest) {
         cafeName: cafe.cafeName,
       },
     });
-  } catch (error) {
+
+    const sevenDays = 60 * 60 * 24 * 7;
+    response.cookies.set('token_cafeadmin', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: sevenDays,
+      path: '/',
+    });
+    response.cookies.set('refreshToken_cafeadmin', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: sevenDays,
+      path: '/',
+    });
+
+    return response;
+  } catch (error: any) {
     console.error('Cafe login error:', error);
     return NextResponse.json(
-      { success: false, message: 'Internal server error' },
+      { success: false, message: error?.message || 'Internal server error' },
       { status: 500 }
     );
   }

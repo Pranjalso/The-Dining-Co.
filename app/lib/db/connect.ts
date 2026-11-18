@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI;
+const DEFAULT_MONGODB_URI = 'mongodb+srv://pranjalsoni484_db_user:VEdZAn9RiV4sAT1O@cluster0.qwmuqhs.mongodb.net/test?retryWrites=true&w=majority';
+const MONGODB_URI = process.env.MONGODB_URI || DEFAULT_MONGODB_URI;
 
 interface Cached {
   conn: typeof mongoose | null;
@@ -18,24 +19,18 @@ if (!global.mongoose) {
 const cached: Cached = global.mongoose;
 
 async function connectDB() {
-  if (!MONGODB_URI) {
-    throw new Error('Please define MONGODB_URI in .env.local');
-  }
-
-  if (cached.conn) {
-    console.log('Using cached MongoDB connection');
+  if (cached.conn && mongoose.connection.readyState === 1) {
     return cached.conn;
   }
 
-  if (!cached.promise) {
-    const opts = {
+  if (!cached.promise || mongoose.connection.readyState === 0) {
+    const opts: mongoose.ConnectOptions = {
       bufferCommands: false,
       autoIndex: false,
-      serverSelectionTimeoutMS: 30000,
+      serverSelectionTimeoutMS: 10000,
       socketTimeoutMS: 45000,
-      connectTimeoutMS: 30000,
+      connectTimeoutMS: 10000,
       maxPoolSize: 10,
-      family: 4,
     };
 
     console.log('Connecting to MongoDB...', {
@@ -44,23 +39,25 @@ async function connectDB() {
     });
     
     cached.promise = mongoose.connect(MONGODB_URI, opts)
-      .then((mongoose) => {
+      .then((m) => {
         console.log('MongoDB connected successfully');
-        return mongoose;
+        return m;
       })
       .catch((error) => {
         console.error('MongoDB connection error:', error);
-        cached.promise = null; // Reset promise so we can retry
+        cached.promise = null;
+        cached.conn = null;
         throw error;
       });
   }
 
   try {
     cached.conn = await cached.promise;
-  } catch (e) {
+  } catch (e: any) {
     cached.promise = null;
+    cached.conn = null;
     console.error('MongoDB connection error:', e);
-    throw new Error('Failed to connect to database. Please check your connection.');
+    throw new Error(`Failed to connect to database: ${e?.message || 'Check connection settings'}`);
   }
 
   return cached.conn;

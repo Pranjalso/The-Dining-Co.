@@ -56,10 +56,10 @@ export async function GET(
         theme: cafe.theme || 'warm-beige',
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching cafe:', error);
     return NextResponse.json(
-      { success: false, message: 'Internal server error' },
+      { success: false, message: error?.message || 'Internal server error' },
       { status: 500 }
     );
   }
