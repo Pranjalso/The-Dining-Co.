@@ -22,6 +22,19 @@ export async function GET(
     // Check if subscription has expired
     const isExpired = cafe.subscriptionPlan !== 'Lifetime' && new Date(cafe.endDate) < new Date();
 
+    // Calculate days remaining & expiry warning (before 3 days of expiration)
+    let daysRemaining: number | null = null;
+    let isExpiringSoon = false;
+    if (cafe.subscriptionPlan !== 'Lifetime' && cafe.endDate) {
+      const now = new Date();
+      const end = new Date(cafe.endDate);
+      const diffMs = end.getTime() - now.getTime();
+      daysRemaining = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+      if (daysRemaining <= 3 && !isExpired) {
+        isExpiringSoon = true;
+      }
+    }
+
     // Return only necessary public information
     return NextResponse.json({
       success: true,
@@ -31,6 +44,10 @@ export async function GET(
         isActive: cafe.isActive && !isExpired,
         isManuallyDeactivated: !cafe.isActive,
         isExpired,
+        endDate: cafe.endDate,
+        subscriptionPlan: cafe.subscriptionPlan,
+        daysRemaining,
+        isExpiringSoon,
         taxRate: cafe.taxRate ?? 5.0,
         showTax: cafe.showTax ?? true,
         upiQrCode: cafe.upiQrCode || null,

@@ -29,6 +29,7 @@ import {
 
 import useLocalStorage from "@/hooks/use-local-storage";
 import AdminServiceAlerts, { unlockDeskBellAudio } from "@/components/AdminServiceAlerts";
+import SubscriptionExpiryBanner from "@/components/SubscriptionExpiryBanner";
 import { getPusherClient } from "@/lib/pusher-client";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -44,6 +45,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [audioUnlocked, setAudioUnlocked] = useState(false);
   const [subscriptionExpired, setSubscriptionExpired] = useState(false);
   const [cafeDeactivated, setCafeDeactivated] = useState(false);
+  const [daysRemaining, setDaysRemaining] = useState<number | null>(null);
+  const [isExpiringSoon, setIsExpiringSoon] = useState(false);
+  const [subscriptionPlan, setSubscriptionPlan] = useState<string>("Subscription");
+  const [subscriptionEndDate, setSubscriptionEndDate] = useState<string | Date | undefined>(undefined);
+  const [cafeName, setCafeName] = useState<string>("");
   const isFirstLoad = useRef(true);
   const lastCountRef = useRef(0);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -190,6 +196,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       if (data.success && data.data) {
         setSubscriptionExpired(!!data.data.isExpired);
         setCafeDeactivated(!!data.data.isManuallyDeactivated);
+        setDaysRemaining(typeof data.data.daysRemaining === "number" ? data.data.daysRemaining : null);
+        setIsExpiringSoon(!!data.data.isExpiringSoon);
+        setSubscriptionPlan(data.data.subscriptionPlan || "Subscription");
+        setSubscriptionEndDate(data.data.endDate);
+        setCafeName(data.data.cafeName || "");
         // Sync theme attribute to HTML root
         if (data.data.theme && typeof document !== 'undefined') {
           document.documentElement.setAttribute('data-theme', data.data.theme);
@@ -450,6 +461,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* ─── Main Content Wrapper ─── */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden menu-container">
           
+          {/* Subscription Expiry Warning Banner (Shown before 3 days of expiration) */}
+          <SubscriptionExpiryBanner
+            cafeSlug={typeof menupages === "string" ? menupages : ""}
+            cafeName={cafeName}
+            subscriptionPlan={subscriptionPlan}
+            endDate={subscriptionEndDate}
+            daysRemaining={daysRemaining}
+            isExpiringSoon={isExpiringSoon}
+          />
+
           {/* Top Header */}
           <header className="menu-header backdrop-blur-xl border-b menu-border px-6 py-4 flex items-center gap-4 shadow-sm shrink-0 z-30">
             <button
