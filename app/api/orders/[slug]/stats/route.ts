@@ -75,7 +75,9 @@ export const GET = withCafeAccess(async (
       {
         $group: {
           _id: null,
-          total: { $sum: 1 },
+          total: {
+            $sum: { $cond: [{ $ne: ['$orderStatus', 'cancelled'] }, 1, 0] }
+          },
           pending: {
             $sum: { $cond: [{ $eq: ['$orderStatus', 'pending'] }, 1, 0] }
           },
@@ -116,7 +118,7 @@ export const GET = withCafeAccess(async (
       const mongoTz = `${sign}${tzHours}:${tzMins}`;
 
       const hourlyAggregation = await Order.aggregate([
-        { $match: query },
+        { $match: { ...query, orderStatus: { $ne: 'cancelled' } } },
         {
           $project: {
             hour: { $hour: { date: '$createdAt', timezone: mongoTz } }
@@ -150,7 +152,7 @@ export const GET = withCafeAccess(async (
       const mongoTz = `${sign}${tzHours}:${tzMins}`;
 
       const dailyAggregation = await Order.aggregate([
-        { $match: query },
+        { $match: { ...query, orderStatus: { $ne: 'cancelled' } } },
         {
           $project: {
             date: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt', timezone: mongoTz } }
