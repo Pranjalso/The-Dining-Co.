@@ -450,3 +450,37 @@ export const PATCH = withCafeAccess(async (
     );
   }
 });
+
+// DELETE: Delete an order or clear completed orders for a cafe
+export const DELETE = withCafeAccess(async (
+  req: AuthRequest,
+  { params }: { params: { slug: string } }
+) => {
+  try {
+    await connectDB();
+    const { searchParams } = req.nextUrl;
+    const orderId = searchParams.get('id');
+    const paymentStatus = searchParams.get('paymentStatus');
+
+    if (orderId) {
+      const deleted = await Order.findOneAndDelete({ _id: orderId, cafeSlug: params.slug });
+      if (!deleted) {
+        return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
+      }
+      return NextResponse.json({ success: true, message: 'Order deleted successfully' });
+    }
+
+    if (paymentStatus === 'completed') {
+      const result = await Order.deleteMany({ cafeSlug: params.slug, paymentStatus: 'completed' });
+      return NextResponse.json({ success: true, message: `Deleted ${result.deletedCount} completed orders` });
+    }
+
+    return NextResponse.json({ success: false, message: 'Missing order id or paymentStatus parameter' }, { status: 400 });
+  } catch (error: any) {
+    console.error('Error deleting order:', error);
+    return NextResponse.json(
+      { success: false, message: error.message || 'Internal server error' },
+      { status: 500 }
+    );
+  }
+});
