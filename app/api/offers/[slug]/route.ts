@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/db/connect';
 import Offer from '@/lib/db/models/Offer';
 import Cafe from '@/lib/db/models/Cafe';
+import { pusher } from '@/lib/pusher';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 // GET: Fetch offers for a cafe (both public active-only and admin all-offers)
 export async function GET(
@@ -129,6 +133,17 @@ export async function POST(
     });
 
     console.log(`✅ Created offer [${newOffer._id}] for cafe [${cleanSlug}]: ${newOffer.title}`);
+
+    // Real-time notification for customer menus to update offers instantly
+    try {
+      await pusher.trigger(`cafe-${cleanSlug}`, 'offers-updated', {
+        offerId: newOffer._id.toString(),
+        isActive: newOffer.isActive,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (pusherErr) {
+      console.warn('[Pusher] offers-updated trigger error:', pusherErr);
+    }
 
     return NextResponse.json(
       {

@@ -244,10 +244,10 @@ export default function CheckoutPage() {
   const { data: offersData } = useSWR(
     menupages ? `/api/offers/${menupages}?activeOnly=true` : null,
     fetcher,
-    { revalidateOnFocus: false, dedupingInterval: 30000 }
+    { revalidateOnFocus: true, dedupingInterval: 0 }
   );
   const activeOffers = useMemo(() => {
-    return Array.isArray(offersData?.data) ? offersData.data : [];
+    return Array.isArray(offersData?.data) ? offersData.data.filter((o: any) => o.isActive !== false) : [];
   }, [offersData]);
 
   const [promoInput, setPromoInput] = useState("");
@@ -271,6 +271,22 @@ export default function CheckoutPage() {
       }
     } catch {}
   }, [menupages]);
+
+  // Invalidate applied promo if it is no longer in active offers
+  useEffect(() => {
+    if (offersData?.data !== undefined && Array.isArray(offersData.data) && appliedPromo) {
+      const isStillActive = offersData.data.some(
+        (o: any) => o.code && o.code.toUpperCase() === appliedPromo.code?.toUpperCase() && o.isActive !== false
+      );
+      if (!isStillActive) {
+        setAppliedPromo(null);
+        try {
+          window.sessionStorage.removeItem(`sd:appliedOffer:${menupages}`);
+          window.localStorage.removeItem(`sd:appliedOffer:${menupages}`);
+        } catch {}
+      }
+    }
+  }, [offersData, appliedPromo, menupages]);
 
   const handleApplyPromo = (codeOverride?: string) => {
     setPromoError(null);

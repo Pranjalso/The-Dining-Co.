@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/db/connect';
 import Offer from '@/lib/db/models/Offer';
+import { pusher } from '@/lib/pusher';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 // PATCH: Update an existing offer (including quick isActive toggle)
 export async function PATCH(
@@ -48,6 +52,17 @@ export async function PATCH(
 
     console.log(`✅ Updated offer [${id}] for [${cleanSlug}]: active=${offer.isActive}`);
 
+    // Real-time notification for customer menus to update offers instantly
+    try {
+      await pusher.trigger(`cafe-${cleanSlug}`, 'offers-updated', {
+        offerId: id,
+        isActive: offer.isActive,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (pusherErr) {
+      console.warn('[Pusher] offers-updated trigger error:', pusherErr);
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Offer updated successfully',
@@ -89,6 +104,17 @@ export async function DELETE(
     }
 
     console.log(`🗑️ Deleted offer [${id}] for cafe [${cleanSlug}]`);
+
+    // Real-time notification for customer menus to update offers instantly
+    try {
+      await pusher.trigger(`cafe-${cleanSlug}`, 'offers-updated', {
+        offerId: id,
+        deleted: true,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (pusherErr) {
+      console.warn('[Pusher] offers-updated trigger error:', pusherErr);
+    }
 
     return NextResponse.json({
       success: true,

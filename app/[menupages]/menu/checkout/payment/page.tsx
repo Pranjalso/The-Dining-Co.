@@ -223,12 +223,37 @@ function PaymentPageContent({ menupages }: { menupages: string }) {
   useEffect(() => {
     try {
       if (!menupages) return;
-      const rawPromo = window.sessionStorage.getItem(`sd:appliedOffer:${menupages}`);
+      const rawPromo =
+        window.sessionStorage.getItem(`sd:appliedOffer:${menupages}`) ||
+        window.localStorage.getItem(`sd:appliedOffer:${menupages}`);
       if (rawPromo) {
         setAppliedPromo(JSON.parse(rawPromo));
       }
     } catch {}
   }, [menupages]);
+
+  // Check active offers to ensure promo is still valid
+  const { data: offersData } = useSWR(
+    menupages ? `/api/offers/${menupages}?activeOnly=true` : null,
+    fetcher,
+    { revalidateOnFocus: true, dedupingInterval: 0 }
+  );
+
+  // Invalidate applied promo if it is no longer in active offers
+  useEffect(() => {
+    if (offersData?.data !== undefined && Array.isArray(offersData.data) && appliedPromo) {
+      const isStillActive = offersData.data.some(
+        (o: any) => o.code && o.code.toUpperCase() === appliedPromo.code?.toUpperCase() && o.isActive !== false
+      );
+      if (!isStillActive) {
+        setAppliedPromo(null);
+        try {
+          window.sessionStorage.removeItem(`sd:appliedOffer:${menupages}`);
+          window.localStorage.removeItem(`sd:appliedOffer:${menupages}`);
+        } catch {}
+      }
+    }
+  }, [offersData, appliedPromo, menupages]);
 
   // Calculated totals with discount
   const subtotal = useMemo(() => lines.reduce((sum, l) => sum + l.price * l.qty, 0), [lines]);

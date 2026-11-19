@@ -204,20 +204,57 @@ export default function MenuClient({
     menupages ? `/api/offers/${menupages}?activeOnly=true` : null,
     fetcher,
     {
-      fallbackData: { success: true, count: initialOffers.length, data: initialOffers },
+      fallbackData: {
+        success: true,
+        count: Array.isArray(initialOffers) ? initialOffers.filter((o: any) => o.isActive === true).length : 0,
+        data: Array.isArray(initialOffers) ? initialOffers.filter((o: any) => o.isActive === true) : []
+      },
       revalidateOnFocus: true,
-      dedupingInterval: 10000
+      dedupingInterval: 0
     }
   );
   const activeOffers: OfferItem[] = useMemo(() => {
-    if (offersData?.data && Array.isArray(offersData.data) && offersData.data.length > 0) {
-      return offersData.data;
+    // If offersData exists and has a data array, that is the authoritative source of truth (even if empty [])
+    if (offersData?.data !== undefined && Array.isArray(offersData.data)) {
+      return offersData.data.filter((o: any) => o.isActive !== false);
     }
-    return initialOffers;
+    // Only use initialOffers before SWR finishes, and only if strictly active
+    if (Array.isArray(initialOffers)) {
+      return initialOffers.filter((o: any) => o.isActive === true);
+    }
+    return [];
   }, [offersData, initialOffers]);
 
   const [showOfferPopup, setShowOfferPopup] = useState<boolean>(false);
   const hasAutoOpenedOffersRef = useRef<boolean>(false);
+
+  // If offers become inactive or empty, immediately dismiss popup
+  useEffect(() => {
+    if (activeOffers.length === 0 && showOfferPopup) {
+      setShowOfferPopup(false);
+    }
+  }, [activeOffers.length, showOfferPopup]);
+
+  // Clean up stale applied offers from localStorage & sessionStorage if no longer active
+  useEffect(() => {
+    if (typeof window === 'undefined' || !menupages) return;
+    if (offersData?.data !== undefined && Array.isArray(offersData.data)) {
+      try {
+        const stored = window.sessionStorage.getItem(`sd:appliedOffer:${menupages}`) ||
+                       window.localStorage.getItem(`sd:appliedOffer:${menupages}`);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          const isStillActive = offersData.data.some(
+            (o: any) => o.code && o.code.toUpperCase() === parsed.code?.toUpperCase() && o.isActive !== false
+          );
+          if (!isStillActive) {
+            window.sessionStorage.removeItem(`sd:appliedOffer:${menupages}`);
+            window.localStorage.removeItem(`sd:appliedOffer:${menupages}`);
+          }
+        }
+      } catch {}
+    }
+  }, [offersData, menupages]);
 
   // Trigger Offer Popup ONLY after a fresh QR scan and once per scan session
   useEffect(() => {
@@ -429,6 +466,11 @@ export default function MenuClient({
     cafeChan.bind('order-status-updated', handleStatusUpdate);
     cafeChan.bind('payment-received', handleStatusUpdate);
 
+    const handleOffersUpdate = () => {
+      mutate(`/api/offers/${menupages}?activeOnly=true`);
+    };
+    cafeChan.bind('offers-updated', handleOffersUpdate);
+
     const handleThemeUpdate = (payload?: any) => {
       if (payload?.theme && typeof document !== 'undefined') {
         document.documentElement.setAttribute('data-theme', payload.theme);
@@ -444,6 +486,7 @@ export default function MenuClient({
         try {
           ch.unbind('order-status-updated', handleStatusUpdate);
           ch.unbind('payment-received', handleStatusUpdate);
+          ch.unbind('offers-updated', handleOffersUpdate);
           ch.unbind('theme-updated', handleThemeUpdate);
         } catch { }
       });

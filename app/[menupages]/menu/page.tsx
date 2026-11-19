@@ -5,6 +5,9 @@ import connectDB from "@/lib/db/connect";
 import Cafe from "@/lib/db/models/Cafe";
 import Offer from "@/lib/db/models/Offer";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 type PageProps = {
   params: { menupages: string };
   searchParams?: { table?: string; scan?: string };
