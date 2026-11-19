@@ -106,7 +106,7 @@ const CafeSchema = new Schema<ICafeDocument>(
     },
     showTax: {
       type: Boolean,
-      default: true,
+      default: false,
     },
     upiQrCode: {
       type: String,

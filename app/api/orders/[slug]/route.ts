@@ -226,9 +226,9 @@ export const POST = async (
       );
     }
 
-    // Fetch cafe settings for dynamic tax rate
-    const cafe = await Cafe.findOne({ slug }).select('taxRate');
-    const taxRate = cafe?.taxRate ?? 5.0; // Fallback to 5% if not found
+    // Fetch cafe settings for dynamic tax rate (only apply tax if cafe has showTax enabled)
+    const cafe = await Cafe.findOne({ slug }).select('taxRate showTax');
+    const taxRate = (cafe?.showTax === true && typeof cafe?.taxRate === 'number' && cafe.taxRate > 0) ? cafe.taxRate : 0;
 
     const subtotal = items.reduce(
       (sum: number, item) => sum + item.price * item.quantity,
@@ -271,7 +271,7 @@ export const POST = async (
     }
 
     const discountedSubtotal = Math.max(0, subtotal - discount);
-    const tax = Math.round(discountedSubtotal * (taxRate / 100));
+    const tax = taxRate > 0 ? Math.round(discountedSubtotal * (taxRate / 100)) : 0;
     const total = discountedSubtotal + tax;
 
     const lastOrder = await Order.findOne({ cafeSlug: slug }).sort({ orderNumber: -1 }).select('orderNumber').lean();

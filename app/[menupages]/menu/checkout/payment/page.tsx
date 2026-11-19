@@ -101,8 +101,8 @@ function PaymentPageContent({ menupages }: { menupages: string }) {
 
   useEffect(() => {
     if (cafeData?.success && cafeData.data) {
-      const newTax = typeof cafeData.data.taxRate === 'number' ? cafeData.data.taxRate : 5.0;
-      const newShow = typeof cafeData.data.showTax === 'boolean' ? cafeData.data.showTax : true;
+      const newTax = typeof cafeData.data.taxRate === 'number' ? cafeData.data.taxRate : 0;
+      const newShow = typeof cafeData.data.showTax === 'boolean' ? cafeData.data.showTax : false;
       setTaxRate(newTax);
       setShowTax(newShow);
       try {
